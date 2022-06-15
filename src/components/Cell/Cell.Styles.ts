@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { colors } from "../../helpers/Colors";
+import { colors } from "../../helpers/Style";
 
 export const CellContainer = styled('div') <{ size: number }>`
   position: relative;

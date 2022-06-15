@@ -1,12 +1,26 @@
 import { LaserDimension, LaserPosition, LaserProps, LaserType } from "../models/Laser";
 
 export class Checker {
+  private _won: boolean;
+
+  constructor() {
+    this._won = false;
+  }
+
+  public get won() {
+    return this._won;
+  }
+
   public checkGrid(grid: number[][], toSolve: string[][]) {
+    this._won = true;
+
     return toSolve.map((cells, position) => {
       return cells.map((cellVal, index) => {
         const traveller = new Traveller(grid, position, index, false);
         while (traveller.walk());
-        return traveller.getExitValue();
+        const exitValue = traveller.getExitValue();
+        this._won = this._won && exitValue === cellVal;
+        return exitValue;
       });
     });
   }

@@ -11,6 +11,7 @@ export interface IStateContext {
   displayMode: string;
   gridSize: number;
   cellSize: number;
+  margin: number;
 
   /* stock state */
   stock: number[];
@@ -24,6 +25,10 @@ export interface IStateContext {
   /* enigme */
   toSolve: string[][];
   result: string[][];
+  elapsedTime: number;
+  startedTime: number;
+  running: boolean;
+  won: boolean;
 
   /* laser */
   laserElements: LaserProps[],
@@ -41,7 +46,7 @@ const getGridDimensions = (squaresCount: number) => {
     ? { displayMode: "portrait", cellSize: Math.round((width * 0.9) / squaresCount) }
     : { displayMode: "landscape", cellSize: Math.round((height * 0.9) / squaresCount) }
 
-  return { ...result, gridSize: result.cellSize * squaresCount };
+  return { ...result, gridSize: result.cellSize * squaresCount, margin: (Math.min(width, height) - result.cellSize * squaresCount) >> 1 };
 };
 
 const checker = new Checker();
@@ -49,7 +54,7 @@ const checker = new Checker();
 const initGrid = (squaresCount: number) => {
   const iterator = new Array<number>(squaresCount).fill(0);
   const line = new Array<number>(squaresCount).fill(0);
-  return iterator.map((_, index) => [...line]);
+  return iterator.map((_) => [...line]);
 };
 
 const initialData: IStateContext = {
@@ -68,6 +73,10 @@ const initialData: IStateContext = {
   setGridElement: () => { },
   laserElements: [],
   displayLaser: () => { },
+  elapsedTime: 0,
+  startedTime: new Date().getTime(),
+  running: true,
+  won: false,
   ...getGridDimensions(10),
 };
 
@@ -83,15 +92,28 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   const [laserElements, setLaserElements] = useState(initialData.laserElements);
   const [displayLaserPosition, setDisplayLaserPosition] = useState<number>();
   const [displayLaserIndex, setDisplayLaserIndex] = useState<number>();
+  const [elapsedTime, setElapsedTime] = useState(initialData.elapsedTime);
+  const [startedTime, setStartedTime] = useState(initialData.startedTime);
+  const [running, setRunning] = useState(initialData.running);
+  const [won, setWon] = useState(initialData.won);
 
   useEffect(() => {
-    function handleResize() {
+    const handleResize = () => {
       setGridDimensions(getGridDimensions(squaresCount + 2));
-    }
+    };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [squaresCount]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (running) {
+        setElapsedTime(new Date().getTime() - startedTime);
+      }
+    });
+    return () => clearInterval(interval);
+  }, [running, startedTime]);
 
   const numberCompare = (a: number, b: number) => {
     return a === 0 ? 0 : (a < b ? -1 : 1);
@@ -100,9 +122,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   const pushToStock = (elt: number) => {
     stock.push(elt);
     setStock(stock.sort(numberCompare));
-    if (stockIndex === undefined) {
-      setStockIndex(0);
-    }
+    setStockIndex(stock.findIndex((s) => s === elt));
   };
 
   const removeFromStock = (index: number) => {
@@ -118,7 +138,12 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   };
 
   const checkGrid = () => {
-    setResult(checker.checkGrid(grid, toSolve));
+    const newResult = checker.checkGrid(grid, toSolve);
+    setResult(newResult);
+    if (checker.won) {
+      setRunning(false);
+      setWon(true);
+    }
   }
 
   const setGridElement = (row: number, col: number) => {
@@ -174,6 +199,10 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     displayLaserPosition,
     displayLaserIndex,
     displayLaser,
+    elapsedTime,
+    startedTime,
+    running,
+    won,
     ...gridDimensions
   };
 

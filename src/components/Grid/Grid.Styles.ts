@@ -10,8 +10,9 @@ export const Line = styled('div') <{ height: number }>`
   flex-shrink: 0;
 `;
 
-export const GridArea = styled("div") <{ width: number }>`
+export const GridArea = styled("div") <{ width: number, margin: number }>`
   width: ${(props) => `${props.width}px`};
   height: ${(props) => `${props.width}px`};
-  padding: 1em;
+  margin-top: ${(props) => `${props.margin}px`};
+  margin-left: ${(props) => `${props.margin}px`};
 `;

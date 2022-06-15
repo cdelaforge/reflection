@@ -1,6 +1,6 @@
 import { useAppState } from "../../state/AppStateProvider";
 import { CellNumberBack } from "./Cell.Styles";
-import { colors } from "../../helpers/Colors";
+import { colors } from "../../helpers/Style";
 
 enum ReflectionType { "r", "s", "a" };
 

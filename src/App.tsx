@@ -1,7 +1,5 @@
-import React from 'react';
-
 import './App.css';
-import { Grid, Stock } from "./components";
+import { Grid, Stock, GameStatus } from "./components";
 import { AppArea } from "./App.styles";
 import { useAppState } from "./state/AppStateProvider";
 
@@ -12,6 +10,7 @@ function App() {
     <AppArea mode={displayMode}>
       <Stock></Stock>
       <Grid></Grid>
+      <GameStatus></GameStatus>
     </AppArea>
   );
 }

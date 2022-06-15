@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 
-export const StockArea = styled('div') <{ width: number, height: number }>`
+export const StockArea = styled('div') <{ width: number, height: number, margin: number }>`
   width: ${(props) => `${props.width}px`};
   height: ${(props) => `${props.height}px`};
   display: flex;
@@ -8,5 +8,6 @@ export const StockArea = styled('div') <{ width: number, height: number }>`
   -webkit-box-flex: 0;
   flex-grow: 0;
   flex-shrink: 0;
-  padding: 1em;
+  margin-top: ${(props) => `${props.margin}px`};
+  margin-left: ${(props) => `${props.margin}px`};
 `;

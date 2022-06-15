@@ -1,4 +1,4 @@
-import { colors } from "../helpers/Colors";
+import { colors } from "../helpers/Style";
 import { LaserDimension, LaserPosition, LaserType, LaserIconProps } from "../models/Laser";
 import { IconProps } from "./IconProps";
 

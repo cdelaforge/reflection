@@ -1,4 +1,4 @@
-import { colors } from "../helpers/Colors";
+import { colors } from "../helpers/Style";
 import { IconProps } from "./IconProps";
 
 export default function MirrorSlashIcon({ size }: IconProps) {

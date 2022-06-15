@@ -3,7 +3,7 @@ import { Line, GridArea } from "./Grid.Styles";
 import { Cell, SideCell, CornerCell } from "../";
 
 function Grid() {
-  const { squaresCount, gridSize, cellSize } = useAppState();
+  const { squaresCount, gridSize, cellSize, margin } = useAppState();
 
   const iterator = new Array<number>(squaresCount).fill(0);
 
@@ -28,7 +28,7 @@ function Grid() {
   };
 
   return (
-    <GridArea width={gridSize}>
+    <GridArea width={gridSize} margin={margin}>
       {getHeader("top")}
       {iterator.map((_, row) => getLine(row))}
       {getHeader("bottom")}
