@@ -5,11 +5,13 @@ import { colors } from "../../helpers/Style";
 enum ReflectionType { "r", "s", "a" };
 
 const getType = (valStr: string) => {
-  if (valStr.endsWith("a")) {
-    return ReflectionType.a;
-  }
-  if (valStr.endsWith("r")) {
-    return ReflectionType.r;
+  if (valStr) {
+    if (valStr.endsWith("a")) {
+      return ReflectionType.a;
+    }
+    if (valStr.endsWith("r")) {
+      return ReflectionType.r;
+    }
   }
   return ReflectionType.s;
 }

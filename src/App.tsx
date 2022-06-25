@@ -10,7 +10,7 @@ function App() {
     <AppArea mode={displayMode}>
       <Stock></Stock>
       <Grid></Grid>
-      <GameStatus></GameStatus>
+      {false && <GameStatus></GameStatus>}
     </AppArea>
   );
 }

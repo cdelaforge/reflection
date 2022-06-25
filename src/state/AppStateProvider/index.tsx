@@ -1,8 +1,11 @@
 import React, { createContext, useContext, ReactNode, useCallback, useState, useEffect } from 'react';
 import { Checker } from "../../helpers/Checker";
+import { WindowWithGameMethods, GameSetup } from "../../models/External";
 import { LaserProps } from "../../models/Laser";
 
 export interface IStateContext {
+  mode: string;
+
   /* config */
   squaresCount: number;
   elementsCount: number;
@@ -39,12 +42,13 @@ export interface IStateContext {
 
 export const StateContext = createContext<IStateContext>(null!);
 
-const getGridDimensions = (squaresCount: number) => {
-  const { innerWidth: width, innerHeight: height } = window;
+const getGridDimensions = (squaresCount: number, areaWidth?: number, areaHeight?: number) => {
+  const width = areaWidth || window.innerWidth;
+  const height = areaHeight || window.innerHeight;
 
   const result = (width < height)
-    ? { displayMode: "portrait", cellSize: Math.round((width * 0.9) / squaresCount) }
-    : { displayMode: "landscape", cellSize: Math.round((height * 0.9) / squaresCount) }
+    ? { displayMode: "portrait", cellSize: Math.round((width * 0.96) / squaresCount) }
+    : { displayMode: "landscape", cellSize: Math.round((height * 0.96) / squaresCount) }
 
   return { ...result, gridSize: result.cellSize * squaresCount, margin: (Math.min(width, height) - result.cellSize * squaresCount) >> 1 };
 };
@@ -58,6 +62,7 @@ const initGrid = (squaresCount: number) => {
 };
 
 const initialData: IStateContext = {
+  mode: 'puzzleCreation',
   squaresCount: 8,
   elementsCount: 15,
   stock: [1, 1, 2, 2, 2, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7],
@@ -81,6 +86,7 @@ const initialData: IStateContext = {
 };
 
 export function AppStateProvider(props: React.PropsWithChildren<{}>) {
+  const [mode, setMode] = useState(initialData.mode);
   const [squaresCount, setSquaresCount] = useState(initialData.squaresCount);
   const [elementsCount, setElementsCount] = useState(initialData.elementsCount);
   const [stock, setStock] = useState(initialData.stock);
@@ -88,7 +94,12 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   const [grid, setGrid] = useState(initialData.grid);
   const [toSolve, setToSolve] = useState(initialData.toSolve);
   const [result, setResult] = useState(checker.checkGrid(grid, toSolve));
-  const [gridDimensions, setGridDimensions] = useState(getGridDimensions(squaresCount + 2));
+  const [gridDimensions, setGridDimensions] = useState({
+    displayMode: initialData.displayMode,
+    gridSize: initialData.gridSize,
+    cellSize: initialData.cellSize,
+    margin: initialData.margin
+  });
   const [laserElements, setLaserElements] = useState(initialData.laserElements);
   const [displayLaserPosition, setDisplayLaserPosition] = useState<number>();
   const [displayLaserIndex, setDisplayLaserIndex] = useState<number>();
@@ -96,15 +107,63 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   const [startedTime, setStartedTime] = useState(initialData.startedTime);
   const [running, setRunning] = useState(initialData.running);
   const [won, setWon] = useState(initialData.won);
+  const [areaWidth, setAreaWidth] = useState<number>();
+  const [areaHeight, setAreaHeight] = useState<number>();
+
+  useEffect(() => {
+    const w: WindowWithGameMethods = window as any;
+    w.game = {
+      setup: (p: GameSetup) => {
+        setMode(p.mode);
+        if (p.gridSize) {
+          const grid = initGrid(p.gridSize);
+          const toSolve = [
+            new Array<string>(p.gridSize).fill(''),
+            new Array<string>(p.gridSize).fill(''),
+            new Array<string>(p.gridSize).fill(''),
+            new Array<string>(p.gridSize).fill('')
+          ];
+
+          setSquaresCount(p.gridSize);
+          setGrid(grid);
+          setToSolve(toSolve);
+          setResult(checker.checkGrid(grid, toSolve));
+        }
+        if (p.elements) {
+          setElementsCount(p.elements.length);
+          setStock(p.elements);
+          setStockIndex(undefined);
+        }
+
+        /*
+        const squaresCount = toSolve[0].length;
+        const grid = initGrid(squaresCount);
+
+        setSquaresCount(squaresCount);
+        setElementsCount(stock.length);
+        setStock(stock);
+        setStockIndex(undefined);
+        setGrid(grid);
+        setToSolve(toSolve);
+        setResult(checker.checkGrid(grid, toSolve))
+        */
+      },
+      setAreaSize: (width: number, height: number) => {
+        setAreaWidth(width);
+        setAreaHeight(height);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
-      setGridDimensions(getGridDimensions(squaresCount + 2));
+      setGridDimensions(getGridDimensions(squaresCount + 2, areaWidth, areaHeight));
     };
 
     window.addEventListener('resize', handleResize);
+    handleResize();
     return () => window.removeEventListener('resize', handleResize);
-  }, [squaresCount]);
+  }, [squaresCount, areaWidth, areaHeight]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -114,6 +173,15 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     });
     return () => clearInterval(interval);
   }, [running, startedTime]);
+
+  useEffect(() => {
+    const w: WindowWithGameMethods = window as any;
+    if (w.game.onGridChange) {
+      w.game.onGridChange(grid);
+    }
+  }, [grid]);
+
+
 
   const numberCompare = (a: number, b: number) => {
     return a === 0 ? 0 : (a < b ? -1 : 1);
@@ -186,6 +254,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   };
 
   const value = {
+    mode,
     squaresCount,
     elementsCount,
     stock,
