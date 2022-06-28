@@ -93,7 +93,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   const [stockIndex, setStockIndex] = useState<number>();
   const [grid, setGrid] = useState(initialData.grid);
   const [toSolve, setToSolve] = useState(initialData.toSolve);
-  const [result, setResult] = useState(checker.checkGrid(grid, toSolve));
+  const [result, setResult] = useState<string[][]>([[]]);
   const [gridDimensions, setGridDimensions] = useState({
     displayMode: initialData.displayMode,
     gridSize: initialData.gridSize,
@@ -115,23 +115,39 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     w.game = {
       setup: (p: GameSetup) => {
         setMode(p.mode);
-        if (p.gridSize) {
-          const grid = initGrid(p.gridSize);
-          const toSolve = [
-            new Array<string>(p.gridSize).fill(''),
-            new Array<string>(p.gridSize).fill(''),
-            new Array<string>(p.gridSize).fill(''),
-            new Array<string>(p.gridSize).fill('')
-          ];
+        setSquaresCount(p.gridSize);
 
-          setSquaresCount(p.gridSize);
-          setGrid(grid);
-          setToSolve(toSolve);
-          setResult(checker.checkGrid(grid, toSolve));
-        }
+        const grid = p.grid || initGrid(p.gridSize);
+        setGrid(grid);
+
+        const toSolve = [
+          new Array<string>(p.gridSize).fill(''),
+          new Array<string>(p.gridSize).fill(''),
+          new Array<string>(p.gridSize).fill(''),
+          new Array<string>(p.gridSize).fill('')
+        ];
+        setToSolve(toSolve);
+        setResult(checker.checkGrid(grid, toSolve));
+
         if (p.elements) {
-          setElementsCount(p.elements.length);
-          setStock(p.elements);
+          const elements = p.elements.sort();
+
+          const elementsInGrid: number[] = [];
+          grid.map((row) => elementsInGrid.push(...row.filter((val) => val)));
+          elementsInGrid.sort();
+
+          const intersection = [];
+          let j = 0;
+          for (let i = 0; i < elements.length; i++) {
+            if (j < elementsInGrid.length && elements[i] === elementsInGrid[j]) {
+              j++;
+            } else {
+              intersection.push(elements[i]);
+            }
+          }
+
+          setElementsCount(elements.length);
+          setStock(intersection);
           setStockIndex(undefined);
         }
 
@@ -177,11 +193,9 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   useEffect(() => {
     const w: WindowWithGameMethods = window as any;
     if (w.game.onGridChange) {
-      w.game.onGridChange(grid);
+      w.game.onGridChange([...grid]);
     }
   }, [grid]);
-
-
 
   const numberCompare = (a: number, b: number) => {
     return a === 0 ? 0 : (a < b ? -1 : 1);
@@ -215,11 +229,13 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   }
 
   const setGridElement = (row: number, col: number) => {
-    const currentElement = grid[row][col];
+    const gridClone = [...grid.map((row) => [...row])];
+    const currentElement = gridClone[row][col];
+
     if (currentElement) {
       pushToStock(currentElement);
-      grid[row][col] = 0;
-      setGrid([...grid]);
+      gridClone[row][col] = 0;
+      setGrid(gridClone);
       checkGrid();
       refreshLaser();
       return;
@@ -228,8 +244,8 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     const stockElement = stockIndex === undefined ? 0 : stock[stockIndex];
     if (stockElement) {
       removeFromStock(stockIndex!);
-      grid[row][col] = stockElement;
-      setGrid([...grid]);
+      gridClone[row][col] = stockElement;
+      setGrid(gridClone);
       checkGrid();
       refreshLaser();
     }

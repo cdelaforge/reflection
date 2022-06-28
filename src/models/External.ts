@@ -1,7 +1,8 @@
 export interface GameSetup {
   mode: string,
+  gridSize: number,
   elements?: number[],
-  gridSize?: number,
+  grid?: number[][],
 }
 
 export interface WindowWithGameMethods {

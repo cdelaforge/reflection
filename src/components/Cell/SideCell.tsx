@@ -15,11 +15,19 @@ const posIndexHelper = {
   "left": 3
 };
 
+const getCurrentVal = (result: string[][], posIndex: number, index: number) => {
+  try {
+    return result[posIndex][index];
+  } catch (error) {
+    return "";
+  }
+};
+
 function SideCell({ position, index }: SideCellProps) {
   const { mode, cellSize, toSolve, result, displayLaserPosition, displayLaserIndex, displayLaser } = useAppState();
   const posIndex = posIndexHelper[position];
   const modeCreation = mode === "puzzleCreation";
-  const valCurrent = result[posIndex][index];
+  const valCurrent = getCurrentVal(result, posIndex, index);
   const valSolution = modeCreation ? valCurrent : toSolve[posIndex][index];
   const isCellCorrect = modeCreation || valCurrent === valSolution;
   const selected = displayLaserPosition === posIndex && displayLaserIndex === index;
