@@ -28,10 +28,7 @@ export interface IStateContext {
   /* enigme */
   toSolve: string[][];
   result: string[][];
-  elapsedTime: number;
-  startedTime: number;
   running: boolean;
-  won: boolean;
 
   /* laser */
   laserElements: LaserProps[],
@@ -62,7 +59,7 @@ const initGrid = (squaresCount: number) => {
 };
 
 const initialData: IStateContext = {
-  mode: 'puzzleCreation',
+  mode: 'play',
   squaresCount: 8,
   elementsCount: 15,
   stock: [1, 1, 2, 2, 2, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7],
@@ -78,10 +75,7 @@ const initialData: IStateContext = {
   setGridElement: () => { },
   laserElements: [],
   displayLaser: () => { },
-  elapsedTime: 0,
-  startedTime: new Date().getTime(),
   running: true,
-  won: false,
   ...getGridDimensions(10),
 };
 
@@ -103,16 +97,14 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   const [laserElements, setLaserElements] = useState(initialData.laserElements);
   const [displayLaserPosition, setDisplayLaserPosition] = useState<number>();
   const [displayLaserIndex, setDisplayLaserIndex] = useState<number>();
-  const [elapsedTime, setElapsedTime] = useState(initialData.elapsedTime);
-  const [startedTime, setStartedTime] = useState(initialData.startedTime);
   const [running, setRunning] = useState(initialData.running);
-  const [won, setWon] = useState(initialData.won);
   const [areaWidth, setAreaWidth] = useState<number>();
   const [areaHeight, setAreaHeight] = useState<number>();
 
   useEffect(() => {
     const w: WindowWithGameMethods = window as any;
     w.game = {
+      setRunning,
       setup: (p: GameSetup) => {
         setMode(p.mode);
         setSquaresCount(p.gridSize);
@@ -120,14 +112,13 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
         const grid = p.grid || initGrid(p.gridSize);
         setGrid(grid);
 
-        const toSolve = [
+        const toSolve = p.puzzle || [
           new Array<string>(p.gridSize).fill(''),
           new Array<string>(p.gridSize).fill(''),
           new Array<string>(p.gridSize).fill(''),
           new Array<string>(p.gridSize).fill('')
         ];
         setToSolve(toSolve);
-        setResult(checker.checkGrid(grid, toSolve));
 
         if (p.elements) {
           const elements = p.elements.sort();
@@ -148,21 +139,8 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
 
           setElementsCount(elements.length);
           setStock(intersection);
-          setStockIndex(undefined);
+          setStockIndex(intersection.length === 0 ? undefined : 0);
         }
-
-        /*
-        const squaresCount = toSolve[0].length;
-        const grid = initGrid(squaresCount);
-
-        setSquaresCount(squaresCount);
-        setElementsCount(stock.length);
-        setStock(stock);
-        setStockIndex(undefined);
-        setGrid(grid);
-        setToSolve(toSolve);
-        setResult(checker.checkGrid(grid, toSolve))
-        */
       },
       setAreaSize: (width: number, height: number) => {
         setAreaWidth(width);
@@ -182,20 +160,80 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   }, [squaresCount, areaWidth, areaHeight]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (running) {
-        setElapsedTime(new Date().getTime() - startedTime);
-      }
-    });
-    return () => clearInterval(interval);
-  }, [running, startedTime]);
+    const w: WindowWithGameMethods = window as any;
+    if (w.game.onGridChange) {
+      const gridClone = [...grid.map((row) => [...row])];
+      w.game.onGridChange(gridClone);
+    }
+  }, [grid]);
 
   useEffect(() => {
     const w: WindowWithGameMethods = window as any;
-    if (w.game.onGridChange) {
-      w.game.onGridChange([...grid]);
+    if (mode === "puzzleCreation" && w.game.onPuzzleChange) {
+      const resultClone = [...result.map((row) => [...row])];
+      w.game.onPuzzleChange(resultClone);
     }
-  }, [grid]);
+  }, [mode, result]);
+
+  useEffect(() => {
+    const newResult = checker.checkGrid(grid, toSolve);
+    setResult(newResult);
+
+    if (checker.won) {
+      setRunning(false);
+
+      const w: WindowWithGameMethods = window as any;
+      if (w.game.onPuzzleResolve) {
+        const gridClone = [...grid.map((row) => [...row])];
+        w.game.onPuzzleResolve(gridClone);
+      }
+    }
+  }, [grid, toSolve]);
+
+  useEffect(() => {
+    try {
+      const w: WindowWithGameMethods = window as any;
+      if (mode === "puzzleCreation" && w.game.onProgression) {
+        const elementsPlaced = elementsCount - stock.length;
+        const progression = Math.round(elementsPlaced * 100 / stock.length);
+        w.game.onProgression(progression);
+      }
+    } catch (error) { } // game not ready
+  }, [mode, elementsCount, stock]);
+
+  useEffect(() => {
+    try {
+      const w: WindowWithGameMethods = window as any;
+      if (mode === "play" && w.game.onProgression) {
+        let [ok, ko] = [0, 0];
+
+        for (let rowIndex = 0; rowIndex < toSolve.length; rowIndex++) {
+          const resultRow = result[rowIndex];
+          const toSolveRow = toSolve[rowIndex];
+
+          for (let colIndex = 0; colIndex < toSolveRow.length; colIndex++) {
+            if (resultRow[colIndex] === toSolveRow[colIndex]) {
+              ++ok;
+            } else {
+              ++ko;
+            }
+          }
+        }
+
+        const progression = Math.round(ok * 100 / (ok + ko));
+        w.game.onProgression(progression);
+
+      }
+    } catch (error) { } // game not ready
+  }, [mode, result, toSolve]);
+
+  useEffect(() => {
+    if (displayLaserPosition !== undefined && displayLaserIndex !== undefined) {
+      setLaserElements(checker.getLaserElements(grid, displayLaserPosition, displayLaserIndex));
+    } else {
+      setLaserElements([]);
+    }
+  }, [grid, displayLaserPosition, displayLaserIndex]);
 
   const numberCompare = (a: number, b: number) => {
     return a === 0 ? 0 : (a < b ? -1 : 1);
@@ -219,15 +257,6 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     }
   };
 
-  const checkGrid = () => {
-    const newResult = checker.checkGrid(grid, toSolve);
-    setResult(newResult);
-    if (checker.won) {
-      setRunning(false);
-      setWon(true);
-    }
-  }
-
   const setGridElement = (row: number, col: number) => {
     const gridClone = [...grid.map((row) => [...row])];
     const currentElement = gridClone[row][col];
@@ -236,8 +265,6 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
       pushToStock(currentElement);
       gridClone[row][col] = 0;
       setGrid(gridClone);
-      checkGrid();
-      refreshLaser();
       return;
     }
 
@@ -246,24 +273,14 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
       removeFromStock(stockIndex!);
       gridClone[row][col] = stockElement;
       setGrid(gridClone);
-      checkGrid();
-      refreshLaser();
-    }
-  };
-
-  const refreshLaser = () => {
-    if (displayLaserPosition !== undefined && displayLaserIndex !== undefined) {
-      setLaserElements(checker.getLaserElements(grid, displayLaserPosition, displayLaserIndex));
     }
   };
 
   const displayLaser = (position: number, index: number) => {
     if (displayLaserPosition === position && displayLaserIndex === index) {
-      setLaserElements([]);
       setDisplayLaserPosition(undefined);
       setDisplayLaserIndex(undefined);
     } else {
-      setLaserElements(checker.getLaserElements(grid, position, index));
       setDisplayLaserPosition(position);
       setDisplayLaserIndex(index);
     }
@@ -275,19 +292,16 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     elementsCount,
     stock,
     stockIndex,
-    setStockIndex,
+    setStockIndex: (index?: number) => { if (running) { setStockIndex(index); } },
     grid,
-    setGridElement,
+    setGridElement: (row: number, col: number) => { if (running) { setGridElement(row, col); } },
     toSolve,
     result,
     laserElements,
     displayLaserPosition,
     displayLaserIndex,
     displayLaser,
-    elapsedTime,
-    startedTime,
     running,
-    won,
     ...gridDimensions
   };
 

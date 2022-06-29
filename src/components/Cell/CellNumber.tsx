@@ -30,7 +30,7 @@ interface CellNumberProps {
 function CellNumber({ valStr, isCorrect }: CellNumberProps) {
   const { cellSize } = useAppState();
   const type = getType(valStr);
-  const val = parseInt(valStr, 10);
+  const val = parseInt(valStr, 10) || 0;
   const backColor = backColors.get(type) || "green";
 
   return <CellNumberBack size={cellSize - 2} backColor={backColor} isCorrect={isCorrect}>{val}</CellNumberBack>
