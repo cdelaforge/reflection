@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useCallback, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Checker } from "../../helpers/Checker";
 import { WindowWithGameMethods, GameSetup } from "../../models/External";
 import { LaserProps } from "../../models/Laser";
@@ -161,11 +161,11 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
 
   useEffect(() => {
     const w: WindowWithGameMethods = window as any;
-    if (w.game.onGridChange) {
+    if (mode !== "view" && w.game.onGridChange) {
       const gridClone = [...grid.map((row) => [...row])];
       w.game.onGridChange(gridClone);
     }
-  }, [grid]);
+  }, [mode, grid]);
 
   useEffect(() => {
     const w: WindowWithGameMethods = window as any;
@@ -193,9 +193,9 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   useEffect(() => {
     try {
       const w: WindowWithGameMethods = window as any;
-      if (mode === "puzzleCreation" && w.game.onProgression) {
+      if (mode === "puzzleCreation" && w.game.onProgression && elementsCount) {
         const elementsPlaced = elementsCount - stock.length;
-        const progression = Math.round(elementsPlaced * 100 / stock.length);
+        const progression = Math.round(elementsPlaced * 100 / elementsCount);
         w.game.onProgression(progression);
       }
     } catch (error) { } // game not ready
@@ -222,7 +222,6 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
 
         const progression = Math.round(ok * 100 / (ok + ko));
         w.game.onProgression(progression);
-
       }
     } catch (error) { } // game not ready
   }, [mode, result, toSolve]);
@@ -241,13 +240,13 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
 
   const pushToStock = (elt: number) => {
     stock.push(elt);
-    setStock(stock.sort(numberCompare));
+    setStock([...stock.sort(numberCompare)]);
     setStockIndex(stock.findIndex((s) => s === elt));
   };
 
   const removeFromStock = (index: number) => {
     stock[index] = 100;
-    const newStock = stock.sort(numberCompare);
+    const newStock = [...stock.sort(numberCompare)];
     newStock.pop();
     setStock(newStock);
     if (newStock.length === 0) {
