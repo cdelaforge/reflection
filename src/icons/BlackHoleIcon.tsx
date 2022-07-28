@@ -2,6 +2,7 @@ import { colors } from "../helpers/Style";
 import { IconProps } from "./IconProps";
 
 export default function BlackHoleIcon({ size }: IconProps) {
+  /*
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="-100 -95 712 707">
       <path fill={colors.black} d="M336,96c-43.106,0-82.584,15.504-113.184,41.23c25.931-58.966,83.266-101.002,150.837-104.918
@@ -11,6 +12,13 @@ export default function BlackHoleIcon({ size }: IconProps) {
         c97.206,0,176-78.798,176-176c0-43.106-15.504-82.584-41.23-113.184c58.966,25.931,101.002,83.267,104.918,150.838
         C500.037,344.944,512,309.87,512,272C512,174.794,433.202,96,336,96z M256,312c-30.928,0-56-25.072-56-56s25.072-56,56-56
         s56,25.072,56,56S286.928,312,256,312z"/>
+    </svg>
+  );
+  */
+
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="25" fill={colors.black} />
     </svg>
   );
 }

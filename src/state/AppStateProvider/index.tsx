@@ -52,10 +52,49 @@ const getGridDimensions = (squaresCount: number, areaWidth?: number, areaHeight?
 
 const checker = new Checker();
 
-const initGrid = (squaresCount: number) => {
+const initGrid = (squaresCount: number, portals?: number[]) => {
   const iterator = new Array<number>(squaresCount).fill(0);
   const line = new Array<number>(squaresCount).fill(0);
-  return iterator.map((_) => [...line]);
+  const grid = iterator.map((_) => [...line]);
+
+  if (portals && portals.length === 4) {
+    grid[portals[0]][portals[1]] = 7;
+    grid[portals[2]][portals[3]] = 7;
+  }
+
+  return grid;
+};
+
+const initPuzzle = (squaresCount: number, mode?: string, elements?: number[], portals?: number[]) => {
+  let toSolve = [
+    new Array<string>(squaresCount).fill(''),
+    new Array<string>(squaresCount).fill(''),
+    new Array<string>(squaresCount).fill(''),
+    new Array<string>(squaresCount).fill('')
+  ];
+
+  if (mode === "standalone" && elements) {
+    const grid = initGrid(squaresCount, portals);
+
+    for (let index = 0; index < elements.length;) {
+      const row = Math.floor(Math.random() * squaresCount);
+      const col = Math.floor(Math.random() * squaresCount);
+
+      if (grid[row][col] === 0) {
+        grid[row][col] = elements[index];
+        ++index;
+      }
+    }
+
+    toSolve = checker.checkGrid(grid, toSolve);
+
+    const w: WindowWithGameMethods = window as any;
+    if (w.game.onStandaloneStart) {
+      w.game.onStandaloneStart(grid, toSolve);
+    }
+  }
+
+  return toSolve;
 };
 
 const initialData: IStateContext = {
@@ -100,24 +139,21 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   const [running, setRunning] = useState(initialData.running);
   const [areaWidth, setAreaWidth] = useState<number>();
   const [areaHeight, setAreaHeight] = useState<number>();
+  const [playerAction, setPlayerAction] = useState<boolean>(false);
 
   useEffect(() => {
     const w: WindowWithGameMethods = window as any;
     w.game = {
       setRunning,
       setup: (p: GameSetup) => {
+        setPlayerAction(false);
         setMode(p.mode);
         setSquaresCount(p.gridSize);
 
-        const grid = p.grid || initGrid(p.gridSize);
+        const grid = p.grid || initGrid(p.gridSize, p.portals);
         setGrid(grid);
 
-        const toSolve = p.puzzle || [
-          new Array<string>(p.gridSize).fill(''),
-          new Array<string>(p.gridSize).fill(''),
-          new Array<string>(p.gridSize).fill(''),
-          new Array<string>(p.gridSize).fill('')
-        ];
+        const toSolve = p.puzzle || initPuzzle(p.gridSize, p.mode, p.elements, p.portals);
         setToSolve(toSolve);
 
         if (p.elements) {
@@ -161,11 +197,12 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
 
   useEffect(() => {
     const w: WindowWithGameMethods = window as any;
-    if (mode !== "view" && w.game.onGridChange) {
+    if (mode !== "view" && w.game.onGridChange && playerAction) {
       const gridClone = [...grid.map((row) => [...row])];
       w.game.onGridChange(gridClone);
+      setPlayerAction(false);
     }
-  }, [mode, grid]);
+  }, [mode, grid, playerAction]);
 
   useEffect(() => {
     const w: WindowWithGameMethods = window as any;
@@ -293,7 +330,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     stockIndex,
     setStockIndex: (index?: number) => { if (running) { setStockIndex(index); } },
     grid,
-    setGridElement: (row: number, col: number) => { if (running) { setGridElement(row, col); } },
+    setGridElement: (row: number, col: number) => { if (running) { setGridElement(row, col); setPlayerAction(true); } },
     toSolve,
     result,
     laserElements,

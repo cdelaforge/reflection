@@ -5,6 +5,7 @@ export const CellContainer = styled('div') <{ size: number }>`
   position: relative;
   width:  ${(props) => `${props.size}px`};
   height:  ${(props) => `${props.size}px`};
+  cursor: pointer;
 `;
 
 export const CellContainerChild = styled('div')`

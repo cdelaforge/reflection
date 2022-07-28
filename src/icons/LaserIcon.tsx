@@ -29,17 +29,9 @@ export function LaserIcon({ size, type, position, dimension }: LaserIconProps & 
     return <rect x="45" y={getStartPos()} width="10" height={getEndPos()} fill={colors.laser} fillOpacity="1" strokeOpacity="1" />;
   };
 
-  const getCircle = () => {
-    if (dimension === LaserDimension.medium) {
-      return <circle cx="50" cy="50" r="5" fill={colors.laser} />;
-    }
-    return <></>;
-  }
-
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 100 100">
       {getLaser()}
-      {getCircle()}
     </svg>
   );
 }

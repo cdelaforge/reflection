@@ -33,7 +33,7 @@ const getToSolve = (toSolve: string[][], posIndex: number, index: number) => {
 function SideCell({ position, index }: SideCellProps) {
   const { mode, cellSize, toSolve, result, displayLaserPosition, displayLaserIndex, displayLaser } = useAppState();
   const posIndex = posIndexHelper[position];
-  const modeCreation = mode !== "play";
+  const modeCreation = mode !== "play" && mode !== "standalone";
   const valCurrent = getCurrentVal(result, posIndex, index);
   const valSolution = modeCreation ? valCurrent : getToSolve(toSolve, posIndex, index);
   const isCellCorrect = modeCreation || valCurrent === valSolution;

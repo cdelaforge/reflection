@@ -4,6 +4,7 @@ export interface GameSetup {
   elements?: number[],
   grid?: number[][],
   puzzle?: string[][],
+  portals?: number[],
 }
 
 export interface WindowWithGameMethods {
@@ -15,5 +16,6 @@ export interface WindowWithGameMethods {
     onPuzzleChange?: (puzzle: string[][]) => void;
     onPuzzleResolve?: (grid: number[][]) => void;
     onProgression?: (progression: number) => void;
+    onStandaloneStart?: (grid: number[][], puzzle: string[][]) => void;
   }
 }

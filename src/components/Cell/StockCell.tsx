@@ -11,8 +11,7 @@ function StockCell({ index }: StockCellProps) {
 
   const clickCell = () => {
     if (stock[index]) {
-      const newIndex = stockIndex === index ? undefined : index;
-      setStockIndex(newIndex);
+      setStockIndex(index);
     }
   };
 

@@ -19,7 +19,9 @@ function Cell({ row, col }: CellProps) {
   }
 
   const clickCell = () => {
-    setGridElement(row, col);
+    if (getVal() !== 7) {
+      setGridElement(row, col);
+    }
   };
 
   const cellLaserElements = laserElements
