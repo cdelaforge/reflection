@@ -1,10 +1,10 @@
+import { useEffect } from "react";
 import { useDrag } from 'react-dnd';
 import { getEmptyImage } from 'react-dnd-html5-backend'
+import { isMobile } from 'react-device-detect';
 import { useAppState } from "../../state/AppStateProvider";
 import { MirrorSlashIcon, MirrorBackSlashIcon, MirrorVerticalIcon, MirrorHorizontalIcon, MirrorSquareIcon, BlackHoleIcon, PortalIcon } from "../../icons";
 import { CellIconContainer } from "./Cell.Styles";
-import { useEffect } from "react";
-
 
 interface CellIconProps {
   index: number;
@@ -23,7 +23,7 @@ function CellIcon({ index, row, col, stockIndex }: CellIconProps) {
       isDragging: !!monitor.isDragging(),
     }),
     canDrag: () => {
-      return index > 0 && index < 7;
+      return !isMobile && index > 0 && index < 7;
     },
   }), [index, stockIndex]);
 
