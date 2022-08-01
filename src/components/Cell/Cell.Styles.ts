@@ -36,3 +36,7 @@ export const CellNumberBack = styled('div') <{ size: number, backColor: string, 
   line-height: ${(props) => `${props.size}px`};
   border-radius: ${(props) => props.isCorrect ? "0px" : `${props.size / 2}px`};
 `;
+
+export const CellIconContainer = styled('div') <{ isDragging: boolean }>`
+  opacity: ${(props) => (props.isDragging) ? "40%" : "100%"};
+`;

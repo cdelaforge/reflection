@@ -2,6 +2,7 @@ import { LaserIcon } from "../../icons/LaserIcon";
 import { useAppState } from "../../state/AppStateProvider";
 import { CellBackground, CellContainer, CellContainerChild } from "./Cell.Styles";
 import CellIcon from "./CellIcon";
+import { useDrop } from 'react-dnd';
 
 interface CellProps {
   row: number;
@@ -9,7 +10,15 @@ interface CellProps {
 }
 
 function Cell({ row, col }: CellProps) {
-  const { cellSize, grid, setGridElement, laserElements } = useAppState();
+  const { cellSize, grid, setGridElement, moveGridElement, laserElements } = useAppState();
+
+  const [, drop] = useDrop(
+    () => ({
+      accept: "item",
+      drop: (item: any) => moveGridElement({ row: item.row, col: item.col, stockIndex: item.stockIndex }, { row, col })
+    }),
+    [row, col, grid]
+  );
 
   const getVal = () => {
     if (grid && grid[row] && grid[row][col]) {
@@ -33,13 +42,13 @@ function Cell({ row, col }: CellProps) {
     ));
 
   return (
-    <CellContainer size={cellSize} onClick={clickCell}>
+    <CellContainer size={cellSize} onClick={clickCell} ref={drop}>
       <CellContainerChild>
         <CellBackground type="grid" size={cellSize} />
       </CellContainerChild>
       {cellLaserElements}
       <CellContainerChild>
-        <CellIcon index={getVal()} />
+        <CellIcon index={getVal()} row={row} col={col} />
       </CellContainerChild>
     </CellContainer>
   );

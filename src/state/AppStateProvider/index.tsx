@@ -3,6 +3,12 @@ import { Checker } from "../../helpers/Checker";
 import { WindowWithGameMethods, GameSetup } from "../../models/External";
 import { LaserProps } from "../../models/Laser";
 
+export interface Position {
+  row?: number,
+  col?: number,
+  stockIndex?: number,
+}
+
 export interface IStateContext {
   mode: string;
 
@@ -24,6 +30,7 @@ export interface IStateContext {
   /* grid state */
   grid: number[][];
   setGridElement: (row: number, col: number) => void;
+  moveGridElement: (source: Position, destination: Position) => void;
 
   /* enigme */
   toSolve: string[][];
@@ -112,6 +119,7 @@ const initialData: IStateContext = {
   result: [[]],
   setStockIndex: () => { },
   setGridElement: () => { },
+  moveGridElement: () => { },
   laserElements: [],
   displayLaser: () => { },
   running: true,
@@ -312,6 +320,32 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     }
   };
 
+  const moveGridElement = (source: Position, destination: Position) => {
+    const gridClone = [...grid.map((row) => [...row])];
+
+    if (destination.row !== undefined && destination.col !== undefined) {
+      if (source.stockIndex !== undefined) {
+        if (gridClone[destination.row][destination.col] > 0) {
+          pushToStock(gridClone[destination.row][destination.col]);
+        }
+        gridClone[destination.row][destination.col] = stock[source.stockIndex];
+        removeFromStock(source.stockIndex);
+      } else if (source.row !== undefined && source.col !== undefined) {
+        if (source.row === destination.row && source.col === destination.col) {
+          // pas de changement
+          return;
+        }
+        if (gridClone[destination.row][destination.col] > 0) {
+          pushToStock(gridClone[destination.row][destination.col]);
+        }
+        gridClone[destination.row][destination.col] = gridClone[source.row][source.col];
+        gridClone[source.row][source.col] = 0;
+      }
+    }
+
+    setGrid(gridClone);
+  };
+
   const displayLaser = (position: number, index: number) => {
     if (displayLaserPosition === position && displayLaserIndex === index) {
       setDisplayLaserPosition(undefined);
@@ -331,6 +365,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     setStockIndex: (index?: number) => { if (running) { setStockIndex(index); } },
     grid,
     setGridElement: (row: number, col: number) => { if (running) { setGridElement(row, col); setPlayerAction(true); } },
+    moveGridElement: (source: Position, destination: Position) => { if (running) { moveGridElement(source, destination); setPlayerAction(true); } },
     toSolve,
     result,
     laserElements,
