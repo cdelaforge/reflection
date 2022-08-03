@@ -10,7 +10,7 @@ interface CellProps {
 }
 
 function Cell({ row, col }: CellProps) {
-  const { cellSize, grid, setGridElement, moveGridElement, laserElements } = useAppState();
+  const { cellSize, grid, setGridElement, moveGridElement, laserElements, mode } = useAppState();
 
   const [, drop] = useDrop(
     () => ({
@@ -21,14 +21,14 @@ function Cell({ row, col }: CellProps) {
   );
 
   const getVal = () => {
-    if (grid && grid[row] && grid[row][col]) {
+    if (grid && grid[row] && grid[row][col] && mode !== "empty") {
       return grid[row][col];
     }
     return 0;
   }
 
   const clickCell = () => {
-    if (getVal() !== 7) {
+    if (getVal() !== 7 && mode !== "empty") {
       setGridElement(row, col);
     }
   };

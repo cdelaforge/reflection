@@ -14,7 +14,7 @@ interface CellIconProps {
 }
 
 function CellIcon({ index, row, col, stockIndex }: CellIconProps) {
-  const { cellSize } = useAppState();
+  const { cellSize, mode, running } = useAppState();
 
   const [{ isDragging }, drag, preview] = useDrag(() => ({
     type: "item",
@@ -23,9 +23,9 @@ function CellIcon({ index, row, col, stockIndex }: CellIconProps) {
       isDragging: !!monitor.isDragging(),
     }),
     canDrag: () => {
-      return !isMobile && index > 0 && index < 7;
+      return !isMobile && mode !== "empty" && running && index > 0 && index < 7;
     },
-  }), [index, stockIndex]);
+  }), [index, stockIndex, mode, running]);
 
   useEffect(() => {
     preview(getEmptyImage(), { captureDraggingState: true })

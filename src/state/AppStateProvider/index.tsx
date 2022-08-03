@@ -105,7 +105,7 @@ const initPuzzle = (squaresCount: number, mode?: string, elements?: number[], po
 };
 
 const initialData: IStateContext = {
-  mode: 'play',
+  mode: 'empty',
   squaresCount: 8,
   elementsCount: 15,
   stock: [1, 1, 2, 2, 2, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7],
