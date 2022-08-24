@@ -324,22 +324,26 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     const gridClone = [...grid.map((row) => [...row])];
 
     if (destination.row !== undefined && destination.col !== undefined) {
-      if (source.stockIndex !== undefined) {
-        if (gridClone[destination.row][destination.col] > 0) {
-          pushToStock(gridClone[destination.row][destination.col]);
+      const destVal = gridClone[destination.row][destination.col];
+
+      if (destVal !== 7) {
+        if (source.stockIndex !== undefined) {
+          if (destVal > 0) {
+            pushToStock(destVal);
+          }
+          gridClone[destination.row][destination.col] = stock[source.stockIndex];
+          removeFromStock(source.stockIndex);
+        } else if (source.row !== undefined && source.col !== undefined) {
+          if (source.row === destination.row && source.col === destination.col) {
+            // pas de changement
+            return;
+          }
+          if (destVal > 0) {
+            pushToStock(destVal);
+          }
+          gridClone[destination.row][destination.col] = gridClone[source.row][source.col];
+          gridClone[source.row][source.col] = 0;
         }
-        gridClone[destination.row][destination.col] = stock[source.stockIndex];
-        removeFromStock(source.stockIndex);
-      } else if (source.row !== undefined && source.col !== undefined) {
-        if (source.row === destination.row && source.col === destination.col) {
-          // pas de changement
-          return;
-        }
-        if (gridClone[destination.row][destination.col] > 0) {
-          pushToStock(gridClone[destination.row][destination.col]);
-        }
-        gridClone[destination.row][destination.col] = gridClone[source.row][source.col];
-        gridClone[source.row][source.col] = 0;
       }
     }
 
