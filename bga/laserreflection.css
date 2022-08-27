@@ -1,0 +1,156 @@
+@font-face {
+    font-family: 'DS-Digital';
+    src: url('https://fonts.cdnfonts.com/s/15049/DS-DIGI.woff') format('woff');
+}
+
+/* main */
+
+#lrf_main {
+    display: flex;
+    flex-flow: row wrap;
+}
+
+#root {
+    display: flex;
+}
+
+#lrf_end {
+    display: flex;
+    flex-flow: column;
+    padding: 1em;
+    height: 60px;
+    margin-left: 1em;
+}
+
+#lrf_end>div {
+    display: flex;
+    padding-bottom: 0.5em;
+}
+
+#lrf_end>div>select {
+    height: 36px;
+}
+
+#pagemaintitle_wrap {
+    min-height: 46px;
+}
+
+/* Scoring table */
+
+.tableWindow>table {
+    width: 100%;
+}
+
+.tableWindow td {
+    text-align: left;
+}
+
+.tableWindow td:first-child {
+    text-align: right;
+}
+
+/* Progress bar */
+
+.lrf_progress-bar__main {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+}
+
+.lrf_progress-bar__container {
+    width: 90%;
+    height: 1rem;
+    border-radius: 1rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.5s;
+    will-change: transform;
+    box-shadow: 0 0 5px #e76f51;
+}
+
+.lrf_progress-bar {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    content: "";
+    background-color: #e76f51;
+    top: 0;
+    bottom: 0;
+    left: -100%;
+    border-radius: inherit;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-family: sans-serif;
+}
+
+.lrf_progress-bar__text {
+    font-size: 12px;
+}
+
+.lrf_counter {
+    padding-left: 1em;
+    font-size: 80%;
+    line-height: 14px;
+}
+
+/* Timer */
+
+#lrf_timer {
+    position: absolute;
+    left: 50%;
+    width: 300px;
+    margin-left: -150px;
+}
+
+.lrf_base-timer {
+    position: relative;
+    width: 300px;
+    height: 300px;
+}
+
+.lrf_base-timer__svg {
+    transform: scaleX(-1);
+}
+
+.lrf_base-timer__circle {
+    fill: none;
+    stroke: none;
+}
+
+.lrf_base-timer__path-elapsed {
+    stroke-width: 7px;
+    stroke: black;
+}
+
+.lrf_base-timer__path-remaining {
+    stroke-width: 5px;
+    stroke-linecap: round;
+    transform: rotate(90deg);
+    transform-origin: center;
+    transition: 1s linear all;
+    fill-rule: nonzero;
+    stroke: currentColor;
+}
+
+.lrf_base-timer__label {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 160px;
+    font-family: DS-Digital;
+}
+
+/* Misc */
+
+#page-title {
+    min-height: 50px;
+}
