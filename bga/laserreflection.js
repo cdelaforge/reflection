@@ -38,7 +38,9 @@ define([
 
                 utils.init(this);
                 gameUI.players = {};
+                gameUI.playersCount = 0;
                 Object.keys(data.players).map((playerId) => {
+                    gameUI.playersCount++;
                     const color = data.players[playerId].color;
                     gameUI.players[playerId] = {
                         color,
@@ -185,7 +187,11 @@ define([
                             }
                             break;
                         case "puzzlePlay":
-                            dojo.place("<span style='font-weight:bold;color:#" + gameUI.puzzleUser.color + ";'>&nbsp;" + gameUI.puzzleUser.name + "</span>", "pagemaintitletext");
+                            if (gameUI.playersCount == 1) {
+                                dojo.place("<span style='font-weight:bold;'>&nbsp;Robby&nbsp;🤖</span>", "pagemaintitletext");
+                            } else {
+                                dojo.place("<span style='font-weight:bold;color:#" + gameUI.puzzleUser.color + ";'>&nbsp;" + gameUI.puzzleUser.name + "</span>", "pagemaintitletext");
+                            }
                             this.removeActionButtons();
                             this.addActionButton('giveUp', _('Give up'), 'onGiveUp');
                             break;

@@ -30,7 +30,7 @@ class LaserReflection extends Table {
         // Note: afterwards, you can get/set the global variables with getGameStateValue/setGameStateInitialValue/setGameStateValue
         parent::__construct();
 
-        self::initGameStateLabels( array(
+        self::initGameStateLabels([
             "ended" => 10,
             "round" => 11,
             "rounds" => 12,
@@ -38,13 +38,14 @@ class LaserReflection extends Table {
             "portal_1_col" => 21,
             "portal_2_row" => 22,
             "portal_2_col" => 23,
-            "grid_size" => 100,
-            "items_count" => 101,
-            "black_hole" => 102,
-            "light_warp" => 103,
-            "auto_start" => 110,
+            "solo" => 30,
+            "grid_size" => 120,
+            "items_count" => 121,
+            "black_hole" => 122,
+            "light_warp" => 123,
+            "auto_start" => 190,
             "clock_mode" => 200,
-        ) );
+        ]);
 	}
 
     protected function getGameName( )
@@ -66,74 +67,14 @@ class LaserReflection extends Table {
         // The number of colors defined here must correspond to the maximum number of players allowed for the gams
         $gameinfos = self::getGameinfos();
         $default_colors = $gameinfos['player_colors'];
+        $count_players = count($players);
 
         $grid_size = $this->getGameStateValue('grid_size');
         $items_count = $this->getGameStateValue('items_count');
         $black_hole = $this->getGameStateValue('black_hole') == 1;
         $light_warp = $this->getGameStateValue('light_warp') == 1;
         $auto_start = $this->getGameStateValue('auto_start');
-
-        $max = ($black_hole) ? 209 : 199;
-        $quality = 0;
-        $items = array();
-
-        while ($quality <= ($items_count/2)) {
-            $i = 0;
-            $quality = 0;
-            $items = array();
-
-            if ($items_count > 5) {
-                $quality = 2;
-			    $items[$i++] = 1;
-                $items[$i++] = 2;
-                $items[$i++] = 3 + rand(0, 2);
-                if ($black_hole) {
-                    $items[$i++] = 6;
-                }
-            }
-
-            while ($i < $items_count) {
-                $r = rand(0, $max);
-                if ($r < 60) {
-                    $quality++;
-                    $items[$i] = 1; // slash
-                } else if ($r < 120) {
-                    $quality++;
-                    $items[$i] = 2; // backslash
-                } else if ($r < 150) {
-                    $items[$i] = 3; // vertical
-                } else if ($r < 180) {
-                    $items[$i] = 4; // horizontal
-                } else if ($r < 200) {
-                    $items[$i] = 5; // square
-                } else {
-                    $items[$i] = 6; // black hole
-                }
-                $i++;
-            }
-        }
-
-        $row1 = -1;
-        $col1 = -1;
-        $row2 = -1;
-        $col2 = -1;
-
-        if ($light_warp) {
-            while ($row1 ==  $row2 && $col1 == $col2) {
-                $row1 = rand(0, $grid_size - 1);
-                $col1 = rand(0, $grid_size - 1);
-                $row2 = rand(0, $grid_size - 1);
-                $col2 = rand(0, $grid_size - 1);
-            }
-
-            $portals[] = $row1;
-            $portals[] = $col1;
-            $portals[] = $row2;
-            $portals[] = $col2;
-
-            $sql = "INSERT INTO gamestatus (game_param, game_value) VALUES ('portals', '".json_encode($portals)."')";
-            self::DbQuery($sql);
-        }
+        $items = $this->getRandomItems($black_hole, $items_count);
 
         $sql = "INSERT INTO gamestatus (game_param, game_value) VALUES ('elements', '".json_encode($items)."')";
         self::DbQuery($sql);
@@ -145,7 +86,7 @@ class LaserReflection extends Table {
         // Create players
         $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar) VALUES ";
         $values = array();
-        foreach( $players as $player_id => $player ) {
+        foreach ($players as $player_id => $player) {
             $color = array_shift( $default_colors );
             $values[] = "('".$player_id."','$color','".$player['player_canal']."','".addslashes( $player['player_name'] )."','".addslashes( $player['player_avatar'] )."')";
         }
@@ -157,13 +98,24 @@ class LaserReflection extends Table {
         /************ Start the game initialization *****/
 
         // Init global values with their initial values
+        self::setGameStateInitialValue('solo', ($count_players == 1) ? 1 : 0);
         self::setGameStateInitialValue('ended', 0);
         self::setGameStateInitialValue('round', 1);
-        self::setGameStateInitialValue('rounds', count($players) - 1);
-        self::setGameStateInitialValue('portal_1_row', $row1);
-        self::setGameStateInitialValue('portal_1_col', $col1);
-        self::setGameStateInitialValue('portal_2_row', $row2);
-        self::setGameStateInitialValue('portal_2_col', $col2);
+        self::setGameStateInitialValue('rounds', $count_players - 1);
+        self::setGameStateInitialValue('portal_1_row', -1);
+        self::setGameStateInitialValue('portal_1_col', -1);
+        self::setGameStateInitialValue('portal_2_row', -1);
+        self::setGameStateInitialValue('portal_2_col', -1);
+
+        if ($light_warp) {
+            $this->getPortalsPositions();
+        }
+        if ($count_players == 1) {
+            $grid = $this->getRandomGrid($items);
+            $this->savePuzzleGrid($grid);
+            $puzzle = $this->getGridPuzzle($grid);
+            $this->savePuzzle($puzzle);
+        }
 
         // Init game statistics
         self::initStat("table", "total_duration", 0);
@@ -209,6 +161,14 @@ class LaserReflection extends Table {
         return $result;
     }
 
+    function stGameInit() {
+        if ($this->getGameStateValue('solo') == 1) {
+            $this->gamestate->nextState("solo");
+        } else {
+            $this->gamestate->nextState("normal");
+        }
+    }
+
     function stCreatePuzzleInit() {
         $this->gamestate->setAllPlayersMultiactive();
         $this->gamestate->initializePrivateStateForAllActivePlayers();
@@ -226,21 +186,37 @@ class LaserReflection extends Table {
         $sql = "SELECT player_id id, player_name name, player_grid grid, player_puzzle puzzle, player_puzzle_grid puzzle_grid, player_state state FROM player ORDER BY player_no";
         $players = self::getObjectListFromDB($sql);
         $cpt = count($players);
+
         $jsonEmptyGrid = json_encode($this->getEmptyGrid());
 
-        for ($i=0; $i<$cpt; $i++) {
-            $other_player_index = ($i + $round) % $cpt;
-            $isStarted = $players[$i]['state'] == STATE_PLAY_PUZZLE_PRIVATE;
-            $result['_private'][$players[$i]['id']] = array(
-                'grid' => ($isStarted) ? $players[$i]["grid"] : $jsonEmptyGrid,
-                'id' => $players[$other_player_index]["id"],
-                'name' => $players[$other_player_index]["name"],
-                'puzzle' => $players[$other_player_index]["puzzle"],
-                'started' => $isStarted,
-            );
-            $result['_public'][$players[$i]['id']] = array(
-                'id'=> $players[$other_player_index]["id"],
-            );
+        if ($cpt > 1) {
+            for ($i=0; $i<$cpt; $i++) {
+                $other_player_index = ($i + $round) % $cpt;
+                $isStarted = $players[$i]['state'] == STATE_PLAY_PUZZLE_PRIVATE;
+                $result['_private'][$players[$i]['id']] = array(
+                    'grid' => ($isStarted) ? $players[$i]["grid"] : $jsonEmptyGrid,
+                    'id' => $players[$other_player_index]["id"],
+                    'name' => $players[$other_player_index]["name"],
+                    'puzzle' => $players[$other_player_index]["puzzle"],
+                    'started' => $isStarted,
+                );
+                $result['_public'][$players[$i]['id']] = array(
+                    'id'=> $players[$other_player_index]["id"],
+                );
+            }
+        } else {
+            $sql = "SELECT game_value val FROM gamestatus WHERE game_param='puzzle'";
+            $data = self::getObjectFromDB($sql);
+            $jsonPuzzle = $data['val'];
+
+            for ($i=0; $i<$cpt; $i++) {
+                $isStarted = $players[$i]['state'] == STATE_PLAY_PUZZLE_PRIVATE;
+                $result['_private'][$players[$i]['id']] = array(
+                    'grid' => ($isStarted) ? $players[$i]["grid"] : $jsonEmptyGrid,
+                    'puzzle' => $jsonPuzzle,
+                    'started' => $isStarted,
+                );
+            }
         }
 
         return $result;
@@ -276,77 +252,93 @@ class LaserReflection extends Table {
     }
 
     function stEndRound() {
-        $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_grid grid FROM player ORDER BY player_round_duration";
-        $players = self::getObjectListFromDB($sql);
-        $cpt = count($players);
-        $rounds = $this->getGameStateValue('rounds');
-        $scorePart = (120 / $rounds) / $cpt;
-
         $grid = $this->getEmptyGrid();
-        $prevScore = 0;
-        $prevDuration = 0;
 
-        for ($i=0; $i<$cpt; $i++) {
-            $playerId = $players[$i]['id'];
-            $duration =  $players[$i]['duration'];
-            $playerName = $players[$i]['name'];
+        if ($this->getGameStateValue('solo') == 1) {
+            $playerId = $this->getCurrentPlayerId();
+            $playerScore = 1;
 
-            if ($duration == $prevDuration) {
-                $playerScore = $prevScore;
-            } else if ($duration >= 6666) {
-                $playerScore = -floor($scorePart);
-            } else {
-                $playerScore = floor(($cpt - $i) * $scorePart);
-                $prevDuration = $duration;
-                $prevScore = $playerScore;
-            }
+            self::notifyAllPlayers("log", clienttranslate('${player_name} scores ${points} points'), array (
+                'player_name' => self::getCurrentPlayerName(),
+                'points' => $playerScore
+            ));
 
-            if ($playerScore < 0) {
-                self::notifyAllPlayers("log", clienttranslate('${player_name} loses ${points} points'), array (
-                    'player_name' => $playerName,
-                    'points' => -$playerScore
-                ));
-            } else {
-                self::notifyAllPlayers("log", clienttranslate('${player_name} scores ${points} points'), array (
-                    'player_name' => $playerName,
-                    'points' => $playerScore
-                ));
-            }
-
-            $sql = "UPDATE player SET player_grid='".json_encode($grid)."', player_round_score=".$playerScore.", player_score = player_score + ".$playerScore.", player_score_aux = player_score_aux - ".$duration." WHERE player_id = ".$playerId;
+            $sql = "UPDATE player SET player_grid='".json_encode($grid)."', player_round_score=".$playerScore.", player_score = player_score + ".$playerScore." WHERE player_id = ".$playerId;
             self::DbQuery($sql);
-        }
 
-        $this->sendRoundScore();
-
-        $round = $this->getGameStateValue('round') + 1;
-
-        if ($round > $rounds) {
-            // end of game !
-            $this->setGameStateValue('ended', 1);
-            $this->calcStats();
-            $this->sendPlayersPuzzle();
-            $this->gamestate->nextState("endGame");
+            $this->gamestate->nextState("next");
         } else {
-            $this->setGameStateValue('round', $round);
+            $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_grid grid FROM player ORDER BY player_round_duration";
+            $players = self::getObjectListFromDB($sql);
+            $cpt = count($players);
+            $rounds = $this->getGameStateValue('rounds');
+            $scorePart = (120 / $rounds) / $cpt;
 
-            $clock_mode = $this->getGameStateValue('clock_mode');
-            if ($clock_mode > 9) {
-                // turn-based mode, skip the display of round score
-                foreach($players as $player) {
-                    self::notifyAllPlayers("progression", "", array(
-                        'player_id' => $player["id"],
-                        'player_progression' => 0
+            $prevScore = 0;
+            $prevDuration = 0;
+
+            for ($i=0; $i<$cpt; $i++) {
+                $playerId = $players[$i]['id'];
+                $duration =  $players[$i]['duration'];
+                $playerName = $players[$i]['name'];
+
+                if ($duration == $prevDuration) {
+                    $playerScore = $prevScore;
+                } else if ($duration >= 6666) {
+                    $playerScore = -floor($scorePart);
+                } else {
+                    $playerScore = floor(($cpt - $i) * $scorePart);
+                    $prevDuration = $duration;
+                    $prevScore = $playerScore;
+                }
+
+                if ($playerScore < 0) {
+                    self::notifyAllPlayers("log", clienttranslate('${player_name} loses ${points} points'), array (
+                        'player_name' => $playerName,
+                        'points' => -$playerScore
+                    ));
+                } else {
+                    self::notifyAllPlayers("log", clienttranslate('${player_name} scores ${points} points'), array (
+                        'player_name' => $playerName,
+                        'points' => $playerScore
                     ));
                 }
 
-                $sql = "UPDATE player SET player_progression=0, player_start=0, player_round_duration=0";
+                $sql = "UPDATE player SET player_grid='".json_encode($grid)."', player_round_score=".$playerScore.", player_score = player_score + ".$playerScore.", player_score_aux = player_score_aux - ".$duration." WHERE player_id = ".$playerId;
                 self::DbQuery($sql);
+            }
 
-                $this->gamestate->nextState("next");
+            $this->sendRoundScore();
+
+            $round = $this->getGameStateValue('round') + 1;
+
+            if ($round > $rounds) {
+                // end of game !
+                $this->setGameStateValue('ended', 1);
+                $this->calcStats();
+                $this->sendPlayersPuzzle();
+                $this->gamestate->nextState("endGame");
             } else {
-                $this->gamestate->setAllPlayersMultiactive();
-                $this->gamestate->initializePrivateStateForAllActivePlayers();
+                $this->setGameStateValue('round', $round);
+
+                $clock_mode = $this->getGameStateValue('clock_mode');
+                if ($clock_mode > 9) {
+                    // turn-based mode, skip the display of round score
+                    foreach($players as $player) {
+                        self::notifyAllPlayers("progression", "", array(
+                            'player_id' => $player["id"],
+                            'player_progression' => 0
+                        ));
+                    }
+
+                    $sql = "UPDATE player SET player_progression=0, player_start=0, player_round_duration=0";
+                    self::DbQuery($sql);
+
+                    $this->gamestate->nextState("next");
+                } else {
+                    $this->gamestate->setAllPlayersMultiactive();
+                    $this->gamestate->initializePrivateStateForAllActivePlayers();
+                }
             }
         }
     }
@@ -545,6 +537,84 @@ class LaserReflection extends Table {
 //////////// Utility functions
 ////////////
 
+    function getRandomItems($black_hole, $items_count) {
+        $max = ($black_hole) ? 209 : 199;
+        $quality = 0;
+        $items = array();
+
+        while ($quality <= ($items_count/2)) {
+            $i = 0;
+            $quality = 0;
+            $items = array();
+
+            if ($items_count > 5) {
+                $quality = 2;
+                $items[$i++] = 1;
+                $items[$i++] = 2;
+                $items[$i++] = 3 + rand(0, 2);
+                if ($black_hole) {
+                    $items[$i++] = 6;
+                }
+            }
+
+            while ($i < $items_count) {
+                $r = rand(0, $max);
+                if ($r < 60) {
+                    $quality++;
+                    $items[$i] = 1; // slash
+                } else if ($r < 120) {
+                    $quality++;
+                    $items[$i] = 2; // backslash
+                } else if ($r < 150) {
+                    $items[$i] = 3; // vertical
+                } else if ($r < 180) {
+                    $items[$i] = 4; // horizontal
+                } else if ($r < 200) {
+                    $items[$i] = 5; // square
+                } else {
+                    $items[$i] = 6; // black hole
+                }
+                $i++;
+            }
+        }
+
+        return $items;
+    }
+
+    function getPortalsPositions() {
+        $grid_size = $this->getGameStateValue('grid_size');
+
+        $row1 = -1;
+        $col1 = -1;
+        $row2 = -1;
+        $col2 = -1;
+
+        while ($row1 ==  $row2 && $col1 == $col2) {
+            $row1 = rand(0, $grid_size - 1);
+            $col1 = rand(0, $grid_size - 1);
+            $row2 = rand(0, $grid_size - 1);
+            $col2 = rand(0, $grid_size - 1);
+        }
+
+        $portals[] = $row1;
+        $portals[] = $col1;
+        $portals[] = $row2;
+        $portals[] = $col2;
+
+        $sql = "DELETE FROM gamestatus WHERE game_param='portals'";
+        self::DbQuery($sql);
+
+        $sql = "INSERT INTO gamestatus (game_param, game_value) VALUES ('portals', '".json_encode($portals)."')";
+        self::DbQuery($sql);
+
+        self::setGameStateValue('portal_1_row', $row1);
+        self::setGameStateValue('portal_1_col', $col1);
+        self::setGameStateValue('portal_2_row', $row2);
+        self::setGameStateValue('portal_2_col', $col2);
+
+        return $portals;
+    }
+
     function getEmptyGrid() {
         $grid_size = $this->getGameStateValue('grid_size');
         $grid = array();
@@ -566,8 +636,134 @@ class LaserReflection extends Table {
     }
 
     function getRandomGrid($items) {
-        $grid = getEmptyGrid();
+        $grid = $this->getEmptyGrid();
+        $grid_size = count($grid);
+        $items_count = count($items);
+        $index = 0;
+
+        while ($index < $items_count) {
+            $row = rand(0, $grid_size - 1);
+            $col = rand(0, $grid_size - 1);
+
+            if ($grid[$row][$col] == 0) {
+                $grid[$row][$col] = $items[$index];
+                ++$index;
+            }
+        }
+
         return $grid;
+    }
+
+    function savePuzzleGrid($grid) {
+        $sql = "DELETE FROM gamestatus WHERE game_param='grid'";
+        self::DbQuery($sql);
+
+        $sql = "INSERT INTO gamestatus (game_param, game_value) VALUES ('grid', '".json_encode($grid)."')";
+        self::DbQuery($sql);
+    }
+
+    function getGridPuzzle($grid) {
+        $grid_size = count($grid);
+        $puzzle = [];
+
+        for ($position=0; $position<4; $position++) {
+            $puzzle[$position] = [];
+
+            for ($index=0; $index<$grid_size; $index++) {
+                $puzzle[$position][$index] = $this->getExit($grid, $position, $index);
+            }
+        }
+
+        return $puzzle;
+    }
+
+    function savePuzzle($puzzle) {
+        $sql = "DELETE FROM gamestatus WHERE game_param='puzzle'";
+        self::DbQuery($sql);
+
+        $sql = "INSERT INTO gamestatus (game_param, game_value) VALUES ('puzzle', '".json_encode($puzzle)."')";
+        self::DbQuery($sql);
+    }
+
+    function getExit($grid, $position, $index) {
+        $grid_size = count($grid);
+        $incRow = [-1, 0, 1, 0];
+        $incCol = [0, 1, 0, -1];
+        $transMatrice = [[0, 1, 2, 3], [1, 0, 3, 2], [3, 2, 1, 0], [0, 3, 2, 1], [2, 1, 0, 3], [2, 3, 0, 1], [-1, -1, -1, -1], [0, 1, 2, 3]];
+        $distance = 1;
+        $exited = false;
+
+        switch ($position) {
+            case 0: // top
+                $row = 0;
+                $col = $index;
+                $direction = 2;
+                break;
+            case 1: // right
+                $row = $index;
+                $col = $grid_size - 1;
+                $direction = 3;
+                break;
+            case 2: // bottom
+                $row = $grid_size - 1;
+                $col = $index;
+                $direction = 0;
+                break;
+            case 3: // left
+                $row = $index;
+                $col = 0;
+                $direction = 1;
+                break;
+        }
+
+        while (!$exited) {
+            $eltType = $grid[$row][$col];
+            $direction = $transMatrice[$eltType][$direction];
+
+            if ($direction < 0) {
+                return $distance.'a';
+            }
+
+            if ($eltType == 7) {
+                if ($this->getGameStateValue('portal_1_row') == $row && $this->getGameStateValue('portal_1_col') == $col) {
+                    $row = $this->getGameStateValue('portal_2_row');
+                    $col = $this->getGameStateValue('portal_2_col');
+                } else {
+                    $row = $this->getGameStateValue('portal_1_row');
+                    $col = $this->getGameStateValue('portal_1_col');
+                }
+                ++$distance;
+            }
+
+            $row += $incRow[$direction];
+            $col += $incCol[$direction];
+
+            if ($row < 0) {
+                $exited = true;
+                $exit_side = 0;
+                $exit_index = $col;
+            } else if ($row >= $grid_size) {
+                $exited = true;
+                $exit_side = 2;
+                $exit_index = $col;
+            } else if ($col < 0) {
+                $exited = true;
+                $exit_side = 3;
+                $exit_index = $row;
+            } else if ($col >= $grid_size) {
+                $exited = true;
+                $exit_side = 1;
+                $exit_index = $row;
+            } else {
+                ++$distance;
+            }
+        }
+
+        if ($exit_side == $position && $exit_index == $index) {
+            return $distance.'r';
+        }
+
+        return $distance.'s';
     }
 
     function getDurationStr($duration) {

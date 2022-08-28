@@ -3,6 +3,7 @@
 // define contants for state ids
 if (!defined('STATE_END_GAME')) { // ensure this block is only invoked once, since it is included multiple times
     define("STATE_GAME_SETUP", 1);
+    define("STATE_MODE_INIT", 2);
     define("STATE_CREATE_PUZZLE_INIT", 3);
     define("STATE_CREATE_PUZZLE_PRIVATE", 30);
     define("STATE_PLAY_PUZZLE_INIT", 5);
@@ -73,7 +74,18 @@ $machinestates = array(
         "description" => "",
         "type" => "manager",
         "action" => "stGameSetup",
-        "transitions" => array( "" => STATE_CREATE_PUZZLE_INIT)
+        "transitions" => array( "" => STATE_MODE_INIT)
+    ),
+
+    STATE_MODE_INIT => array(
+        "name" => "modeInit",
+        "description" => "",
+        "type" => "manager",
+        "action" => "stGameInit",
+        "transitions" => array(
+            "solo" => STATE_PLAY_PUZZLE_INIT,
+            "normal" => STATE_CREATE_PUZZLE_INIT
+        )
     ),
 
     STATE_CREATE_PUZZLE_INIT => [

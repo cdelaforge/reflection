@@ -25,7 +25,7 @@
  */
 
 $game_options = array(
-    100 => array(
+    120 => array(
         'name' => totranslate('Grid size'),
         'values' => array(
             4 => array( 'name' => totranslate('4 x 4'), 'tmdisplay' => totranslate('Grid size : 4 x 4') ),
@@ -38,7 +38,7 @@ $game_options = array(
         ),
         'default' => 8
     ),
-    101 => array(
+    121 => array(
         'name' => totranslate('Items'),
         'values' => array(
             3 => array( 'name' => totranslate('3 items'), 'tmdisplay' => totranslate('3 items') ),
@@ -64,7 +64,7 @@ $game_options = array(
             15 => array(
                 array(
                     'type' => 'otheroptionisnot',
-                    'id' => 100,
+                    'id' => 120,
                     'value' => 4,
                     'message' => totranslate('There are too many items for the selected grid size')
                 )
@@ -72,7 +72,7 @@ $game_options = array(
             16 => array(
                 array(
                     'type' => 'otheroptionisnot',
-                    'id' => 100,
+                    'id' => 120,
                     'value' => 4,
                     'message' => totranslate('There are too many items for the selected grid size')
                 )
@@ -80,7 +80,7 @@ $game_options = array(
             17 => array(
                 array(
                     'type' => 'otheroptionisnot',
-                    'id' => 100,
+                    'id' => 120,
                     'value' => 4,
                     'message' => totranslate('There are too many items for the selected grid size')
                 )
@@ -88,7 +88,7 @@ $game_options = array(
             18 => array(
                 array(
                     'type' => 'otheroptionisnot',
-                    'id' => 100,
+                    'id' => 120,
                     'value' => 4,
                     'message' => totranslate('There are too many items for the selected grid size')
                 )
@@ -96,7 +96,7 @@ $game_options = array(
             19 => array(
                 array(
                     'type' => 'otheroptionisnot',
-                    'id' => 100,
+                    'id' => 120,
                     'value' => 4,
                     'message' => totranslate('There are too many items for the selected grid size')
                 )
@@ -104,7 +104,7 @@ $game_options = array(
             20 => array(
                 array(
                     'type' => 'otheroptionisnot',
-                    'id' => 100,
+                    'id' => 120,
                     'value' => 4,
                     'message' => totranslate('There are too many items for the selected grid size')
                 )
@@ -112,7 +112,7 @@ $game_options = array(
         ),
         'default' => 10
     ),
-    102 => array(
+    122 => array(
         'name' => totranslate('Black holes'),
         'values' => array(
             1 => array( 'name' => totranslate('yes'), 'tmdisplay' => totranslate('Black holes') ),
@@ -120,7 +120,7 @@ $game_options = array(
         ),
         'default' => 1
     ),
-    103 => array(
+    123 => array(
         'name' => totranslate('Light warps'),
         'values' => array(
             1 => array( 'name' => totranslate('yes'), 'tmdisplay' => totranslate('Light warps') ),
@@ -128,7 +128,7 @@ $game_options = array(
         ),
         'default' => 2
     ),
-    110 => array(
+    190 => array(
         'name' => totranslate('Auto. start rounds'),
         'values' => array(
             1 => array( 'name' => totranslate('yes') ),
