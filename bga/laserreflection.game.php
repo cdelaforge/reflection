@@ -223,14 +223,13 @@ class LaserReflection extends Table {
     }
 
     function stPlayPuzzleInit() {
-        $jsonGrid = json_encode($this->getEmptyGrid());
-        $round = $this->getGameStateValue('round');
-
         $this->gamestate->setAllPlayersMultiactive();
         $this->gamestate->initializePrivateStateForAllActivePlayers();
 
-        if ($this->getGameStateValue('solo') == 1) {
-            $playerId = $this->getCurrentPlayerId();
+        $jsonGrid = json_encode($this->getEmptyGrid());
+
+        foreach ($this->gamestate->getActivePlayerList() as $playerId) {
+            $this->giveExtraTime($playerId, 60);
 
             self::notifyAllPlayers("progression", "", array(
                 'player_id' => $playerId,
@@ -241,25 +240,15 @@ class LaserReflection extends Table {
                 'player_id' => $playerId,
                 'player_grid' => $jsonGrid
             ));
+        }
 
+        $round = $this->getGameStateValue('round');
+
+        if ($this->getGameStateValue('solo') == 1) {
             self::notifyAllPlayers("log", clienttranslate('Start of round ${round}'), array (
                 'round' => $round
             ));
         } else {
-            foreach ($this->gamestate->getActivePlayerList() as $playerId) {
-                $this->giveExtraTime($playerId, 60);
-
-                self::notifyAllPlayers("progression", "", array(
-                    'player_id' => $playerId,
-                    'player_progression' => 0
-                ));
-
-                self::notifyAllPlayers("gridChange", "", array(
-                    'player_id' => $playerId,
-                    'player_grid' => $jsonGrid
-                ));
-            }
-
             $rounds = $this->getGameStateValue('rounds');
 
             self::notifyAllPlayers("log", clienttranslate('Start of round ${round} of ${rounds}'), array (
@@ -513,8 +502,6 @@ class LaserReflection extends Table {
     }
 
     function action_hideScore() {
-        self::checkAction("next");
-
         $playerId = $this->getCurrentPlayerId();
 
         if ($this->getGameStateValue('ended') == 0) {
@@ -535,9 +522,11 @@ class LaserReflection extends Table {
     }
 
     function action_stopGame() {
-        self::checkAction("endGame");
+        $playerId = $this->getCurrentPlayerId();
 
         $this->setGameStateValue('ended', 1);
+        $this->calcStats();
+
         $this->gamestate->nextState("endGame");
         $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
     }
