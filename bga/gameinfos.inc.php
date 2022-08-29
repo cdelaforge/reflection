@@ -16,7 +16,7 @@ $gameinfos = array(
 'game_name' => "Reflection",
 
 // Game designer (or game designers, separated by commas)
-'designer' => 'Christophe Delaforge',
+'designer' => 'Christophe Delaforge, Jean-François Mainguet',
 
 // Game artist (or game artists, separated by commas)
 'artist' => 'Christophe Delaforge',

@@ -159,7 +159,7 @@ $machinestates = array(
         "description" => clienttranslate('Go to next round'),
         "descriptionmyturn" => clienttranslate('Go to next round'),
         "type" => "private",
-        "possibleactions" => ["scoreDisplayEnd"],
+        "possibleactions" => ["scoreDisplayEnd", "stopGame"],
         "transitions" => [ 'continue' => STATE_END_ROUND_PRIVATE ]
     ],
 

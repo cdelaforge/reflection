@@ -109,6 +109,12 @@
       self::ajaxResponse();
     }
 
+    public function stopGame() {
+      self::setAjaxMode();
+      $this->game->action_stopGame();
+      self::ajaxResponse();
+    }
+
     /* Data verifications functions */
 
     private function validateJsonGrid($grid) {

@@ -187,7 +187,7 @@ define([
                             }
                             break;
                         case "puzzlePlay":
-                            if (gameUI.playersCount == 1) {
+                            if (gameUI.playersCount === 1) {
                                 dojo.place("<span style='font-weight:bold;'>&nbsp;Robby&nbsp;🤖</span>", "pagemaintitletext");
                             } else {
                                 dojo.place("<span style='font-weight:bold;color:#" + gameUI.puzzleUser.color + ";'>&nbsp;" + gameUI.puzzleUser.name + "</span>", "pagemaintitletext");
@@ -198,6 +198,9 @@ define([
                         case "scoreDisplay":
                             this.removeActionButtons();
                             this.addActionButton('scoreDisplayEnd', _('OK'), 'onScoreDisplayEnd');
+                            if (gameUI.playersCount === 1) {
+                                this.addActionButton('stop', _('Stop'), 'onStop');
+                            }
                             break;
                     }
                 }
@@ -223,6 +226,9 @@ define([
             },
             onScoreDisplayEnd: function () {
                 this.callAction("scoreDisplayEnd", null, true);
+            },
+            onStop: function () {
+                this.callAction("stopGame", null, true);
             },
 
             callAction: function (action, args, lock, handler) {
