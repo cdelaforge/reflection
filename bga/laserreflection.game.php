@@ -178,8 +178,7 @@ class LaserReflection extends Table {
     }
 
     function argPlayPuzzleInit() {
-        $result = array('_private' => array());
-        $result = array('_public' => array());
+        $result = [];
 
         $round = $this->getGameStateValue('round');
 
@@ -209,15 +208,32 @@ class LaserReflection extends Table {
             $data = self::getObjectFromDB($sql);
             $jsonPuzzle = $data['val'];
 
+            $sql = "SELECT game_value val FROM gamestatus WHERE game_param='elements'";
+            $data = self::getObjectFromDB($sql);
+            $jsonElements = $data['val'];
+
             for ($i=0; $i<$cpt; $i++) {
                 $isStarted = $players[$i]['state'] == STATE_PLAY_PUZZLE_PRIVATE;
                 $result['_private'][$players[$i]['id']] = array(
                     'grid' => ($isStarted) ? $players[$i]["grid"] : $jsonEmptyGrid,
                     'puzzle' => $jsonPuzzle,
+                    'elements' => $jsonElements,
                     'started' => $isStarted,
                 );
             }
         }
+
+        return $result;
+    }
+
+    function argSolutionDisplay() {
+        $playerId = $this->getCurrentPlayerId();
+
+        $sql = "SELECT game_value val FROM gamestatus WHERE game_param='grid'";
+        $data = self::getObjectFromDB($sql);
+        $jsonGrid = $data['val'];
+
+        $result = ['grid' => $jsonGrid];
 
         return $result;
     }
@@ -273,8 +289,15 @@ class LaserReflection extends Table {
             $sql = "UPDATE player SET player_grid='".json_encode($grid)."', player_round_score=".$playerScore.", player_score = player_score + ".$playerScore." WHERE player_id = ".$playerId;
             self::DbQuery($sql);
 
+            // create a new puzzle
+            $this->updatePuzzle();
+
             $round = $this->getGameStateValue('round') + 1;
             $this->setGameStateValue('round', $round);
+
+            $roundScores = [];
+            $roundScores[$playerId] = $playerScore;
+            self::notifyAllPlayers("roundScores", '', array('roundScores' => $roundScores));
 
             $this->gamestate->setAllPlayersMultiactive();
             $this->gamestate->initializePrivateStateForAllActivePlayers();
@@ -498,7 +521,10 @@ class LaserReflection extends Table {
             'player_id' => $playerId
         ));
 
-        $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+        //$this->gamestate->nextState("solution");
+        $this->gamestate->nextPrivateState($playerId, 'solution');
+
+        //$this->gamestate->setPlayerNonMultiactive($playerId, 'next');
     }
 
     function action_hideScore() {
@@ -664,6 +690,26 @@ class LaserReflection extends Table {
         }
 
         return $grid;
+    }
+
+    function updatePuzzle() {
+        $items_count = $this->getGameStateValue('items_count');
+        $black_hole = $this->getGameStateValue('black_hole') == 1;
+        $light_warp = $this->getGameStateValue('light_warp') == 1;
+
+        if ($light_warp) {
+            $this->getPortalsPositions();
+        }
+
+        $items = $this->getRandomItems($black_hole, $items_count);
+        $sql = "UPDATE gamestatus SET game_value='".json_encode($items)."' WHERE game_param='elements'";
+        self::DbQuery($sql);
+
+        $grid = $this->getRandomGrid($items);
+        $this->savePuzzleGrid($grid);
+
+        $puzzle = $this->getGridPuzzle($grid);
+        $this->savePuzzle($puzzle);
     }
 
     function getRandomGrid($items) {

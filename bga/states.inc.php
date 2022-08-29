@@ -9,6 +9,7 @@ if (!defined('STATE_END_GAME')) { // ensure this block is only invoked once, sin
     define("STATE_PLAY_PUZZLE_INIT", 5);
     define("STATE_PLAY_PUZZLE_WAIT_PRIVATE", 50);
     define("STATE_PLAY_PUZZLE_PRIVATE", 51);
+    define("STATE_SOLUTION_PRIVATE", 52);
     define("STATE_PLAY_PUZZLE_END", 7);
     define("STATE_END_ROUND", 8);
     define("STATE_END_ROUND_PRIVATE", 80);
@@ -105,7 +106,7 @@ $machinestates = array(
         "type" => "private",
         "possibleactions" => ["gridChange", "creationEnd"],
         "action" => "stCreatePuzzlePrivate",
-        "transitions" => [ 'continue' => STATE_CREATE_PUZZLE_PRIVATE ]
+        "transitions" => [ "continue" => STATE_CREATE_PUZZLE_PRIVATE ]
     ],
 
     STATE_PLAY_PUZZLE_INIT => [
@@ -126,9 +127,7 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('Get ready ! ${you} prepare to resolve the puzzle !'),
         "type" => "private",
         "possibleactions" => ["gridChange", "puzzleStart"],
-        "transitions" => [
-            'continue' => STATE_PLAY_PUZZLE_PRIVATE,
-        ]
+        "transitions" => [ "continue" => STATE_PLAY_PUZZLE_PRIVATE ]
     ],
 
     STATE_PLAY_PUZZLE_PRIVATE => [
@@ -137,9 +136,16 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('${you} must resolve the puzzle of'),
         "type" => "private",
         "possibleactions" => ["gridChange", "puzzleResolve", "giveUp"],
-        "transitions" => [
-            'continue' => STATE_PLAY_PUZZLE_PRIVATE,
-        ]
+        "transitions" => [ "continue" => STATE_PLAY_PUZZLE_PRIVATE, "solution" => STATE_SOLUTION_PRIVATE ]
+    ],
+
+    STATE_SOLUTION_PRIVATE => [
+        "name" => "puzzleSolution",
+        "description" => clienttranslate('Solution of the puzzle'),
+        "descriptionmyturn" => clienttranslate('Solution of the puzzle'),
+        "type" => "private",
+        "args" => "argSolutionDisplay",
+        "possibleactions" => ["hideSolution"],
     ],
 
     STATE_END_ROUND => [

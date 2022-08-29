@@ -117,6 +117,9 @@ define([
                             }
                             gameUI.puzzle = JSON.parse(privateData.puzzle);
                             gameUI.puzzleUser = gameUI.players[privateData.id]; // player that did the puzzle
+                            if (privateData.elements) {
+                                gameUI.elements = JSON.parse(privateData.elements);
+                            }
 
                             gameUI.mode = privateData.started ? 'play' : 'empty';
                         }
@@ -132,6 +135,14 @@ define([
                         break;
                     case "puzzlePlay":
                         gameUI.mode = 'play';
+                        gameUI.setup();
+                        utils.displayGrid();
+                        break;
+                    case "puzzleSolution":
+                        const data = args.args;
+
+                        gameUI.mode = 'solution';
+                        gameUI.solution = JSON.parse(data.grid);
                         gameUI.setup();
                         utils.displayGrid();
                         break;

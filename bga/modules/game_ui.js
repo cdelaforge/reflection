@@ -227,7 +227,13 @@ const gameUI = {
       gridSize: this.gridSize,
       grid: this.grid,
       puzzle: this.puzzle,
-      portals: this.portals,
+      portals: this.portals
+    }
+
+    if (this.mode === "solution") {
+      data["solution"] = this.solution;
+    } else {
+      this.solution = null;
     }
 
     window.game.setup(data);
