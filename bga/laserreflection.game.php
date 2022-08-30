@@ -111,11 +111,9 @@ class LaserReflection extends Table {
         }
 
         if ($count_players == 1) {
-            $puzzleGrid = $this->getRandomGrid($items);
-            $this->setGameDbValue('grid', json_encode($puzzleGrid));
-
-            $puzzle = $this->getGridPuzzle($puzzleGrid);
-            $this->setGameDbValue('puzzle', json_encode($puzzle));
+            $puzzle = $this->getRandomGridAndPuzzle($items);
+            $this->setGameDbValue('grid', $puzzle['grid']);
+            $this->setGameDbValue('puzzle', $puzzle['puzzle']);
         }
 
         // Init game statistics
@@ -264,31 +262,6 @@ class LaserReflection extends Table {
                 'round' => $round
             ));
         } else {
-            if ($round == 1) {
-                // create puzzles for all players that don't have any :
-                $sql = "SELECT player_id id FROM player WHERE player_puzzle is null";
-                $players = self::getObjectListFromDB($sql);
-
-                foreach ($players as $player_id => $player) {
-                    $playerId = $player['id'];
-
-                    $puzzleGrid = $this->getRandomGrid($items);
-                    $puzzle = $this->getGridPuzzle($puzzleGrid);
-
-                    $jsonPuzzleGrid = json_encode($puzzleGrid)
-                    $jsonPuzzle = json_encode($puzzle);
-
-                    $sql = "UPDATE players SET player_puzzle_grid='".$jsonPuzzleGrid."', player_puzzle='".$jsonPuzzle."' WHERE player_id='".$playerId."'";
-                    self::DbQuery($sql);
-
-                    self::notifyAllPlayers("puzzleChange", "", array(
-                        'player_id' => $playerId,
-                        'player_puzzle' => $jsonPuzzle,
-                        'default' => true
-                    ));
-                }
-            }
-
             $rounds = $this->getGameStateValue('rounds');
 
             self::notifyAllPlayers("log", clienttranslate('Start of round ${round} of ${rounds}'), array (
@@ -740,11 +713,50 @@ class LaserReflection extends Table {
         $items = $this->getRandomItems($black_hole, $items_count);
         $this->setGameDbValue('elements', json_encode($items));
 
-        $grid = $this->getRandomGrid($items);
-        $this->setGameDbValue('grid', json_encode($grid));
+        $puzzle = $this->getRandomGridAndPuzzle($items);
+        $this->setGameDbValue('grid', $puzzle['grid']);
+        $this->setGameDbValue('puzzle', $puzzle['puzzle']);
+    }
 
-        $puzzle = $this->getGridPuzzle($grid);
-        $this->setGameDbValue('puzzle', json_encode($puzzle));
+    function getRandomGridAndPuzzle($items) {
+        $searching = true;
+        $grid = null;
+        $jsonPuzzle = null;
+        $try = 0;
+
+        while ($searching && $try < 20) {
+            $grid = $this->getRandomGrid($items);
+            $grid_size = count($grid);
+            $puzzle = $this->getGridPuzzle($grid);
+            $jsonPuzzle = json_encode($puzzle);
+            $searching = false;
+
+            for ($row=0; $row<$grid_size; $row++) {
+                for ($col=0; $col<$grid_size; $col++) {
+                    $val = $grid[$row][$col];
+
+                    if ($val > 0 && $val < 7) {
+                        $grid[$row][$col] = 0;
+                        $puzzle = $this->getGridPuzzle($grid);
+                        $grid[$row][$col] = $val;
+
+                        if ($jsonPuzzle == json_encode($puzzle)) {
+                            // one item is useless
+                            $searching = true;
+                            break;
+                        }
+                    }
+                }
+
+                if ($searching) {
+                    break;
+                }
+            }
+
+            ++$try;
+        }
+
+        return [ 'grid' => json_encode($grid), 'puzzle' => $jsonPuzzle];
     }
 
     function getRandomGrid($items) {
@@ -1013,6 +1025,32 @@ class LaserReflection extends Table {
 
     function zombieTurn($state, $active_player) {
     	$statename = $state['name'];
+
+        // create puzzles for all zombie players that don't have any :
+        $sql = "SELECT player_id id FROM player WHERE player_zombie=1 AND player_puzzle is null";
+        $players = self::getObjectListFromDB($sql);
+        $cpt = count($players);
+
+        if ($cpt > 0) {
+            $items = json_decode($this->getGameDbValue('elements'));
+
+            foreach ($players as $player_id => $player) {
+                $playerId = $player['id'];
+
+                $puzzle = $this->getRandomGridAndPuzzle($items);
+                $jsonPuzzleGrid = $puzzle['grid'];
+                $jsonPuzzle = $puzzle['puzzle'];
+
+                $sql = "UPDATE player SET player_puzzle_grid='".$jsonPuzzleGrid."', player_puzzle='".$jsonPuzzle."' WHERE player_id='".$playerId."'";
+                self::DbQuery($sql);
+
+                self::notifyAllPlayers("puzzleChange", "", array(
+                    'player_id' => $playerId,
+                    'player_puzzle' => $jsonPuzzle,
+                    'default' => true
+                ));
+            }
+        }
 
         $sql = "UPDATE player SET player_start=0, player_round_duration=6666 WHERE player_zombie=1 AND player_round_duration=0";
         self::DbQuery($sql);
