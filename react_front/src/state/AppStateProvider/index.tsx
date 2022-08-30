@@ -31,6 +31,7 @@ export interface IStateContext {
   grid: number[][];
   setGridElement: (row: number, col: number) => void;
   moveGridElement: (source: Position, destination: Position) => void;
+  solution?: number[][];
 
   /* enigme */
   toSolve: string[][];
@@ -105,7 +106,7 @@ const initPuzzle = (squaresCount: number, mode?: string, elements?: number[], po
 };
 
 const initialData: IStateContext = {
-  mode: 'empty',
+  mode: 'play',
   squaresCount: 8,
   elementsCount: 15,
   stock: [1, 1, 2, 2, 2, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7],
@@ -133,6 +134,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   const [stock, setStock] = useState(initialData.stock);
   const [stockIndex, setStockIndex] = useState<number>();
   const [grid, setGrid] = useState(initialData.grid);
+  const [solution, setSolution] = useState<number[][]>();
   const [toSolve, setToSolve] = useState(initialData.toSolve);
   const [result, setResult] = useState<string[][]>([[]]);
   const [gridDimensions, setGridDimensions] = useState({
@@ -160,6 +162,10 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
 
         const grid = p.grid || initGrid(p.gridSize, p.portals);
         setGrid(grid);
+
+        if (p.solution) {
+          setSolution(p.solution);
+        }
 
         const toSolve = p.puzzle || initPuzzle(p.gridSize, p.mode, p.elements, p.portals);
         setToSolve(toSolve);
@@ -272,12 +278,14 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   }, [mode, result, toSolve]);
 
   useEffect(() => {
-    if (displayLaserPosition !== undefined && displayLaserIndex !== undefined) {
-      setLaserElements(checker.getLaserElements(grid, displayLaserPosition, displayLaserIndex));
-    } else {
+    if (displayLaserPosition === undefined || displayLaserIndex === undefined) {
       setLaserElements([]);
+    } else if (mode === "solution" && solution) {
+      setLaserElements(checker.getLaserElements(solution, displayLaserPosition, displayLaserIndex));
+    } else {
+      setLaserElements(checker.getLaserElements(grid, displayLaserPosition, displayLaserIndex));
     }
-  }, [grid, displayLaserPosition, displayLaserIndex]);
+  }, [grid, displayLaserPosition, displayLaserIndex, mode, solution]);
 
   const numberCompare = (a: number, b: number) => {
     return a === 0 ? 0 : (a < b ? -1 : 1);
@@ -368,6 +376,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     stockIndex,
     setStockIndex: (index?: number) => { if (running) { setStockIndex(index); } },
     grid,
+    solution,
     setGridElement: (row: number, col: number) => { if (running) { setGridElement(row, col); setPlayerAction(true); } },
     moveGridElement: (source: Position, destination: Position) => { if (running) { moveGridElement(source, destination); setPlayerAction(true); } },
     toSolve,

@@ -103,9 +103,15 @@
       self::ajaxResponse();
     }
 
-    public function scoreDisplayEnd() {
+    public function hideScore() {
       self::setAjaxMode();
       $this->game->action_hideScore();
+      self::ajaxResponse();
+    }
+
+    public function hideSolution() {
+      self::setAjaxMode();
+      $this->game->action_hideSolution();
       self::ajaxResponse();
     }
 

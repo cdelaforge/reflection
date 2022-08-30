@@ -17,7 +17,7 @@ function StockCell({ index }: StockCellProps) {
 
   return (
     <CellBackground type="stock" size={cellSize} selected={stockIndex === index} onClick={clickCell}>
-      <CellIcon index={stock[index]} stockIndex={index} />
+      <CellIcon val={stock[index]} stockIndex={index} />
     </CellBackground>
   );
 }

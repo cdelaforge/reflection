@@ -6,5 +6,7 @@ export const colors = {
   "white": "#D0D0D0",
   "black": "#0A0A0A",
   "blue": "#77B5FE",
-  "laser": "#06f804"
+  "laser": "#06f804",
+  "wrong": "#873833",
+  "solution": "#537560",
 };

@@ -33,15 +33,15 @@ const getToSolve = (toSolve: string[][], posIndex: number, index: number) => {
 function SideCell({ position, index }: SideCellProps) {
   const { mode, cellSize, toSolve, result, displayLaserPosition, displayLaserIndex, displayLaser } = useAppState();
   const posIndex = posIndexHelper[position];
-  const modeCreation = mode !== "play" && mode !== "standalone";
+  const modeCreation = mode !== "play" && mode !== "standalone" && mode !== "solution";
   const valCurrent = getCurrentVal(result, posIndex, index);
   const valSolution = modeCreation ? valCurrent : getToSolve(toSolve, posIndex, index);
-  const isCellCorrect = modeCreation || valCurrent === valSolution;
+  const isCellCorrect = mode === "solution" || modeCreation || valCurrent === valSolution;
   const selected = displayLaserPosition === posIndex && displayLaserIndex === index;
 
   return (
     <CellBackground type="side" size={cellSize} selected={selected} onClick={() => displayLaser(posIndex, index)}>
-      <CellNumber valStr={selected ? valCurrent : valSolution} isCorrect={isCellCorrect} />
+      <CellNumber valStr={selected && mode !== "solution" ? valCurrent : valSolution} isCorrect={isCellCorrect} />
     </CellBackground>
   );
 }

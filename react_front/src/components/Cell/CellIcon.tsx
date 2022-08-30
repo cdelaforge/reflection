@@ -5,59 +5,61 @@ import { isMobile } from 'react-device-detect';
 import { useAppState } from "../../state/AppStateProvider";
 import { MirrorSlashIcon, MirrorBackSlashIcon, MirrorVerticalIcon, MirrorHorizontalIcon, MirrorSquareIcon, BlackHoleIcon, PortalIcon } from "../../icons";
 import { CellIconContainer } from "./Cell.Styles";
+import { colors } from "../../helpers/Style";
 
 interface CellIconProps {
-  index: number;
+  val: number;
   row?: number;
   col?: number;
   stockIndex?: number;
+  display?: 'normal' | 'wrong' | 'solution';
 }
 
-function CellIcon({ index, row, col, stockIndex }: CellIconProps) {
+function CellIcon({ val, row, col, stockIndex, display }: CellIconProps) {
   const { cellSize, mode, running } = useAppState();
+  const color = display === "wrong" ? colors.wrong : (display === "solution" ? colors.solution : colors.black);
 
   const [{ isDragging }, drag, preview] = useDrag(() => ({
     type: "item",
-    item: { index, row, col, stockIndex },
+    item: { index: val, row, col, stockIndex },
     collect: monitor => ({
       isDragging: !!monitor.isDragging(),
     }),
     canDrag: () => {
-      return !isMobile && mode !== "empty" && running && index > 0 && index < 7;
+      return !isMobile && mode !== "empty" && mode !== "solution" && running && val > 0 && val < 7;
     },
-  }), [index, stockIndex, mode, running]);
+  }), [val, stockIndex, mode, running]);
 
   useEffect(() => {
     preview(getEmptyImage(), { captureDraggingState: true })
   }, [preview]);
 
   const getIconCode = () => {
-    switch (index) {
+    switch (val) {
       default:
         return <></>;
       case 1:
-        return <MirrorSlashIcon size={cellSize} />
+        return <MirrorSlashIcon size={cellSize} color={color} />
       case 2:
-        return <MirrorBackSlashIcon size={cellSize} />
+        return <MirrorBackSlashIcon size={cellSize} color={color} />
       case 3:
-        return <MirrorVerticalIcon size={cellSize} />
+        return <MirrorVerticalIcon size={cellSize} color={color} />
       case 4:
-        return <MirrorHorizontalIcon size={cellSize} />
+        return <MirrorHorizontalIcon size={cellSize} color={color} />
       case 5:
-        return <MirrorSquareIcon size={cellSize} />
+        return <MirrorSquareIcon size={cellSize} color={color} />
       case 6:
-        return <BlackHoleIcon size={cellSize} />
+        return <BlackHoleIcon size={cellSize} color={color} />
       case 7:
-        return <PortalIcon size={cellSize} />
+        return <PortalIcon size={cellSize} color={color} />
     }
   };
 
   return (
-    <CellIconContainer ref={drag} isDragging={isDragging}>
+    <CellIconContainer ref={drag} transparent={isDragging || display === "wrong"}>
       {getIconCode()}
     </CellIconContainer>
   );
-
 }
 
 export default CellIcon;

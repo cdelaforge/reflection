@@ -85,27 +85,25 @@ const gameUI = {
     return undefined;
   },
 
+  clearSavedGrid: function () {
+    localStorage.removeItem(this.storageKey);
+  },
+
   live: function () {
     this.liveLoop = (this.liveLoop + 1) % 4;
-
-    if (this.giveUp) {
-      this.giveUp = false;
-      this.shouldSendProgression = false;
-      localStorage.removeItem(this.storageKey);
-    }
 
     if (this.resolved) {
       this.resolved = false;
       this.shouldSendProgression = false;
       this.callAction("puzzleResolve", { grid: JSON.stringify(this.grid) }, true);
-      localStorage.removeItem(this.storageKey);
+      this.clearSavedGrid();
     }
 
     if (this.puzzleCreationEnd) {
       this.puzzleCreationEnd = false;
       this.shouldSendProgression = false;
       this.callAction("creationEnd", { grid: JSON.stringify(this.grid), puzzle: JSON.stringify(this.puzzle) }, true);
-      localStorage.removeItem(this.storageKey);
+      this.clearSavedGrid();
     }
 
     if (this.shouldSendProgression && (this.liveLoop === 0 || this.progression === 100)) {

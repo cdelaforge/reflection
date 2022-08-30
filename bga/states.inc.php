@@ -117,7 +117,7 @@ $machinestates = array(
         "initialprivate" => STATE_PLAY_PUZZLE_WAIT_PRIVATE,
         "action" => "stPlayPuzzleInit",
         "args" => "argPlayPuzzleInit",
-        "transitions" => ["next" => STATE_END_ROUND, "end" => STATE_END_GAME],
+        "transitions" => ["next" => STATE_END_ROUND, "endGame" => STATE_END_GAME],
         "updateGameProgression" => true
     ],
 
@@ -141,11 +141,11 @@ $machinestates = array(
 
     STATE_SOLUTION_PRIVATE => [
         "name" => "puzzleSolution",
-        "description" => clienttranslate('Solution of the puzzle'),
-        "descriptionmyturn" => clienttranslate('Solution of the puzzle'),
+        "description" => clienttranslate('Go to next round'),
+        "descriptionmyturn" => clienttranslate('Go to next round'),
         "type" => "private",
         "args" => "argSolutionDisplay",
-        "possibleactions" => ["hideSolution"],
+        "possibleactions" => ["hideSolution", "stopGame"],
     ],
 
     STATE_END_ROUND => [
@@ -165,7 +165,7 @@ $machinestates = array(
         "description" => clienttranslate('Go to next round'),
         "descriptionmyturn" => clienttranslate('Go to next round'),
         "type" => "private",
-        "possibleactions" => ["scoreDisplayEnd", "stopGame"],
+        "possibleactions" => ["hideScore", "stopGame"],
         "transitions" => [ 'continue' => STATE_END_ROUND_PRIVATE ]
     ],
 

@@ -3,6 +3,7 @@ export interface GameSetup {
   gridSize: number,
   elements?: number[],
   grid?: number[][],
+  solution?: number[][],
   puzzle?: string[][],
   portals?: number[],
 }

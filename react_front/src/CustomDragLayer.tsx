@@ -49,7 +49,7 @@ export const CustomDragLayer: FC<CustomDragLayerProps> = (props) => {
     //console.debug(item.index);
     switch (itemType) {
       case "item":
-        return <CellIcon index={item.index} />
+        return <CellIcon val={item.index} />
       default:
         return null
     }

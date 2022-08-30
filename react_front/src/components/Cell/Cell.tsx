@@ -10,7 +10,7 @@ interface CellProps {
 }
 
 function Cell({ row, col }: CellProps) {
-  const { cellSize, grid, setGridElement, moveGridElement, laserElements, mode } = useAppState();
+  const { cellSize, grid, solution, setGridElement, moveGridElement, laserElements, mode } = useAppState();
 
   const [, drop] = useDrop(
     () => ({
@@ -20,15 +20,26 @@ function Cell({ row, col }: CellProps) {
     [row, col, grid]
   );
 
-  const getVal = () => {
-    if (grid && grid[row] && grid[row][col] && mode !== "empty") {
-      return grid[row][col];
+  const getPlayerVal = () => {
+    if (grid && grid[row] && grid[row][col]) {
+      const val = grid[row][col];
+
+      if (mode !== "empty" || val === 7) {
+        return val;
+      }
+    }
+    return 0;
+  }
+
+  const getSolutionVal = () => {
+    if (mode === "solution" && solution && solution[row] && solution[row][col]) {
+      return solution[row][col];
     }
     return 0;
   }
 
   const clickCell = () => {
-    if (getVal() !== 7 && mode !== "empty") {
+    if (getPlayerVal() !== 7 && mode !== "empty" && mode !== "solution") {
       setGridElement(row, col);
     }
   };
@@ -41,15 +52,42 @@ function Cell({ row, col }: CellProps) {
       </CellContainerChild>
     ));
 
+  const getPlayerCellIcon = (playerVal: number, solutionVal: number) => {
+    if (playerVal) {
+      const disp = (mode === "solution" && playerVal !== solutionVal) ? "wrong" : "normal";
+      return (
+        <CellContainerChild>
+          <CellIcon val={playerVal} row={row} col={col} display={disp} />
+        </CellContainerChild>
+      );
+    }
+
+    return <></>;
+  }
+
+  const getSolutionCellIcon = (playerVal: number, solutionVal: number) => {
+    if (mode === "solution" && solutionVal && playerVal !== solutionVal) {
+      return (
+        <CellContainerChild>
+          <CellIcon val={solutionVal} row={row} col={col} display="solution" />
+        </CellContainerChild>
+      );
+    }
+
+    return <></>;
+  }
+
+  const playerVal = getPlayerVal();
+  const solutionVal = getSolutionVal();
+
   return (
     <CellContainer size={cellSize} onClick={clickCell} ref={drop}>
       <CellContainerChild>
         <CellBackground type="grid" size={cellSize} />
       </CellContainerChild>
       {cellLaserElements}
-      <CellContainerChild>
-        <CellIcon index={getVal()} row={row} col={col} />
-      </CellContainerChild>
+      {getPlayerCellIcon(playerVal, solutionVal)}
+      {getSolutionCellIcon(playerVal, solutionVal)}
     </CellContainer>
   );
 }

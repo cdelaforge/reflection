@@ -208,7 +208,14 @@ define([
                             break;
                         case "scoreDisplay":
                             this.removeActionButtons();
-                            this.addActionButton('scoreDisplayEnd', _('OK'), 'onScoreDisplayEnd');
+                            this.addActionButton('hideScore', _('OK'), 'onScoreDisplayEnd');
+                            if (gameUI.playersCount === 1) {
+                                this.addActionButton('stop', _('Stop'), 'onStop');
+                            }
+                            break;
+                        case "puzzleSolution":
+                            this.removeActionButtons();
+                            this.addActionButton('solutionDisplayEnd', _('OK'), 'onSolutionDisplayEnd');
                             if (gameUI.playersCount === 1) {
                                 this.addActionButton('stop', _('Stop'), 'onStop');
                             }
@@ -229,14 +236,21 @@ define([
                 this.callAction("puzzleStart", null, true);
             },
             onGiveUp: function () {
-                var self = this;
-                this.confirmationDialog(_('Are you sure to give up? You will have a score penalty'), () => {
-                    gameUI.giveUp = true;
-                    self.callAction("giveUp", null, true);
-                });
+                if (gameUI.playersCount === 1) {
+                    this.callAction("giveUp", null, true);
+                } else {
+                    var self = this;
+                    this.confirmationDialog(_('Are you sure to give up? You will have a score penalty'), () => {
+                        self.callAction("giveUp", null, true);
+                    });
+                }
             },
             onScoreDisplayEnd: function () {
-                this.callAction("scoreDisplayEnd", null, true);
+                this.callAction("hideScore", null, true);
+            },
+            onSolutionDisplayEnd: function () {
+                gameUI.clearSavedGrid();
+                this.callAction("hideSolution", null, true);
             },
             onStop: function () {
                 this.callAction("stopGame", null, true);
