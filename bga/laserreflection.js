@@ -94,7 +94,7 @@ define([
 
                 switch (stateName) {
                     case 'puzzleCreationInit':
-                        gameUI.mode = (g_archive_mode || this.isSpectator) ? 'puzzleCreation' : 'standalone';
+                        gameUI.mode = 'puzzleCreation';
                         gameUI.setup();
                         break;
                     case 'puzzlePlayInit':
@@ -237,11 +237,10 @@ define([
             },
             onGiveUp: function () {
                 if (gameUI.playersCount === 1) {
-                    this.callAction("giveUp", null, true);
+                    gameUI.giveUp = true;
                 } else {
-                    var self = this;
                     this.confirmationDialog(_('Are you sure to give up? You will have a score penalty'), () => {
-                        self.callAction("giveUp", null, true);
+                        gameUI.giveUp = true;
                     });
                 }
             },

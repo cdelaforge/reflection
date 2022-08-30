@@ -37,6 +37,7 @@ export interface IStateContext {
   toSolve: string[][];
   result: string[][];
   running: boolean;
+  won: boolean;
 
   /* laser */
   laserElements: LaserProps[],
@@ -124,6 +125,7 @@ const initialData: IStateContext = {
   laserElements: [],
   displayLaser: () => { },
   running: true,
+  won: false,
   ...getGridDimensions(10),
 };
 
@@ -147,6 +149,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   const [displayLaserPosition, setDisplayLaserPosition] = useState<number>();
   const [displayLaserIndex, setDisplayLaserIndex] = useState<number>();
   const [running, setRunning] = useState(initialData.running);
+  const [won, setWon] = useState(initialData.won);
   const [areaWidth, setAreaWidth] = useState<number>();
   const [areaHeight, setAreaHeight] = useState<number>();
   const [playerAction, setPlayerAction] = useState<boolean>(false);
@@ -156,6 +159,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     w.game = {
       setRunning,
       setup: (p: GameSetup) => {
+        setWon(false);
         setPlayerAction(false);
         setMode(p.mode);
         setSquaresCount(p.gridSize);
@@ -231,7 +235,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     setResult(newResult);
 
     if (checker.won) {
-      setRunning(false);
+      setWon(true);
 
       const w: WindowWithGameMethods = window as any;
       if (w.game.onPuzzleResolve) {
@@ -374,11 +378,11 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     elementsCount,
     stock,
     stockIndex,
-    setStockIndex: (index?: number) => { if (running) { setStockIndex(index); } },
+    setStockIndex: (index?: number) => { if (running && !won) { setStockIndex(index); } },
     grid,
     solution,
-    setGridElement: (row: number, col: number) => { if (running) { setGridElement(row, col); setPlayerAction(true); } },
-    moveGridElement: (source: Position, destination: Position) => { if (running) { moveGridElement(source, destination); setPlayerAction(true); } },
+    setGridElement: (row: number, col: number) => { if (running && !won) { setGridElement(row, col); setPlayerAction(true); } },
+    moveGridElement: (source: Position, destination: Position) => { if (running && !won) { moveGridElement(source, destination); setPlayerAction(true); } },
     toSolve,
     result,
     laserElements,
@@ -386,6 +390,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     displayLaserIndex,
     displayLaser,
     running,
+    won,
     ...gridDimensions
   };
 

@@ -44,16 +44,6 @@
       self::dump("grid", $grid);
       $this->validateJsonGrid($grid);
 
-      try {
-        $puzzle = self::getArg("defPuzzle", AT_json, true);
-        $this->validateJsonPuzzle($puzzle);
-
-        $defGrid = self::getArg("defGrid", AT_json, true);
-        $this->validateJsonGrid($defGrid);
-
-        $this->game->action_setDefaultPuzzle($defGrid, $puzzle);
-      } catch (Exception $e) {} // normal if the player doesn't send default puzzle
-
       $progression = self::getArg("progression", AT_posint, true);
 
       $this->game->action_changeGrid($grid, $progression);

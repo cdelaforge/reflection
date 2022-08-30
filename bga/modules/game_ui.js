@@ -6,14 +6,6 @@ const gameUI = {
       setTimeout(function () { gameUI.init(dojoGame); }, 100);
       return;
     }
-
-    window.game.onStandaloneStart = function (grid, puzzle) {
-      gameUI.defaultPuzzleGrid = grid;
-      gameUI.defaultPuzzle = puzzle;
-      gameUI.mode = 'puzzleCreation';
-      gameUI.setup();
-      utils.displayGrid();
-    }
     window.game.onGridChange = function (grid) {
       const gridChanged = JSON.stringify(gameUI.grid) !== JSON.stringify(grid);
       if (gridChanged) {
@@ -92,6 +84,12 @@ const gameUI = {
   live: function () {
     this.liveLoop = (this.liveLoop + 1) % 4;
 
+    if (this.giveUp) {
+      this.giveUp = false;
+      this.shouldSendProgression = false;
+      this.callAction("giveUp", null, true);
+    }
+
     if (this.resolved) {
       this.resolved = false;
       this.shouldSendProgression = false;
@@ -114,14 +112,6 @@ const gameUI = {
           grid: JSON.stringify(this.grid),
           progression: this.progression || 0
         };
-
-        if (this.defaultPuzzleGrid && this.defaultPuzzle) {
-          data.defGrid = JSON.stringify(this.defaultPuzzleGrid);
-          data.defPuzzle = JSON.stringify(this.defaultPuzzle);
-
-          this.defaultPuzzleGrid = null;
-          this.defaultPuzzle = null;
-        }
 
         this.callAction("gridChange", data, false);
       }
