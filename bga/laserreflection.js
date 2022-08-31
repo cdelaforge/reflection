@@ -204,6 +204,8 @@ define([
                                 dojo.place("<span style='font-weight:bold;color:#" + gameUI.puzzleUser.color + ";'>&nbsp;" + gameUI.puzzleUser.name + "</span>", "pagemaintitletext");
                             }
                             this.removeActionButtons();
+                            this.addActionButton('undo', _('Undo') + " ⎌", 'onUndo');
+                            this.addActionButton('reset', _('Reset') + " ↺", 'onReset');
                             this.addActionButton('giveUp', _('Give up'), 'onGiveUp');
                             break;
                         case "scoreDisplay":
@@ -234,6 +236,12 @@ define([
             onStartNow: function () {
                 timer.abort();
                 this.callAction("puzzleStart", null, true);
+            },
+            onReset: function () {
+                gameUI.reset();
+            },
+            onUndo: function () {
+                gameUI.undo();
             },
             onGiveUp: function () {
                 if (gameUI.playersCount === 1) {

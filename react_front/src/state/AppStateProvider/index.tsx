@@ -195,6 +195,8 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
           setStock(intersection);
           setStockIndex(intersection.length === 0 ? undefined : 0);
         }
+
+        return grid;
       },
       setAreaSize: (width: number, height: number) => {
         setAreaWidth(width);

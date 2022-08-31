@@ -994,12 +994,21 @@ class LaserReflection extends Table {
 
     function sendPlayerStartNotification($start) {
         $playerId = $this->getCurrentPlayerId();
-        $owner = $this->getPuzzleOwner($playerId);
+        $ownerName = null;
 
-        if ($owner != null) {
+        if ($this->getGameStateValue('solo') == 1) {
+            $ownerName = 'Robby';
+        } else {
+            $owner = $this->getPuzzleOwner($playerId);
+            if ($owner != null) {
+                $ownerName = $owner["name"];
+            }
+        }
+
+        if ($ownerName != null) {
             self::notifyAllPlayers("start", clienttranslate('${player_name} has started to work on ${other_player_name}\'s puzzle'), array (
                 'player_name' => self::getCurrentPlayerName(),
-                'other_player_name' => $owner["name"],
+                'other_player_name' => $ownerName,
                 'player_id' => $playerId,
                 'start' => $start
             ));

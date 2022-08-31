@@ -9,10 +9,11 @@ const gameUI = {
     window.game.onGridChange = function (grid) {
       const gridChanged = JSON.stringify(gameUI.grid) !== JSON.stringify(grid);
       if (gridChanged) {
+        if (gameUI.grid) {
+          gameUI.history.push(gameUI.grid);
+        }
         gameUI.setGrid(grid);
-
-        const item = { grid, expires: new Date().getTime() + STORAGE_TTL };
-        localStorage.setItem(gameUI.storageKey, JSON.stringify(item));
+        gameUI.saveGrid();
 
         gameUI.shouldSendProgression = true;
       }
@@ -38,6 +39,7 @@ const gameUI = {
     gameUI.live();
     setInterval(function () { gameUI.live(); }, 500);
 
+    this.history = [];
     this.dojoGame = dojoGame;
     this.liveLoop = 0;
     this.initialized = true;
@@ -66,6 +68,29 @@ const gameUI = {
     toDelete.forEach(key => localStorage.removeItem(key));
   },
 
+  reset: function () {
+    this.setGrid(undefined);
+    this.setup();
+    this.saveGrid();
+    this.history = [];
+    this.shouldSendProgression = true;
+  },
+
+  undo: function () {
+    if (this.history.length) {
+      const grid = this.history.pop();
+      this.setGrid(grid);
+      this.setup();
+      this.saveGrid();
+      this.shouldSendProgression = true;
+    }
+  },
+
+  saveGrid: function () {
+    const item = { grid: this.grid, expires: new Date().getTime() + STORAGE_TTL };
+    localStorage.setItem(this.storageKey, JSON.stringify(item));
+  },
+
   getSavedGrid: function () {
     try {
       const jsonItem = localStorage.getItem(this.storageKey);
@@ -79,6 +104,7 @@ const gameUI = {
 
   clearSavedGrid: function () {
     localStorage.removeItem(this.storageKey);
+    this.history = [];
   },
 
   live: function () {
@@ -224,11 +250,11 @@ const gameUI = {
       this.solution = null;
     }
 
-    window.game.setup(data);
+    this.grid = window.game.setup(data);
+
     dojo.style("root", "visibility", "visible");
 
     if (!this.running || g_archive_mode) {
-      console.log("set running false");
       window.game.setRunning(false);
     }
   },

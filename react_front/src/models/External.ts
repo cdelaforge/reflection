@@ -11,7 +11,7 @@ export interface GameSetup {
 export interface WindowWithGameMethods {
   game: {
     setRunning: (r: boolean) => void;
-    setup: (p: GameSetup) => void;
+    setup: (p: GameSetup) => number[][];
     setAreaSize: (width: number, height: number) => void;
     onGridChange?: (grid: number[][]) => void;
     onPuzzleChange?: (puzzle: string[][]) => void;
