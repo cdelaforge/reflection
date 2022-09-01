@@ -205,6 +205,8 @@ class LaserReflection extends Table {
         } else {
             $jsonPuzzle = $this->getGameDbValue('puzzle');
             $jsonElements = $this->getGameDbValue('elements');
+            $light_warp = $this->getGameStateValue('light_warp') == 1;
+            $jsonPortals = $light_warp ? $this->getGameDbValue('portals') : null;
 
             for ($i=0; $i<$cpt; $i++) {
                 $isStarted = $players[$i]['state'] == STATE_PLAY_PUZZLE_PRIVATE;
@@ -212,6 +214,7 @@ class LaserReflection extends Table {
                     'grid' => ($isStarted) ? $players[$i]["grid"] : $jsonEmptyGrid,
                     'puzzle' => $jsonPuzzle,
                     'elements' => $jsonElements,
+                    'portals' => $jsonPortals,
                     'started' => $isStarted,
                 );
             }
@@ -653,12 +656,7 @@ class LaserReflection extends Table {
         $portals[] = $row2;
         $portals[] = $col2;
 
-        $sql = "DELETE FROM gamestatus WHERE game_param='portals'";
-        self::DbQuery($sql);
-
-        $sql = "INSERT INTO gamestatus (game_param, game_value) VALUES ('portals', '".json_encode($portals)."')";
-        self::DbQuery($sql);
-
+        $this->setGameDbValue('portals', json_encode($portals));
         self::setGameStateValue('portal_1_row', $row1);
         self::setGameStateValue('portal_1_col', $col1);
         self::setGameStateValue('portal_2_row', $row2);

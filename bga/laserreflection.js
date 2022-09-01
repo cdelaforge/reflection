@@ -120,6 +120,9 @@ define([
                             if (privateData.elements) {
                                 gameUI.elements = JSON.parse(privateData.elements);
                             }
+                            if (privateData.portals) {
+                                gameUI.portals = JSON.parse(privateData.portals);
+                            }
 
                             gameUI.mode = privateData.started ? 'play' : 'empty';
                         }
