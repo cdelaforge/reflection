@@ -85,7 +85,8 @@ $machinestates = array(
         "action" => "stGameInit",
         "transitions" => array(
             "solo" => STATE_PLAY_PUZZLE_INIT,
-            "normal" => STATE_CREATE_PUZZLE_INIT
+            "normal" => STATE_CREATE_PUZZLE_INIT,
+            "random" => STATE_PLAY_PUZZLE_INIT,
         )
     ),
 

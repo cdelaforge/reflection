@@ -39,6 +39,10 @@ class LaserReflection extends Table {
             "portal_2_row" => 22,
             "portal_2_col" => 23,
             "solo" => 30,
+            "multi_mode" => 103,
+            "solo_mode" => 104,
+            "rounds" => 108,
+            "time_limit" => 110,
             "grid_size" => 120,
             "items_count" => 121,
             "black_hole" => 122,
@@ -73,6 +77,7 @@ class LaserReflection extends Table {
         $black_hole = $this->getGameStateValue('black_hole') == 1;
         $light_warp = $this->getGameStateValue('light_warp') == 1;
         $auto_start = $this->getGameStateValue('auto_start');
+        $multi_mode = $this->getGameStateValue('multi_mode');
         $items = $this->getRandomItems($black_hole, $items_count);
 
         $sql = "INSERT INTO gamestatus (game_param, game_value) VALUES ('elements', '".json_encode($items)."')";
@@ -110,7 +115,7 @@ class LaserReflection extends Table {
             $this->getPortalsPositions();
         }
 
-        if ($count_players == 1) {
+        if ($count_players == 1 || $multi_mode == 10) {
             $puzzle = $this->getRandomGridAndPuzzle($items);
             $this->setGameDbValue('grid', $puzzle['grid']);
             $this->setGameDbValue('puzzle', $puzzle['puzzle']);
@@ -163,6 +168,8 @@ class LaserReflection extends Table {
     function stGameInit() {
         if ($this->getGameStateValue('solo') == 1) {
             $this->gamestate->nextState("solo");
+        } else if ($this->getGameStateValue('multi_mode') == 10) {
+            $this->gamestate->nextState("random");
         } else {
             $this->gamestate->nextState("normal");
         }
@@ -275,116 +282,130 @@ class LaserReflection extends Table {
     }
 
     function stEndRound() {
+        if ($this->getGameStateValue('solo') == 1) {
+            $this->stEndRound_Solo();
+        } else if ($this->getGameStateValue('multi_mode') == 10) {
+            $this->stEndRound_Random();
+        } else {
+            $this->stEndRound_Classic();
+        }
+    }
+
+    function stEndRound_Solo() {
+        $grid = $this->getEmptyGrid();
+        $playerId = $this->getCurrentPlayerId();
+
+        $sql = "SELECT player_round_duration duration FROM player WHERE player_id='".$playerId."'";
+        $player = self::getObjectFromDB($sql);
+        $playerScore = $player["duration"] >= 6666 ? 0 : 1;
+
+        // create a new puzzle
+        $this->updatePuzzle();
+
+        $round = $this->getGameStateValue('round') + 1;
+        $this->setGameStateValue('round', $round);
+
+        if ($playerScore > 0) {
+            self::notifyAllPlayers("log", clienttranslate('${player_name} scores ${points} points'), array (
+                'player_name' => self::getCurrentPlayerName(),
+                'points' => $playerScore
+            ));
+
+            $roundScores = [];
+            $roundScores[$playerId] = $playerScore;
+            self::notifyAllPlayers("roundScores", '', array('roundScores' => $roundScores));
+
+            $sql = "UPDATE player SET player_grid='".json_encode($grid)."', player_round_score=".$playerScore.", player_score = player_score + ".$playerScore." WHERE player_id = ".$playerId;
+            self::DbQuery($sql);
+
+            $this->gamestate->setAllPlayersMultiactive();
+            $this->gamestate->initializePrivateStateForAllActivePlayers();
+        } else {
+            $sql = "UPDATE player SET player_progression=0, player_start=0, player_round_duration=0, player_grid='".json_encode($grid)."', player_round_score=".$playerScore.", player_score = player_score + ".$playerScore." WHERE player_id = ".$playerId;
+            self::DbQuery($sql);
+
+            $this->gamestate->nextState("next");
+        }
+    }
+
+    function stEndRound_Classic() {
         $grid = $this->getEmptyGrid();
 
-        if ($this->getGameStateValue('solo') == 1) {
-            $playerId = $this->getCurrentPlayerId();
+        $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_grid grid FROM player ORDER BY player_round_duration";
+        $players = self::getObjectListFromDB($sql);
+        $cpt = count($players);
+        $rounds = $this->getGameStateValue('rounds');
+        $scorePart = (120 / $rounds) / $cpt;
 
-            $sql = "SELECT player_round_duration duration FROM player WHERE player_id='".$playerId."'";
-            $player = self::getObjectFromDB($sql);
-            $playerScore = $player["duration"] >= 6666 ? 0 : 1;
+        $prevScore = 0;
+        $prevDuration = 0;
 
-            // create a new puzzle
-            $this->updatePuzzle();
+        for ($i=0; $i<$cpt; $i++) {
+            $playerId = $players[$i]['id'];
+            $duration =  $players[$i]['duration'];
+            $playerName = $players[$i]['name'];
 
-            $round = $this->getGameStateValue('round') + 1;
-            $this->setGameStateValue('round', $round);
+            if ($duration == $prevDuration) {
+                $playerScore = $prevScore;
+            } else if ($duration >= 6666) {
+                $playerScore = -floor($scorePart);
+            } else {
+                $playerScore = floor(($cpt - $i) * $scorePart);
+                $prevDuration = $duration;
+                $prevScore = $playerScore;
+            }
 
-            if ($playerScore > 0) {
+            if ($playerScore < 0) {
+                self::notifyAllPlayers("log", clienttranslate('${player_name} loses ${points} points'), array (
+                    'player_name' => $playerName,
+                    'points' => -$playerScore
+                ));
+            } else {
                 self::notifyAllPlayers("log", clienttranslate('${player_name} scores ${points} points'), array (
-                    'player_name' => self::getCurrentPlayerName(),
+                    'player_name' => $playerName,
                     'points' => $playerScore
                 ));
+            }
 
-                $roundScores = [];
-                $roundScores[$playerId] = $playerScore;
-                self::notifyAllPlayers("roundScores", '', array('roundScores' => $roundScores));
+            $sql = "UPDATE player SET player_grid='".json_encode($grid)."', player_round_score=".$playerScore.", player_score = player_score + ".$playerScore.", player_score_aux = player_score_aux - ".$duration." WHERE player_id = ".$playerId;
+            self::DbQuery($sql);
+        }
 
-                $sql = "UPDATE player SET player_grid='".json_encode($grid)."', player_round_score=".$playerScore.", player_score = player_score + ".$playerScore." WHERE player_id = ".$playerId;
-                self::DbQuery($sql);
+        $this->sendRoundScore();
 
-                $this->gamestate->setAllPlayersMultiactive();
-                $this->gamestate->initializePrivateStateForAllActivePlayers();
-            } else {
-                $sql = "UPDATE player SET player_progression=0, player_start=0, player_round_duration=0, player_grid='".json_encode($grid)."', player_round_score=".$playerScore.", player_score = player_score + ".$playerScore." WHERE player_id = ".$playerId;
+        $round = $this->getGameStateValue('round') + 1;
+
+        if ($round > $rounds) {
+            // end of game !
+            $this->setGameStateValue('ended', 1);
+            $this->calcStats();
+            $this->sendPlayersPuzzle();
+            $this->gamestate->nextState("endGame");
+        } else {
+            $this->setGameStateValue('round', $round);
+
+            $clock_mode = $this->getGameStateValue('clock_mode');
+            if ($clock_mode > 9) {
+                // turn-based mode, skip the display of round score
+                foreach($players as $player) {
+                    self::notifyAllPlayers("progression", "", array(
+                        'player_id' => $player["id"],
+                        'player_progression' => 0
+                    ));
+                }
+
+                $sql = "UPDATE player SET player_progression=0, player_start=0, player_round_duration=0";
                 self::DbQuery($sql);
 
                 $this->gamestate->nextState("next");
-            }
-        } else {
-            $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_grid grid FROM player ORDER BY player_round_duration";
-            $players = self::getObjectListFromDB($sql);
-            $cpt = count($players);
-            $rounds = $this->getGameStateValue('rounds');
-            $scorePart = (120 / $rounds) / $cpt;
-
-            $prevScore = 0;
-            $prevDuration = 0;
-
-            for ($i=0; $i<$cpt; $i++) {
-                $playerId = $players[$i]['id'];
-                $duration =  $players[$i]['duration'];
-                $playerName = $players[$i]['name'];
-
-                if ($duration == $prevDuration) {
-                    $playerScore = $prevScore;
-                } else if ($duration >= 6666) {
-                    $playerScore = -floor($scorePart);
-                } else {
-                    $playerScore = floor(($cpt - $i) * $scorePart);
-                    $prevDuration = $duration;
-                    $prevScore = $playerScore;
-                }
-
-                if ($playerScore < 0) {
-                    self::notifyAllPlayers("log", clienttranslate('${player_name} loses ${points} points'), array (
-                        'player_name' => $playerName,
-                        'points' => -$playerScore
-                    ));
-                } else {
-                    self::notifyAllPlayers("log", clienttranslate('${player_name} scores ${points} points'), array (
-                        'player_name' => $playerName,
-                        'points' => $playerScore
-                    ));
-                }
-
-                $sql = "UPDATE player SET player_grid='".json_encode($grid)."', player_round_score=".$playerScore.", player_score = player_score + ".$playerScore.", player_score_aux = player_score_aux - ".$duration." WHERE player_id = ".$playerId;
-                self::DbQuery($sql);
-            }
-
-            $this->sendRoundScore();
-
-            $round = $this->getGameStateValue('round') + 1;
-
-            if ($round > $rounds) {
-                // end of game !
-                $this->setGameStateValue('ended', 1);
-                $this->calcStats();
-                $this->sendPlayersPuzzle();
-                $this->gamestate->nextState("endGame");
             } else {
-                $this->setGameStateValue('round', $round);
-
-                $clock_mode = $this->getGameStateValue('clock_mode');
-                if ($clock_mode > 9) {
-                    // turn-based mode, skip the display of round score
-                    foreach($players as $player) {
-                        self::notifyAllPlayers("progression", "", array(
-                            'player_id' => $player["id"],
-                            'player_progression' => 0
-                        ));
-                    }
-
-                    $sql = "UPDATE player SET player_progression=0, player_start=0, player_round_duration=0";
-                    self::DbQuery($sql);
-
-                    $this->gamestate->nextState("next");
-                } else {
-                    $this->gamestate->setAllPlayersMultiactive();
-                    $this->gamestate->initializePrivateStateForAllActivePlayers();
-                }
+                $this->gamestate->setAllPlayersMultiactive();
+                $this->gamestate->initializePrivateStateForAllActivePlayers();
             }
         }
+    }
+
+    function stEndRound_Random() {
     }
 
     /* Player actions */
@@ -399,6 +420,20 @@ class LaserReflection extends Table {
         $sql = "UPDATE player SET player_grid='".$jsonGrid."', player_progression=".$progression." WHERE player_id='".$playerId."'";
         self::DbQuery($sql);
         */
+
+        /*
+        self::notifyAllPlayers("log", clienttranslate('option time limit : ${val}'), array (
+            'val' => $this->getGameStateValue('time_limit')
+        ));
+
+        self::notifyAllPlayers("log", clienttranslate('option multi_mode : ${val}'), array (
+            'val' => $this->getGameStateValue('multi_mode')
+        ));
+
+        self::notifyAllPlayers("log", clienttranslate('option rounds : ${val}'), array (
+            'val' => $this->getGameStateValue('rounds')
+        ));*/
+
 
         self::notifyAllPlayers("progression", "", array(
             'player_id' => $playerId,
