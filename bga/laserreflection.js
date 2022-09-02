@@ -36,6 +36,10 @@ define([
                 utils.serverTimeDec = Math.round(new Date().getTime() / 1000) - data["server_time"];
                 gameUI.initLocalStorage(this.table_id, this.player_id);
 
+                if (g_archive_mode) {
+                    gameUI.playerSpied = this.player_id;
+                }
+
                 utils.init(this);
                 gameUI.players = {};
                 gameUI.playersCount = 0;
@@ -59,20 +63,48 @@ define([
                     gameUI.shouldRefreshProgression = true;
                 });
 
+                if (data.puzzles) {
+                    gameUI.ended = true;
+                    gameUI.puzzles = data.puzzles.map(p => JSON.parse(p));
+                    utils.buildRoundsPuzzleSelect();
+                }
+
+                if (data.round_puzzle) {
+                    gameUI.puzzle = JSON.parse(data.round_puzzle);
+                }
+
+                data.params.map((p) => {
+                    switch (p.key) {
+                        case "auto_start":
+                            gameUI.autoStart = parseInt(p.val, 10) === 1;
+                            break;
+                        case "elements":
+                            gameUI.elements = JSON.parse(p.val);
+                            gameUI.elementsCount = gameUI.elements.length;
+                            break;
+                        case "grid_size":
+                            gameUI.gridSize = parseInt(p.val, 10);
+                            break;
+                        case "portals":
+                            gameUI.portals = JSON.parse(p.val);
+                            break;
+                        case "random":
+                            gameUI.modeRandom = p.val;
+                            break;
+                    }
+                });
+
                 // Setting up player boards
-                if (this.isSpectator) {
-                    utils.displayPuzzle(document.getElementById("playerSelect").value);
-                } else {
+                if (!this.isSpectator) {
                     const me = data.players[this.player_id];
                     gameUI.setGrid(me && me.grid ? JSON.parse(me.grid) : gameUI.getSavedGrid());
                     timer.init(me.color, 5);
+                } else if (gameUI.ended && gameUI.modeRandom) {
+                    utils.displayRoundPuzzle(0);
+                } else {
+                    utils.displayPuzzle(document.getElementById("playerSelect").value);
                 }
 
-                gameUI.portals = data.params["portals"] ? JSON.parse(data.params["portals"]["game_value"]) : [];
-                gameUI.elements = JSON.parse(data.params["elements"]["game_value"]);
-                gameUI.elementsCount = gameUI.elements.length;
-                gameUI.gridSize = parseInt(data.params["grid_size"]["game_value"], 10);
-                gameUI.autoStart = parseInt(data.params["auto_start"]["game_value"], 10) === 1;
                 gameUI.init(this);
 
                 // Setup game notifications to handle (see "setupNotifications" method below)
@@ -151,7 +183,12 @@ define([
                         break;
                     case "gameEnd":
                         gameUI.ended = true;
-                        if (!this.isSpectator) {
+
+                        if (gameUI.modeRandom) {
+                            utils.displayRoundPuzzle(0);
+                        } else if (this.isSpectator) {
+                            utils.displayPuzzle(document.getElementById("playerSelect").value);
+                        } else {
                             utils.displayPuzzle(this.player_id);
                         }
                         break;
@@ -201,7 +238,7 @@ define([
                             }
                             break;
                         case "puzzlePlay":
-                            if (gameUI.playersCount === 1) {
+                            if (gameUI.modeRandom) {
                                 dojo.place("<span style='font-weight:bold;'>&nbsp;Robby&nbsp;🤖</span>", "pagemaintitletext");
                             } else {
                                 dojo.place("<span style='font-weight:bold;color:#" + gameUI.puzzleUser.color + ";'>&nbsp;" + gameUI.puzzleUser.name + "</span>", "pagemaintitletext");
@@ -230,40 +267,56 @@ define([
             },
 
             onPuzzleCreationEnd: function () {
-                if (gameUI.elementsCount === gameUI.placedElements) {
-                    gameUI.puzzleCreationEnd = true;
-                } else {
-                    this.showMessage(_('You must place all available elements on the grid'), 'error');
+                if (!g_archive_mode) {
+                    if (gameUI.elementsCount === gameUI.placedElements) {
+                        gameUI.puzzleCreationEnd = true;
+                    } else {
+                        this.showMessage(_('You must place all available elements on the grid'), 'error');
+                    }
                 }
             },
             onStartNow: function () {
-                timer.abort();
-                this.callAction("puzzleStart", null, true);
+                if (!g_archive_mode) {
+                    timer.abort();
+                    this.callAction("puzzleStart", null, true);
+                }
             },
             onReset: function () {
-                gameUI.reset();
+                if (!g_archive_mode) {
+                    gameUI.reset();
+                }
             },
             onUndo: function () {
-                gameUI.undo();
+                if (!g_archive_mode) {
+                    gameUI.undo();
+                }
             },
             onGiveUp: function () {
-                if (gameUI.playersCount === 1) {
-                    gameUI.giveUp = true;
-                } else {
-                    this.confirmationDialog(_('Are you sure to give up? You will have a score penalty'), () => {
+                if (!g_archive_mode) {
+                    if (gameUI.playersCount === 1) {
                         gameUI.giveUp = true;
-                    });
+                    } else {
+                        this.confirmationDialog(_('Are you sure to give up? You will have a score penalty'), () => {
+                            gameUI.giveUp = true;
+                        });
+                    }
                 }
             },
             onScoreDisplayEnd: function () {
-                this.callAction("hideScore", null, true);
+                if (!g_archive_mode) {
+                    this.callAction("hideScore", null, true);
+                }
             },
             onSolutionDisplayEnd: function () {
-                gameUI.clearSavedGrid();
-                this.callAction("hideSolution", null, true);
+                if (!g_archive_mode) {
+                    gameUI.clearSavedGrid();
+                    this.callAction("hideSolution", null, true);
+                }
             },
             onStop: function () {
-                this.callAction("stopGame", null, true);
+                if (!g_archive_mode) {
+                    this.callAction("stopGame", null, true);
+                }
             },
 
             callAction: function (action, args, lock, handler) {
@@ -288,6 +341,7 @@ define([
                 dojo.subscribe('progression', this, "notif_progression");
                 dojo.subscribe('roundScores', this, "notif_roundScores");
                 dojo.subscribe('playersPuzzle', this, "notif_playersPuzzle");
+                dojo.subscribe('roundsPuzzle', this, "notif_roundsPuzzle");
                 dojo.subscribe('start', this, "notif_start");
                 dojo.subscribe('stop', this, "notif_stop");
 
@@ -324,17 +378,27 @@ define([
 
             notif_puzzleChange: function (notif) {
                 console.log("notif_puzzleChange", notif);
-                const playerId = notif.args.player_id;
-                const puzzle = JSON.parse(notif.args.player_puzzle);
 
-                gameUI.players[playerId].puzzle = puzzle;
+                if (gameUI.modeRandom) {
+                    gameUI.puzzle = JSON.parse(notif.args.round_puzzle);
 
-                if (notif.args.default) {
-                    Object.keys(gameUI.players).map((id) => {
-                        if (!gameUI.players[id].puzzle) {
-                            gameUI.players[id].puzzle = puzzle;
-                        }
+                    Object.keys(gameUI.players).map(playerId => {
+                        gameUI.players[playerId].grid = undefined;
                     });
+                    utils.refreshPuzzle();
+                } else {
+                    const playerId = notif.args.player_id;
+                    const puzzle = JSON.parse(notif.args.player_puzzle);
+
+                    gameUI.players[playerId].puzzle = puzzle;
+
+                    if (notif.args.default) {
+                        Object.keys(gameUI.players).map((id) => {
+                            if (!gameUI.players[id].puzzle) {
+                                gameUI.players[id].puzzle = puzzle;
+                            }
+                        });
+                    }
                 }
             },
 
@@ -352,6 +416,12 @@ define([
                 for (let player_id in notif.args.puzzles) {
                     gameUI.players[player_id].grid = JSON.parse(notif.args.puzzles[player_id]);
                 }
+            },
+
+            notif_roundsPuzzle: function (notif) {
+                console.log("notif_roundsPuzzle", notif);
+                gameUI.puzzles = notif.args.puzzles.map(p => JSON.parse(p));
+                utils.buildRoundsPuzzleSelect();
             },
 
             notif_start: function (notif) {

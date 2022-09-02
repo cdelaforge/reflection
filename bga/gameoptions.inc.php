@@ -39,6 +39,7 @@ $game_options = [
             ],
         ],
     ],
+    /*
     104 => [
         'name' => totranslate('Solo mode'),
         'values' => [
@@ -54,13 +55,13 @@ $game_options = [
                 'value' => 1,
             ],
         ],
-    ],
+    ],*/
     108 => [
         'name' => totranslate('Rounds'),
         'values' => [
-            1 => [ 'name' => totranslate('1 round') ],
-            3 => [ 'name' => totranslate('3 rounds') ],
-            5 => [ 'name' => totranslate('5 rounds') ],
+            1 => [ 'name' => totranslate('1 round'), 'tmdisplay' => totranslate('1 round') ],
+            3 => [ 'name' => totranslate('3 rounds'), 'tmdisplay' => totranslate('3 rounds') ],
+            5 => [ 'name' => totranslate('5 rounds'), 'tmdisplay' => totranslate('5 rounds') ],
         ],
         'default' => 3,
         'displaycondition' => [
@@ -75,6 +76,7 @@ $game_options = [
             ],
         ],
     ],
+    /*
     110 => [
         'name' => totranslate('Time limit'),
         'values' => [
@@ -97,7 +99,7 @@ $game_options = [
                 'value' => 10,
             ],
         ],
-    ],
+    ],*/
     120 => [
         'name' => totranslate('Grid size'),
         'values' => [

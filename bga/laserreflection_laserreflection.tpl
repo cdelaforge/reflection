@@ -39,6 +39,13 @@
             </select>
         </div>
     </div>
+    <div id="lrf_end_rnd" class="whiteblock" style="display:none">
+        <div>{ROUND_PUZZLES}</div>
+        <div>
+            <select onchange="utils.displayRoundPuzzle(this.value)" id="roundSelect"></select>
+        </div>
+    </div>
+
 </div>
 
 <script type="text/javascript">

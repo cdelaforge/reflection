@@ -151,7 +151,7 @@ $machinestates = array(
 
     STATE_END_ROUND => [
         "name" => "endRound",
-        "description" => clienttranslate('Waiting for other players'),
+        "description" => clienttranslate('Waiting for the start of the next round'),
         "descriptionmyturn" => "",
         "type" => "multipleactiveplayer",
         "initialprivate" => STATE_END_ROUND_PRIVATE,

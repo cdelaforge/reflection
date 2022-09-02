@@ -16,18 +16,10 @@
   *
   */
 
-
 require_once( APP_GAMEMODULE_PATH.'module/table/table.game.php' );
 
-
 class LaserReflection extends Table {
-	function __construct( ) {
-        // Your global variables labels:
-        //  Here, you can assign labels to global variables you are using for this game.
-        //  You can use any number of global variables with IDs between 10 and 99.
-        //  If your game has options (variants), you also have to associate here a label to
-        //  the corresponding ID in gameoptions.inc.php.
-        // Note: afterwards, you can get/set the global variables with getGameStateValue/setGameStateInitialValue/setGameStateValue
+    public function __construct( ) {
         parent::__construct();
 
         self::initGameStateLabels([
@@ -105,7 +97,13 @@ class LaserReflection extends Table {
         self::setGameStateInitialValue('solo', ($count_players == 1) ? 1 : 0);
         self::setGameStateInitialValue('ended', 0);
         self::setGameStateInitialValue('round', 1);
-        self::setGameStateInitialValue('rounds', $count_players - 1);
+        if ($count_players == 1) {
+            self::setGameStateInitialValue('rounds', 0);
+        } else if ($multi_mode == 10) {
+            self::setGameStateInitialValue('rounds', $this->getGameStateValue('rounds'));
+        } else {
+            self::setGameStateInitialValue('rounds', $count_players - 1);
+        }
         self::setGameStateInitialValue('portal_1_row', -1);
         self::setGameStateInitialValue('portal_1_col', -1);
         self::setGameStateInitialValue('portal_2_row', -1);
@@ -119,6 +117,7 @@ class LaserReflection extends Table {
             $puzzle = $this->getRandomGridAndPuzzle($items);
             $this->setGameDbValue('grid', $puzzle['grid']);
             $this->setGameDbValue('puzzle', $puzzle['puzzle']);
+            $this->setGameDbValue('rg_0', $puzzle['grid']);
         }
 
         // Init game statistics
@@ -145,7 +144,7 @@ class LaserReflection extends Table {
 
         $current_player_id = self::getCurrentPlayerId();    // !! We must only return informations visible by this player !!
 
-        if ($this->getGameStateValue('ended') == 1) {
+        if ($this->isGameEnded()) {
             $sql = "SELECT player_id id, player_score score, player_puzzle_grid grid, player_progression progression, player_start start, player_round_duration duration FROM player";
         } else if ($this->isSpectator()) {
             $sql = "SELECT player_id id, player_score score, player_grid grid, player_puzzle puzzle, player_progression progression, player_start start, player_round_duration duration FROM player";
@@ -155,8 +154,24 @@ class LaserReflection extends Table {
 
         $result['players'] = self::getCollectionFromDb($sql);
 
-        $sql = "SELECT game_param, game_value FROM gamestatus";
-        $result['params'] = self::getCollectionFromDb($sql);
+        $sql = "SELECT game_param 'key', game_value val FROM gamestatus WHERE game_param IN ('auto_start', 'elements', 'grid_size', 'portals')";
+        $result['params'] = self::getObjectListFromDB($sql);
+        $result['params'][] = ['key' => 'random', 'val' => $this->isModeRandom()];
+
+        if ($this->isModeRandom()) {
+            if ($this->isGameEnded()) {
+                $sql = "SELECT game_value grid FROM gamestatus WHERE game_param LIKE 'rg_%' ORDER BY game_param";
+                $grids = self::getObjectListFromDB($sql);
+
+                $puzzles = [];
+                foreach ($grids as $grid_id => $elt) {
+                    $puzzles[] = $elt['grid'];
+                }
+                $result['puzzles'] = $puzzles;
+            } else {
+                $result['round_puzzle'] = $this->getGameDbValue('puzzle');
+            }
+        }
 
         $startDate = new DateTime();
         $start = $startDate->getTimestamp();
@@ -166,9 +181,9 @@ class LaserReflection extends Table {
     }
 
     function stGameInit() {
-        if ($this->getGameStateValue('solo') == 1) {
+        if ($this->isModeSolo()) {
             $this->gamestate->nextState("solo");
-        } else if ($this->getGameStateValue('multi_mode') == 10) {
+        } else if ($this->isModeMultiRandom()) {
             $this->gamestate->nextState("random");
         } else {
             $this->gamestate->nextState("normal");
@@ -194,22 +209,7 @@ class LaserReflection extends Table {
 
         $jsonEmptyGrid = json_encode($this->getEmptyGrid());
 
-        if ($cpt > 1) {
-            for ($i=0; $i<$cpt; $i++) {
-                $other_player_index = ($i + $round) % $cpt;
-                $isStarted = $players[$i]['state'] == STATE_PLAY_PUZZLE_PRIVATE;
-                $result['_private'][$players[$i]['id']] = array(
-                    'grid' => ($isStarted) ? $players[$i]["grid"] : $jsonEmptyGrid,
-                    'id' => $players[$other_player_index]["id"],
-                    'name' => $players[$other_player_index]["name"],
-                    'puzzle' => $players[$other_player_index]["puzzle"],
-                    'started' => $isStarted,
-                );
-                $result['_public'][$players[$i]['id']] = array(
-                    'id'=> $players[$other_player_index]["id"],
-                );
-            }
-        } else {
+        if ($this->isModeRandom()) {
             $jsonPuzzle = $this->getGameDbValue('puzzle');
             $jsonElements = $this->getGameDbValue('elements');
             $light_warp = $this->getGameStateValue('light_warp') == 1;
@@ -224,6 +224,24 @@ class LaserReflection extends Table {
                     'portals' => $jsonPortals,
                     'started' => $isStarted,
                 );
+                $result['_public'][$players[$i]['id']] = array(
+                    'id'=> $players[$i]["id"],
+                );
+            }
+        } else {
+            for ($i=0; $i<$cpt; $i++) {
+                $other_player_index = ($i + $round) % $cpt;
+                $isStarted = $players[$i]['state'] == STATE_PLAY_PUZZLE_PRIVATE;
+                $result['_private'][$players[$i]['id']] = array(
+                    'grid' => ($isStarted) ? $players[$i]["grid"] : $jsonEmptyGrid,
+                    'id' => $players[$other_player_index]["id"],
+                    'name' => $players[$other_player_index]["name"],
+                    'puzzle' => $players[$other_player_index]["puzzle"],
+                    'started' => $isStarted,
+                );
+                $result['_public'][$players[$i]['id']] = array(
+                    'id'=> $players[$other_player_index]["id"],
+                );
             }
         }
 
@@ -233,7 +251,7 @@ class LaserReflection extends Table {
     function argSolutionDisplay() {
         $playerId = $this->getCurrentPlayerId();
 
-        if ($this->getGameStateValue('solo') == 1) {
+        if ($this->isModeSolo()) {
             $jsonGrid = $this->getGameDbValue('grid');
         } else {
             $owner = $this->getPuzzleOwner($playerId);
@@ -266,26 +284,21 @@ class LaserReflection extends Table {
         }
 
         $round = $this->getGameStateValue('round');
+        $rounds = $this->getGameStateValue('rounds');
 
-        if ($this->getGameStateValue('solo') == 1) {
-            self::notifyAllPlayers("log", clienttranslate('Start of round ${round}'), array (
-                'round' => $round
-            ));
+        if ($rounds == 0) {
+            self::notifyAllPlayers("log", clienttranslate('Start of round ${round}'), ['round' => $round]);
         } else {
-            $rounds = $this->getGameStateValue('rounds');
-
-            self::notifyAllPlayers("log", clienttranslate('Start of round ${round} of ${rounds}'), array (
+            self::notifyAllPlayers("log", clienttranslate('Start of round ${round} of ${rounds}'), [
                 'round' => $round,
                 'rounds' => $rounds
-            ));
+            ]);
         }
     }
 
     function stEndRound() {
-        if ($this->getGameStateValue('solo') == 1) {
+        if ($this->isModeSolo()) {
             $this->stEndRound_Solo();
-        } else if ($this->getGameStateValue('multi_mode') == 10) {
-            $this->stEndRound_Random();
         } else {
             $this->stEndRound_Classic();
         }
@@ -379,9 +392,14 @@ class LaserReflection extends Table {
             // end of game !
             $this->setGameStateValue('ended', 1);
             $this->calcStats();
-            $this->sendPlayersPuzzle();
+            $this->sendAllPuzzles();
             $this->gamestate->nextState("endGame");
         } else {
+            if ($this->isModeRandom()) {
+                // create a new puzzle
+                $this->updatePuzzle();
+            }
+
             $this->setGameStateValue('round', $round);
 
             $clock_mode = $this->getGameStateValue('clock_mode');
@@ -405,9 +423,6 @@ class LaserReflection extends Table {
         }
     }
 
-    function stEndRound_Random() {
-    }
-
     /* Player actions */
 
     function action_changeGrid($grid, $progression) {
@@ -420,20 +435,6 @@ class LaserReflection extends Table {
         $sql = "UPDATE player SET player_grid='".$jsonGrid."', player_progression=".$progression." WHERE player_id='".$playerId."'";
         self::DbQuery($sql);
         */
-
-        /*
-        self::notifyAllPlayers("log", clienttranslate('option time limit : ${val}'), array (
-            'val' => $this->getGameStateValue('time_limit')
-        ));
-
-        self::notifyAllPlayers("log", clienttranslate('option multi_mode : ${val}'), array (
-            'val' => $this->getGameStateValue('multi_mode')
-        ));
-
-        self::notifyAllPlayers("log", clienttranslate('option rounds : ${val}'), array (
-            'val' => $this->getGameStateValue('rounds')
-        ));*/
-
 
         self::notifyAllPlayers("progression", "", array(
             'player_id' => $playerId,
@@ -558,7 +559,7 @@ class LaserReflection extends Table {
     function action_hideScore() {
         $playerId = $this->getCurrentPlayerId();
 
-        if ($this->getGameStateValue('ended') == 0) {
+        if ($this->isGameEnded()) {
             self::notifyAllPlayers("log", clienttranslate('${player_name} is ready for the next round'), array (
                 'player_name' => self::getCurrentPlayerName()
             ));
@@ -585,6 +586,8 @@ class LaserReflection extends Table {
 
         $this->setGameStateValue('ended', 1);
         $this->calcStats();
+
+        $this->sendAllPuzzles();
 
         $this->gamestate->nextState("endGame");
         $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
@@ -613,7 +616,7 @@ class LaserReflection extends Table {
             }
         }
 
-        if ($this->getGameStateValue('ended') == 1) {
+        if ($this->isGameEnded()) {
             return 100;
         }
 
@@ -626,6 +629,22 @@ class LaserReflection extends Table {
 //////////////////////////////////////////////////////////////////////////////
 //////////// Utility functions
 ////////////
+
+    function isModeSolo() {
+        return $this->getGameStateValue('solo') == 1;
+    }
+
+    function isModeMultiRandom() {
+        return !$this->isModeSolo() && $this->getGameStateValue('multi_mode') == 10;
+    }
+
+    function isModeRandom() {
+        return $this->isModeSolo() || $this->getGameStateValue('multi_mode') == 10;
+    }
+
+    function isGameEnded() {
+        return $this->getGameStateValue('ended') == 1;
+    }
 
     function getRandomItems($black_hole, $items_count) {
         $max = ($black_hole) ? 209 : 199;
@@ -738,6 +757,7 @@ class LaserReflection extends Table {
         $items_count = $this->getGameStateValue('items_count');
         $black_hole = $this->getGameStateValue('black_hole') == 1;
         $light_warp = $this->getGameStateValue('light_warp') == 1;
+        $round = $this->getGameStateValue('round');
 
         if ($light_warp) {
             $this->getPortalsPositions();
@@ -749,6 +769,9 @@ class LaserReflection extends Table {
         $puzzle = $this->getRandomGridAndPuzzle($items);
         $this->setGameDbValue('grid', $puzzle['grid']);
         $this->setGameDbValue('puzzle', $puzzle['puzzle']);
+        $this->setGameDbValue('rg_'.$round, $puzzle['grid']);
+
+        self::notifyAllPlayers("puzzleChange", "", [ 'round_puzzle' => $puzzle['puzzle'] ]);
     }
 
     function getRandomGridAndPuzzle($items) {
@@ -995,17 +1018,29 @@ class LaserReflection extends Table {
         self::DbQuery($sql);
     }
 
-    function sendPlayersPuzzle() {
-        $sql = "SELECT player_id id, player_puzzle_grid grid FROM player";
-        $players = self::getObjectListFromDB($sql);
+    function sendAllPuzzles() {
+        $puzzles = [];
 
-        $puzzles = array();
-        foreach ($players as $player_id => $player) {
-            $playerId = $player['id'];
-            $puzzles[$playerId] = $player['grid'];
+        if ($this->isModeRandom()) {
+            $sql = "SELECT game_value grid FROM gamestatus WHERE game_param LIKE 'rg_%' ORDER BY game_param";
+            $grids = self::getObjectListFromDB($sql);
+
+            foreach ($grids as $grid_id => $elt) {
+                $puzzles[] = $elt['grid'];
+            }
+
+            self::notifyAllPlayers("roundsPuzzle", '', array('puzzles' => $puzzles));
+        } else {
+            $sql = "SELECT player_id id, player_puzzle_grid grid FROM player";
+            $players = self::getObjectListFromDB($sql);
+
+            foreach ($players as $player_id => $player) {
+                $playerId = $player['id'];
+                $puzzles[$playerId] = $player['grid'];
+            }
+
+            self::notifyAllPlayers("playersPuzzle", '', array('puzzles' => $puzzles));
         }
-
-        self::notifyAllPlayers("playersPuzzle", '', array('puzzles' => $puzzles));
     }
 
     function getPuzzleOwner($playerId) {
@@ -1029,7 +1064,7 @@ class LaserReflection extends Table {
         $playerId = $this->getCurrentPlayerId();
         $ownerName = null;
 
-        if ($this->getGameStateValue('solo') == 1) {
+        if ($this->isModeRandom()) {
             $ownerName = 'Robby';
         } else {
             $owner = $this->getPuzzleOwner($playerId);
@@ -1068,29 +1103,31 @@ class LaserReflection extends Table {
     function zombieTurn($state, $active_player) {
     	$statename = $state['name'];
 
-        // create puzzles for all zombie players that don't have any :
-        $sql = "SELECT player_id id FROM player WHERE player_zombie=1 AND player_puzzle is null";
-        $players = self::getObjectListFromDB($sql);
-        $cpt = count($players);
+        if ($this->isModeMultiRandom()) {
+            // create puzzles for all zombie players that don't have any :
+            $sql = "SELECT player_id id FROM player WHERE player_zombie=1 AND player_puzzle is null";
+            $players = self::getObjectListFromDB($sql);
+            $cpt = count($players);
 
-        if ($cpt > 0) {
-            $items = json_decode($this->getGameDbValue('elements'));
+            if ($cpt > 0) {
+                $items = json_decode($this->getGameDbValue('elements'));
 
-            foreach ($players as $player_id => $player) {
-                $playerId = $player['id'];
+                foreach ($players as $player_id => $player) {
+                    $playerId = $player['id'];
 
-                $puzzle = $this->getRandomGridAndPuzzle($items);
-                $jsonPuzzleGrid = $puzzle['grid'];
-                $jsonPuzzle = $puzzle['puzzle'];
+                    $puzzle = $this->getRandomGridAndPuzzle($items);
+                    $jsonPuzzleGrid = $puzzle['grid'];
+                    $jsonPuzzle = $puzzle['puzzle'];
 
-                $sql = "UPDATE player SET player_puzzle_grid='".$jsonPuzzleGrid."', player_puzzle='".$jsonPuzzle."' WHERE player_id='".$playerId."'";
-                self::DbQuery($sql);
+                    $sql = "UPDATE player SET player_puzzle_grid='".$jsonPuzzleGrid."', player_puzzle='".$jsonPuzzle."' WHERE player_id='".$playerId."'";
+                    self::DbQuery($sql);
 
-                self::notifyAllPlayers("puzzleChange", "", array(
-                    'player_id' => $playerId,
-                    'player_puzzle' => $jsonPuzzle,
-                    'default' => true
-                ));
+                    self::notifyAllPlayers("puzzleChange", "", array(
+                        'player_id' => $playerId,
+                        'player_puzzle' => $jsonPuzzle,
+                        'default' => true
+                    ));
+                }
             }
         }
 

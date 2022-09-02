@@ -31,9 +31,8 @@
         return "laserreflection";
     }
   	function build_page($viewArgs) {
-  	    // Get players & players number
+  	    // Get players
         $players = $this->game->loadPlayersBasicInfos();
-        $players_nbr = count($players);
 
         /*********** Place your code below:  ************/
         global $g_user;
@@ -48,6 +47,8 @@
             );
             $this->page->insert_block("player_puzzle", $data);
         }
+
+        $this->tpl['ROUND_PUZZLES'] = self::_("Puzzles of each round");
         /*********** Do not change anything below this line  ************/
   	}
   }

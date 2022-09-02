@@ -14,7 +14,8 @@
     display: flex;
 }
 
-#lrf_end {
+#lrf_end,
+#lrf_end_rnd {
     display: flex;
     flex-flow: column;
     padding: 1em;
@@ -22,12 +23,14 @@
     margin-left: 1em;
 }
 
-#lrf_end>div {
+#lrf_end>div,
+#lrf_end_rnd>div {
     display: flex;
     padding-bottom: 0.5em;
 }
 
-#lrf_end>div>select {
+#lrf_end>div>select,
+#lrf_end_rnd>div>select {
     height: 36px;
 }
 
