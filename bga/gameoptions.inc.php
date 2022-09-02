@@ -35,7 +35,7 @@ $game_options = [
         'displaycondition' => [
             [
                 'type' => 'minplayers',
-                'value' => 2,
+                'value' => [2, 3, 4, 5, 6]
             ],
         ],
     ],
