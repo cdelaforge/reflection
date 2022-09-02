@@ -26,7 +26,7 @@
 
 $game_options = [
     103 => [
-        'name' => totranslate('Multi-player mode'),
+        'name' => totranslate('Multiplayer mode'),
         'values' => [
             0 => [ 'name' => totranslate('Puzzles created by players'), 'tmdisplay' => totranslate('Puzzles created by players') ],
             10 => [ 'name' => totranslate('Randomly generated puzzles'), 'tmdisplay' => totranslate('Randomly generated puzzles') ],
@@ -39,23 +39,6 @@ $game_options = [
             ],
         ],
     ],
-    /*
-    104 => [
-        'name' => totranslate('Solo mode'),
-        'values' => [
-            0 => [ 'name' => totranslate('The NeverEnding Story'), 'description' => totranslate('You stop when you want') ],
-            3 => [ 'name' => totranslate('Stroll in the Shire'), 'description' => totranslate('Complete 3 rounds to win') ],
-            6 => [ 'name' => totranslate('Expedition to the caves of Moria'), 'description' => totranslate('Complete 6 rounds to win') ],
-            10 => [ 'name' => totranslate('Journey to Mordor'), 'description' => totranslate('Complete 10 rounds to win') ],
-        ],
-        'default' => 0,
-        'displaycondition' => [
-            [
-                'type' => 'maxplayers',
-                'value' => 1,
-            ],
-        ],
-    ],*/
     108 => [
         'name' => totranslate('Rounds'),
         'values' => [
@@ -76,30 +59,6 @@ $game_options = [
             ],
         ],
     ],
-    /*
-    110 => [
-        'name' => totranslate('Time limit'),
-        'values' => [
-            0 => [ 'name' => totranslate('No limit') ],
-            2 => [ 'name' => totranslate('2 minutes') ],
-            5 => [ 'name' => totranslate('5 minutes') ],
-            10 => [ 'name' => totranslate('10 minutes') ],
-            15 => [ 'name' => totranslate('15 minutes') ],
-            20 => [ 'name' => totranslate('20 minutes') ],
-        ],
-        'default' => 10,
-        'displaycondition' => [
-            [
-                'type' => 'minplayers',
-                'value' => 2,
-            ],
-            [
-                'type' => 'otheroption',
-                'id' => 103,
-                'value' => 10,
-            ],
-        ],
-    ],*/
     120 => [
         'name' => totranslate('Grid size'),
         'values' => [
