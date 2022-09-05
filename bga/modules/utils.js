@@ -22,6 +22,10 @@ const utils = {
   },
 
   displayProgression: function (playerId, progression, startTime, durationStr) {
+    if (gameUI.modeResting && gameUI.puzzleUser && gameUI.puzzleUser.id === playerId) {
+      return;
+    }
+
     const divId = "progressbar_" + playerId;
     const cptId = "counter_" + playerId;
     const subId = "container_" + playerId;
@@ -155,4 +159,17 @@ const utils = {
       gameUI.setup();
     }
   },
+
+  displayBars: function () {
+    if (gameUI.modeResting) {
+      Object.keys(gameUI.players).map(playerId => {
+        const divId = "progressbar_" + playerId;
+        if (gameUI.puzzleUser.id === playerId) {
+          dojo.style(divId, "visibility", "hidden");
+        } else {
+          dojo.style(divId, "visibility", "visible");
+        }
+      });
+    }
+  }
 }

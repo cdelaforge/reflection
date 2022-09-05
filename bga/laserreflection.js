@@ -47,6 +47,7 @@ define([
                     gameUI.playersCount++;
                     const color = data.players[playerId].color;
                     gameUI.players[playerId] = {
+                        id: playerId,
                         color,
                         progression: parseInt(data.players[playerId].progression, 10),
                         grid: JSON.parse(data.players[playerId].grid),
@@ -90,6 +91,9 @@ define([
                             break;
                         case "random":
                             gameUI.modeRandom = p.val;
+                            break;
+                        case "resting":
+                            gameUI.modeResting = p.val;
                             break;
                     }
                 });
@@ -160,8 +164,10 @@ define([
 
                             gameUI.mode = isPlaying || privateData.grid ? 'play' : 'empty';
                         }
+
                         gameUI.setup();
                         utils.displayGrid();
+                        utils.displayBars();
                         break;
                     case "puzzlePlayWait":
                         if (gameUI.autoStart && !this.isSpectator && !g_archive_mode) {

@@ -29,6 +29,7 @@ $game_options = [
         'name' => totranslate('Multiplayer mode'),
         'values' => [
             0 => [ 'name' => totranslate('Puzzles created by players'), 'tmdisplay' => totranslate('Puzzles created by players') ],
+            1 => [ 'name' => totranslate('Players compete on the same puzzles'), 'tmdisplay' => totranslate('Players compete on the same puzzles') ],
             10 => [ 'name' => totranslate('Randomly generated puzzles'), 'tmdisplay' => totranslate('Randomly generated puzzles') ],
         ],
         'default' => 0,

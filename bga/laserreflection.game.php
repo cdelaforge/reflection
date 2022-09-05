@@ -31,6 +31,7 @@ class LaserReflection extends Table {
             "portal_2_row" => 22,
             "portal_2_col" => 23,
             "solo" => 30,
+            "resting" => 40,
             "multi_mode" => 103,
             "solo_mode" => 104,
             "rounds_param" => 108,
@@ -40,7 +41,6 @@ class LaserReflection extends Table {
             "black_hole" => 122,
             "light_warp" => 123,
             "auto_start" => 190,
-            "clock_mode" => 200,
         ]);
 	}
 
@@ -97,13 +97,18 @@ class LaserReflection extends Table {
         self::setGameStateInitialValue('solo', ($count_players == 1) ? 1 : 0);
         self::setGameStateInitialValue('ended', 0);
         self::setGameStateInitialValue('round', 1);
+        self::setGameStateInitialValue('resting', 0);
+
         if ($count_players == 1) {
             self::setGameStateInitialValue('rounds', 0);
         } else if ($multi_mode == 10) {
             self::setGameStateInitialValue('rounds', $this->getGameStateValue('rounds_param'));
+        } else if ($multi_mode == 1) {
+            self::setGameStateInitialValue('rounds', $count_players);
         } else {
             self::setGameStateInitialValue('rounds', $count_players - 1);
         }
+
         self::setGameStateInitialValue('portal_1_row', -1);
         self::setGameStateInitialValue('portal_1_col', -1);
         self::setGameStateInitialValue('portal_2_row', -1);
@@ -118,6 +123,12 @@ class LaserReflection extends Table {
             $this->setGameDbValue('grid', $puzzle['grid']);
             $this->setGameDbValue('puzzle', $puzzle['puzzle']);
             $this->setGameDbValue('rg_0', $puzzle['grid']);
+        }
+
+        if ($multi_mode == 1) {
+            // calc the first resting player
+            $restingPlayer = $this->getRestingPlayer();
+            $this->setRestingPlayerId($restingPlayer['id']);
         }
 
         // Init game statistics
@@ -157,6 +168,7 @@ class LaserReflection extends Table {
         $sql = "SELECT game_param 'key', game_value val FROM gamestatus WHERE game_param IN ('auto_start', 'elements', 'grid_size', 'portals')";
         $result['params'] = self::getObjectListFromDB($sql);
         $result['params'][] = ['key' => 'random', 'val' => $this->isModeRandom()];
+        $result['params'][] = ['key' => 'resting', 'val' => $this->isModeResting()];
 
         if ($this->isModeRandom()) {
             if ($this->isGameEnded()) {
@@ -208,7 +220,7 @@ class LaserReflection extends Table {
     function argPlayPuzzleInit() {
         $result = [];
 
-        $round = $this->getGameStateValue('round');
+        $round = $this->getRound();
 
         $sql = "SELECT player_id id, player_name name, player_grid grid, player_puzzle puzzle, player_state state FROM player ORDER BY player_no";
         $players = self::getObjectListFromDB($sql);
@@ -221,28 +233,53 @@ class LaserReflection extends Table {
             $jsonPortals = $light_warp ? $this->getGameDbValue('portals') : null;
 
             for ($i=0; $i<$cpt; $i++) {
-                $result['_private'][$players[$i]['id']] = array(
+                $result['_private'][$players[$i]['id']] = [
                     'grid' => $players[$i]["grid"],
                     'puzzle' => $jsonPuzzle,
                     'elements' => $jsonElements,
                     'portals' => $jsonPortals,
-                );
-                $result['_public'][$players[$i]['id']] = array(
+                ];
+                $result['_public'][$players[$i]['id']] = [
                     'id'=> $players[$i]["id"],
-                );
+                ];
+            }
+        } else if ($this->isModeResting()) {
+            $restingPlayerId = $this->getRestingPlayerId();
+            $jsonPuzzle = null;
+            $restingPlayerName = null;
+
+            for ($i=0; $i<$cpt; $i++) {
+                if ($players[$i]["id"] == $restingPlayerId) {
+                    $jsonPuzzle = $players[$i]["puzzle"];
+                    $restingPlayerName = $players[$i]["name"];
+                    break;
+                }
+            }
+
+            for ($i=0; $i<$cpt; $i++) {
+                $other_player_index = ($i + $round) % $cpt;
+                $result['_private'][$players[$i]['id']] = [
+                    'grid' => $players[$i]["grid"],
+                    'id' => $restingPlayerId,
+                    'name' => $restingPlayerName,
+                    'puzzle' => $jsonPuzzle,
+                ];
+                $result['_public'][$players[$i]['id']] = [
+                    'id'=> $restingPlayerId,
+                ];
             }
         } else {
             for ($i=0; $i<$cpt; $i++) {
                 $other_player_index = ($i + $round) % $cpt;
-                $result['_private'][$players[$i]['id']] = array(
+                $result['_private'][$players[$i]['id']] = [
                     'grid' => $players[$i]["grid"],
                     'id' => $players[$other_player_index]["id"],
                     'name' => $players[$other_player_index]["name"],
                     'puzzle' => $players[$other_player_index]["puzzle"],
-                );
-                $result['_public'][$players[$i]['id']] = array(
+                ];
+                $result['_public'][$players[$i]['id']] = [
                     'id'=> $players[$other_player_index]["id"],
-                );
+                ];
             }
         }
 
@@ -273,18 +310,18 @@ class LaserReflection extends Table {
         foreach ($this->gamestate->getActivePlayerList() as $playerId) {
             $this->giveExtraTime($playerId, 60);
 
-            self::notifyAllPlayers("progression", "", array(
+            self::notifyAllPlayers("progression", "", [
                 'player_id' => $playerId,
                 'player_progression' => 0
-            ));
+            ]);
 
-            self::notifyAllPlayers("gridChange", "", array(
+            self::notifyAllPlayers("gridChange", "", [
                 'player_id' => $playerId,
                 'player_grid' => $jsonGrid
-            ));
+            ]);
         }
 
-        $round = $this->getGameStateValue('round');
+        $round = $this->getRound();
         $rounds = $this->getRounds();
 
         if ($rounds == 0) {
@@ -294,6 +331,15 @@ class LaserReflection extends Table {
                 'round' => $round,
                 'rounds' => $rounds
             ]);
+
+            $restingPlayer = $this->getRestingPlayer();
+            if ($restingPlayer != null) {
+                self::notifyAllPlayers("log", clienttranslate('Players will work on ${player_name}\'s puzzle in this round. This player therefore does not play this round.'), [
+                    'player_name' => $restingPlayer['name']
+                ]);
+
+                $this->gamestate->setPlayerNonMultiactive($restingPlayer['id'], 'next');
+            }
         }
     }
 
@@ -315,8 +361,8 @@ class LaserReflection extends Table {
         // create a new puzzle
         $this->updatePuzzle();
 
-        $round = $this->getGameStateValue('round') + 1;
-        $this->setGameStateValue('round', $round);
+        $round = $this->getRound() + 1;
+        $this->setRound($round);
 
         if ($playerScore > 0) {
             self::notifyAllPlayers("log", clienttranslate('${player_name} scores ${points} points'), array (
@@ -342,11 +388,18 @@ class LaserReflection extends Table {
     }
 
     function stEndRound_Classic() {
-        $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_grid grid FROM player ORDER BY player_round_duration";
+        $restingPlayerId = $this->getRestingPlayerId();
+
+        if ($restingPlayerId > 0) {
+            $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_grid grid FROM player WHERE player_id<>".$restingPlayerId." ORDER BY player_round_duration";
+        } else {
+            $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_grid grid FROM player ORDER BY player_round_duration";
+        }
+
         $players = self::getObjectListFromDB($sql);
         $cpt = count($players);
         $rounds = $this->getRounds();
-        $scorePart = (120 / $rounds) / $cpt;
+        $scorePart = ($restingPlayerId > 0) ? (120 / ($rounds - 1)) / $cpt : (120 / $rounds) / $cpt;
 
         $prevScore = 0;
         $prevDuration = 0;
@@ -382,9 +435,9 @@ class LaserReflection extends Table {
             self::DbQuery($sql);
         }
 
-        $this->sendRoundScore();
+        $this->sendRoundScore($restingPlayerId);
 
-        $round = $this->getGameStateValue('round') + 1;
+        $round = $this->getRound() + 1;
 
         if ($round > $rounds) {
             // end of game !
@@ -398,10 +451,15 @@ class LaserReflection extends Table {
                 $this->updatePuzzle();
             }
 
-            $this->setGameStateValue('round', $round);
+            $this->setRound($round);
 
-            $clock_mode = $this->getGameStateValue('clock_mode');
-            if ($clock_mode > 9) {
+            if ($restingPlayerId > 0) {
+                // set next resting player id
+                $restingPlayer = $this->getRestingPlayer();
+                $this->setRestingPlayerId($restingPlayer['id']);
+            }
+
+            if ($this->isAsync()) {
                 // turn-based mode, skip the display of round score
                 foreach($players as $player) {
                     self::notifyAllPlayers("progression", "", array(
@@ -605,9 +663,9 @@ class LaserReflection extends Table {
     function getGameProgression() {
         $state = $this->gamestate->state();
         $stateName = $state['name'];
+        $round = $this->getRound();
 
         if ($stateName == "endRound") {
-            $round = $this->getGameStateValue('round');
             $rounds = $this->getRounds();
 
             if ($round >= $rounds) {
@@ -620,7 +678,6 @@ class LaserReflection extends Table {
         }
 
         $cpt = self::getPlayersNumber();
-        $round = $this->getGameStateValue('round');
         return round(100 * $round / $cpt);
     }
 
@@ -645,12 +702,39 @@ class LaserReflection extends Table {
         return $this->getGameStateValue('ended') == 1;
     }
 
-    function getRounds() {
-        $rounds = $this->getGameStateValue('rounds_param');
-        if ($rounds == 0) {
-            $rounds = $this->getGameStateValue('rounds');
+    function isModeResting() {
+        return $this->getGameStateValue('multi_mode') == 1;
+    }
+
+    function getRestingPlayer() {
+        if ($this->isModeResting()) {
+            $round = $this->getRound() - 1;
+            $sql = "SELECT player_id id, player_name name FROM player ORDER BY player_no LIMIT ".$round.",1";
+            $players = self::getObjectListFromDB($sql);
+            return $players[0];
         }
-        return $rounds;
+
+        return null;
+    }
+
+    function setRestingPlayerId($playerId) {
+        return $this->setGameStateValue('resting', $playerId);
+    }
+
+    function getRestingPlayerId() {
+        return $this->getGameStateValue('resting');
+    }
+
+    function setRound($round) {
+        $this->setGameStateValue('round', $round);
+    }
+
+    function getRound() {
+        return $this->getGameStateValue('round');
+    }
+
+    function getRounds() {
+        return $this->getGameStateValue('rounds');
     }
 
     function getRandomItems($black_hole, $items_count) {
@@ -764,7 +848,7 @@ class LaserReflection extends Table {
         $items_count = $this->getGameStateValue('items_count');
         $black_hole = $this->getGameStateValue('black_hole') == 1;
         $light_warp = $this->getGameStateValue('light_warp') == 1;
-        $round = $this->getGameStateValue('round');
+        $round = $this->getRound();
 
         if ($light_warp) {
             $this->getPortalsPositions();
@@ -947,8 +1031,13 @@ class LaserReflection extends Table {
           return str_pad($minutes, 2, "0", STR_PAD_LEFT).":".str_pad($seconds, 2, "0", STR_PAD_LEFT);
     }
 
-    function sendRoundScore() {
-        $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_round_score score FROM player ORDER BY player_round_score DESC";
+    function sendRoundScore($restingPlayerId) {
+        if ($restingPlayerId > 0) {
+            $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_round_score score FROM player WHERE player_id<>".$restingPlayerId." ORDER BY player_round_score DESC";
+        } else {
+            $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_round_score score FROM player ORDER BY player_round_score DESC";
+        }
+
         $players = self::getObjectListFromDB($sql);
 
         $firstRow = [];
@@ -1047,8 +1136,17 @@ class LaserReflection extends Table {
     }
 
     function getPuzzleOwner($playerId) {
-        $round = $this->getGameStateValue('round');
+        $restingPlayerId = $this->getRestingPlayerId();
 
+        if ($restingPlayerId > 0) {
+            // all players are working on this player puzzle
+            $sql = "SELECT player_id id, player_name name, player_puzzle_grid puzzleGrid FROM player WHERE player_id=".$restingPlayerId;
+            $player = self::getObjectFromDB($sql);
+            return $player;
+        }
+
+        // all players are working on another player puzzle, depending on the current round
+        $round = $this->getRound();
         $sql = "SELECT player_id id, player_name name, player_puzzle_grid puzzleGrid FROM player ORDER BY player_no";
         $players = self::getObjectListFromDB($sql);
         $cpt = count($players);
