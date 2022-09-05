@@ -142,6 +142,8 @@ define([
                         } else {
                             const privateData = args.args["_private"];
                             const savedGrid = gameUI.getSavedGrid();
+                            const isPlaying = args.private_state && args.private_state.id === "51";
+
                             if (savedGrid) {
                                 gameUI.setGrid(savedGrid);
                             } else {
@@ -154,16 +156,9 @@ define([
                             }
                             if (privateData.portals) {
                                 gameUI.portals = JSON.parse(privateData.portals);
-
-                                // temp hack :
-                                if (!savedGrid) {
-                                    gameUI.setGrid(undefined);
-                                    gameUI.saveGrid();
-                                    gameUI.history = [];
-                                }
                             }
 
-                            gameUI.mode = privateData.started ? 'play' : 'empty';
+                            gameUI.mode = isPlaying || privateData.grid ? 'play' : 'empty';
                         }
                         gameUI.setup();
                         utils.displayGrid();
@@ -237,12 +232,6 @@ define([
                         case "puzzlePlayWait":
                             this.removeActionButtons();
                             this.addActionButton('start', _('Start now'), 'onStartNow');
-                            if (gameUI.mode === 'play') {
-                                // if we don't click the start button the grid must be hidden
-                                // this only occures in turn-based mode
-                                gameUI.mode = 'empty';
-                                gameUI.setup();
-                            }
                             break;
                         case "puzzlePlay":
                             if (gameUI.modeRandom) {

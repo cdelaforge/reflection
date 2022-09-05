@@ -6,6 +6,7 @@ if (!defined('STATE_END_GAME')) { // ensure this block is only invoked once, sin
     define("STATE_MODE_INIT", 2);
     define("STATE_CREATE_PUZZLE_INIT", 3);
     define("STATE_CREATE_PUZZLE_PRIVATE", 30);
+    define("STATE_CREATE_PUZZLE_END", 4);
     define("STATE_PLAY_PUZZLE_INIT", 5);
     define("STATE_PLAY_PUZZLE_WAIT_PRIVATE", 50);
     define("STATE_PLAY_PUZZLE_PRIVATE", 51);
@@ -97,7 +98,8 @@ $machinestates = array(
         "type" => "multipleactiveplayer",
         "initialprivate" => STATE_CREATE_PUZZLE_PRIVATE,
         "action" => "stCreatePuzzleInit",
-        "transitions" => ["next" => STATE_PLAY_PUZZLE_INIT]
+        //"transitions" => ["next" => STATE_PLAY_PUZZLE_INIT]
+        "transitions" => ["next" => STATE_CREATE_PUZZLE_END]
     ],
 
     STATE_CREATE_PUZZLE_PRIVATE => [
@@ -109,6 +111,14 @@ $machinestates = array(
         "action" => "stCreatePuzzlePrivate",
         "transitions" => [ "continue" => STATE_CREATE_PUZZLE_PRIVATE ]
     ],
+
+    STATE_CREATE_PUZZLE_END => array(
+        "name" => "puzzleCreationInitEnd",
+        "description" => "",
+        "type" => "manager",
+        "action" => "stCreatePuzzleEnd",
+        "transitions" => ["next" => STATE_PLAY_PUZZLE_INIT]
+    ),
 
     STATE_PLAY_PUZZLE_INIT => [
         "name" => "puzzlePlayInit",
