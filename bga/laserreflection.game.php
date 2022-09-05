@@ -951,28 +951,29 @@ class LaserReflection extends Table {
         $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_round_score score FROM player ORDER BY player_round_score DESC";
         $players = self::getObjectListFromDB($sql);
 
-        $roundScoreText = clienttranslate("Round score");
-        $roundDurationText = clienttranslate("Round duration");
+        $firstRow = [];
+        $secondRow = [];
+        $thirdRow = [];
+        $roundScores = [];
 
-        $firstRow = array('');
-        $secondRow = array($roundDurationText);
-        $thirdRow = array($roundScoreText);
-        $roundScores = array();
+        $firstRow[] = '';
+        $secondRow[] = ['str' => clienttranslate("Round duration"), 'args' => []];
+        $thirdRow[] = ['str' => clienttranslate("Round score"), 'args' => []];
 
         foreach ($players as $player_id => $player) {
-            $firstRow[] = array(
+            $firstRow[] = [
                 'str' => '${player_name}',
-                'args' => array('player_name' => $player['name']),
+                'args' => ['player_name' => $player['name']],
                 'type' => 'header'
-            );
-            $secondRow[] = array(
+            ];
+            $secondRow[] = [
                 'str' => '${player_duration}',
-                'args' => array('player_duration' =>  $this->getDurationStr($player['duration']))
-            );
-            $thirdRow[] = array(
+                'args' => ['player_duration' =>  $this->getDurationStr($player['duration'])]
+            ];
+            $thirdRow[] = [
                 'str' => '${player_score}',
-                'args' => array('player_score' => $player['score'])
-            );
+                'args' => ['player_score' => $player['score']]
+            ];
             $roundScores[$player['id']] = $player['score'];
         }
 
@@ -982,7 +983,7 @@ class LaserReflection extends Table {
 
         $this->notifyAllPlayers("tableWindow", '', array(
             "id" => 'roundScoring',
-            "title" => $roundScoreText,
+            "title" => clienttranslate("Round score"),
             "table" => $table,
             "closing" => clienttranslate("Close")
         ));

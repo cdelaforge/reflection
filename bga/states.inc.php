@@ -98,7 +98,6 @@ $machinestates = array(
         "type" => "multipleactiveplayer",
         "initialprivate" => STATE_CREATE_PUZZLE_PRIVATE,
         "action" => "stCreatePuzzleInit",
-        //"transitions" => ["next" => STATE_PLAY_PUZZLE_INIT]
         "transitions" => ["next" => STATE_CREATE_PUZZLE_END]
     ],
 
