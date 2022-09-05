@@ -33,7 +33,7 @@ class LaserReflection extends Table {
             "solo" => 30,
             "multi_mode" => 103,
             "solo_mode" => 104,
-            "rounds" => 108,
+            "rounds_param" => 108,
             "time_limit" => 110,
             "grid_size" => 120,
             "items_count" => 121,
@@ -100,7 +100,7 @@ class LaserReflection extends Table {
         if ($count_players == 1) {
             self::setGameStateInitialValue('rounds', 0);
         } else if ($multi_mode == 10) {
-            self::setGameStateInitialValue('rounds', $this->getGameStateValue('rounds'));
+            self::setGameStateInitialValue('rounds', $this->getGameStateValue('rounds_param'));
         } else {
             self::setGameStateInitialValue('rounds', $count_players - 1);
         }
@@ -284,7 +284,7 @@ class LaserReflection extends Table {
         }
 
         $round = $this->getGameStateValue('round');
-        $rounds = $this->getGameStateValue('rounds');
+        $rounds = $this->getRounds();
 
         if ($rounds == 0) {
             self::notifyAllPlayers("log", clienttranslate('Start of round ${round}'), ['round' => $round]);
@@ -347,7 +347,7 @@ class LaserReflection extends Table {
         $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_grid grid FROM player ORDER BY player_round_duration";
         $players = self::getObjectListFromDB($sql);
         $cpt = count($players);
-        $rounds = $this->getGameStateValue('rounds');
+        $rounds = $this->getRounds();
         $scorePart = (120 / $rounds) / $cpt;
 
         $prevScore = 0;
@@ -609,7 +609,7 @@ class LaserReflection extends Table {
 
         if ($stateName == "endRound") {
             $round = $this->getGameStateValue('round');
-            $rounds = $this->getGameStateValue('rounds');
+            $rounds = $this->getRounds();
 
             if ($round >= $rounds) {
                 return 100;
@@ -644,6 +644,14 @@ class LaserReflection extends Table {
 
     function isGameEnded() {
         return $this->getGameStateValue('ended') == 1;
+    }
+
+    function getRounds() {
+        $rounds = $this->getGameStateValue('rounds_param');
+        if ($rounds == 0) {
+            $rounds = $this->getGameStateValue('rounds');
+        }
+        return $rounds;
     }
 
     function getRandomItems($black_hole, $items_count) {
