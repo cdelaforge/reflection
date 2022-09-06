@@ -22,13 +22,15 @@ const utils = {
   },
 
   displayProgression: function (playerId, progression, startTime, durationStr) {
-    if (gameUI.modeResting && gameUI.puzzleUser && gameUI.puzzleUser.id === playerId) {
+    if (gameUI.step === "play" && gameUI.samePuzzle && gameUI.puzzleUser && gameUI.puzzleUser.id === playerId) {
       return;
     }
 
-    const divId = "progressbar_" + playerId;
+    const divId = "info_" + playerId;
+    const prgId = "progressbar_" + playerId;
     const cptId = "counter_" + playerId;
     const subId = "container_" + playerId;
+    const rstId = "resting_" + playerId;
 
     if (!durationStr && startTime && !g_archive_mode) {
       durationStr = this.getDurationStr(this.getDuration(startTime));
@@ -36,9 +38,12 @@ const utils = {
 
     dojo.destroy(divId);
     dojo.place(this.dojoGame.format_block('jstpl_progressbar', {
-      pid: divId,
+      iid: divId,
+      pid: prgId,
       cid: cptId,
       sid: subId,
+      rid: rstId,
+      my_puzzle: _("It's my puzzle"),
       color: gameUI.players[playerId].color,
       progression,
       dec: 100 - progression,
@@ -52,8 +57,12 @@ const utils = {
     const cptId = "counter_" + playerId;
     const subId = "container_" + playerId;
 
-    document.getElementById(cptId).innerHTML = duration;
-    document.getElementById(subId).style.width = duration ? "78%" : "90%";
+    try {
+      document.getElementById(cptId).innerHTML = duration;
+      document.getElementById(subId).style.width = duration ? "78%" : "90%";
+    } catch (error) {
+      console.error("Error in displayDuration", error);
+    }
   },
 
   getDuration: function (startTime, now) {
@@ -161,13 +170,17 @@ const utils = {
   },
 
   displayBars: function () {
-    if (gameUI.modeResting) {
+    if (gameUI.samePuzzle) {
       Object.keys(gameUI.players).map(playerId => {
         const divId = "progressbar_" + playerId;
+        const rstId = "resting_" + playerId;
+
         if (gameUI.puzzleUser.id === playerId) {
-          dojo.style(divId, "visibility", "hidden");
+          dojo.style(divId, "display", "none");
+          dojo.style(rstId, "display", "");
         } else {
-          dojo.style(divId, "visibility", "visible");
+          dojo.style(divId, "display", "");
+          dojo.style(rstId, "display", "none");
         }
       });
     }

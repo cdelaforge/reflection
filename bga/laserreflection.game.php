@@ -31,10 +31,12 @@ class LaserReflection extends Table {
             "portal_2_row" => 22,
             "portal_2_col" => 23,
             "solo" => 30,
+            "count_players" => 31,
             "resting" => 40,
             "multi_mode" => 103,
             "solo_mode" => 104,
             "rounds_param" => 108,
+            "compete_same" => 109,
             "time_limit" => 110,
             "grid_size" => 120,
             "items_count" => 121,
@@ -70,6 +72,7 @@ class LaserReflection extends Table {
         $light_warp = $this->getGameStateValue('light_warp') == 1;
         $auto_start = $this->getGameStateValue('auto_start');
         $multi_mode = $this->getGameStateValue('multi_mode');
+        $compete_same = $this->getGameStateValue('compete_same');
         $items = $this->getRandomItems($black_hole, $items_count);
 
         $sql = "INSERT INTO gamestatus (game_param, game_value) VALUES ('elements', '".json_encode($items)."')";
@@ -94,6 +97,8 @@ class LaserReflection extends Table {
         /************ Start the game initialization *****/
 
         // Init global values with their initial values
+
+        self::setGameStateInitialValue('count_players', $count_players);
         self::setGameStateInitialValue('solo', ($count_players == 1) ? 1 : 0);
         self::setGameStateInitialValue('ended', 0);
         self::setGameStateInitialValue('round', 1);
@@ -103,7 +108,7 @@ class LaserReflection extends Table {
             self::setGameStateInitialValue('rounds', 0);
         } else if ($multi_mode == 10) {
             self::setGameStateInitialValue('rounds', $this->getGameStateValue('rounds_param'));
-        } else if ($multi_mode == 1) {
+        } else if ($compete_same == 1) {
             self::setGameStateInitialValue('rounds', $count_players);
         } else {
             self::setGameStateInitialValue('rounds', $count_players - 1);
@@ -125,7 +130,7 @@ class LaserReflection extends Table {
             $this->setGameDbValue('rg_0', $puzzle['grid']);
         }
 
-        if ($multi_mode == 1) {
+        if ($multi_mode == 0 && $compete_same == 1 && $count_players > 2) {
             // calc the first resting player
             $restingPlayer = $this->getRestingPlayer();
             $this->setRestingPlayerId($restingPlayer['id']);
@@ -168,7 +173,8 @@ class LaserReflection extends Table {
         $sql = "SELECT game_param 'key', game_value val FROM gamestatus WHERE game_param IN ('auto_start', 'elements', 'grid_size', 'portals')";
         $result['params'] = self::getObjectListFromDB($sql);
         $result['params'][] = ['key' => 'random', 'val' => $this->isModeRandom()];
-        $result['params'][] = ['key' => 'resting', 'val' => $this->isModeResting()];
+        $result['params'][] = ['key' => 'resting_player', 'val' => $this->getRestingPlayerId()];
+        $result['params'][] = ['key' => 'ended', 'val' => $this->isGameEnded()];
 
         if ($this->isModeRandom()) {
             if ($this->isGameEnded()) {
@@ -703,7 +709,9 @@ class LaserReflection extends Table {
     }
 
     function isModeResting() {
-        return $this->getGameStateValue('multi_mode') == 1;
+        return $this->getGameStateValue('multi_mode') == 0
+            && $this->getGameStateValue('compete_same') == 1
+            && $this->getGameStateValue('count_players') > 2;
     }
 
     function getRestingPlayer() {

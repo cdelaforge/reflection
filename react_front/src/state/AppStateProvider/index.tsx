@@ -342,11 +342,12 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
 
       if (destVal !== 7) {
         if (source.stockIndex !== undefined) {
+          const newVal = stock[source.stockIndex];
+          removeFromStock(source.stockIndex);
           if (destVal > 0) {
             pushToStock(destVal);
           }
-          gridClone[destination.row][destination.col] = stock[source.stockIndex];
-          removeFromStock(source.stockIndex);
+          gridClone[destination.row][destination.col] = newVal;
         } else if (source.row !== undefined && source.col !== undefined) {
           if (source.row === destination.row && source.col === destination.col) {
             // pas de changement

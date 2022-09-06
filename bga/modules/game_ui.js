@@ -152,8 +152,13 @@ const gameUI = {
           this.players[playerId].duration
         );
       });
+
+      if (gameUI.ended) {
+        utils.displayBars();
+      }
+
       this.shouldRefreshProgression = false;
-    } else {
+    } else if (!gameUI.ended) {
       const time = Math.round(new Date().getTime() / 1000);
 
       Object.keys(this.players).map((playerId) => {

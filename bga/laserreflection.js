@@ -43,6 +43,7 @@ define([
                 utils.init(this);
                 gameUI.players = {};
                 gameUI.playersCount = 0;
+
                 Object.keys(data.players).map((playerId) => {
                     gameUI.playersCount++;
                     const color = data.players[playerId].color;
@@ -60,12 +61,9 @@ define([
                     if (!gameUI.players[playerId].running) {
                         gameUI.players[playerId].duration = utils.getDurationStr(parseInt(data.players[playerId].duration, 10));
                     }
-
-                    gameUI.shouldRefreshProgression = true;
                 });
 
                 if (data.puzzles) {
-                    gameUI.ended = true;
                     gameUI.puzzles = data.puzzles.map(p => JSON.parse(p));
                     utils.buildRoundsPuzzleSelect();
                 }
@@ -92,11 +90,20 @@ define([
                         case "random":
                             gameUI.modeRandom = p.val;
                             break;
-                        case "resting":
-                            gameUI.modeResting = p.val;
+                        case "resting_player":
+                            gameUI.samePuzzle = parseInt(p.val, 10) > 0;
+                            if (gameUI.samePuzzle) {
+                                gameUI.puzzleUser = gameUI.players[p.val];
+                            }
+                            break;
+                        case "ended":
+                            gameUI.ended = p.val;
                             break;
                     }
                 });
+
+                gameUI.step = "puzzleCreation";
+                gameUI.shouldRefreshProgression = true;
 
                 // Setting up player boards
                 if (!this.isSpectator) {
@@ -134,6 +141,7 @@ define([
                         gameUI.setup();
                         break;
                     case 'puzzlePlayInit':
+                        gameUI.step = "play";
                         if (this.isSpectator) {
                             const publicData = args.args["_public"];
                             gameUI.puzzleUsers = {};
@@ -253,14 +261,14 @@ define([
                         case "scoreDisplay":
                             this.removeActionButtons();
                             this.addActionButton('hideScore', _('OK'), 'onScoreDisplayEnd');
-                            if (gameUI.playersCount === 1) {
+                            if (this.is_solo) {
                                 this.addActionButton('stop', _('Stop'), 'onStop');
                             }
                             break;
                         case "puzzleSolution":
                             this.removeActionButtons();
                             this.addActionButton('solutionDisplayEnd', _('OK'), 'onSolutionDisplayEnd');
-                            if (gameUI.playersCount === 1) {
+                            if (this.is_solo) {
                                 this.addActionButton('stop', _('Stop'), 'onStop');
                             }
                             break;

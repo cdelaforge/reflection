@@ -29,7 +29,6 @@ $game_options = [
         'name' => totranslate('Multiplayer mode'),
         'values' => [
             0 => [ 'name' => totranslate('Puzzles created by players'), 'tmdisplay' => totranslate('Puzzles created by players') ],
-            1 => [ 'name' => totranslate('Players compete on the same puzzles'), 'tmdisplay' => totranslate('Players compete on the same puzzles') ],
             10 => [ 'name' => totranslate('Randomly generated puzzles'), 'tmdisplay' => totranslate('Randomly generated puzzles') ],
         ],
         'default' => 0,
@@ -39,6 +38,19 @@ $game_options = [
                 'value' => [2, 3, 4, 5, 6]
             ],
         ],
+        /*
+        'startcondition' => [
+            0 => [[
+                'type' => 'minplayers',
+                'value' => 2,
+                'message' => totranslate('You need at least two players to start a game in multiplayer mode')
+            ]],
+            10 => [[
+                'type' => 'minplayers',
+                'value' => 2,
+                'message' => totranslate('You need at least two players to start a game in multiplayer mode')
+            ]],
+        ]*/
     ],
     108 => [
         'name' => totranslate('Rounds'),
@@ -59,6 +71,32 @@ $game_options = [
                 'value' => 10,
             ],
         ],
+    ],
+    109 => [
+        'name' => totranslate('Players compete on the same puzzles'),
+        'values' => [
+            1 => [
+                'name' => totranslate('yes'),
+                'description' => totranslate('There are as many rounds as there are players, but for each round the player who proposed the current puzzle does not play.'),
+                'tmdisplay' => totranslate('Players compete on the same puzzles')
+            ],
+            2 => [
+                'name' => totranslate('no'),
+                'description' => totranslate('There is one less round than there are players. In each round each player works on a different player\'s puzzle.')
+            ]
+        ],
+        'default' => 2,
+        'displaycondition' => [
+            [
+                'type' => 'minplayers',
+                'value' => [3, 4, 5, 6]
+            ],
+            [
+                'type' => 'otheroption',
+                'id' => 103,
+                'value' => 0,
+            ],
+        ]
     ],
     120 => [
         'name' => totranslate('Grid size'),
