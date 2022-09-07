@@ -27,7 +27,7 @@
    	public function __default() {
   	    if( self::isArg( 'notifwindow') ) {
             $this->view = "common_notifwindow";
-  	        $this->viewArgs['table'] = self::getArg( "table", AT_posint, true );
+  	        $this->viewArgs['table'] = self::getArg("table", AT_posint, true);
   	    } else {
             $this->view = "laserreflection_laserreflection";
             self::trace( "Complete reinitialization of board game" );
@@ -39,14 +39,15 @@
     public function gridChange() {
       self::setAjaxMode();
 
-      $grid = self::getArg( "grid", AT_json, true );
+      $grid = self::getArg("grid", AT_json, true);
       self::trace("gridChange");
       self::dump("grid", $grid);
       $this->validateJsonGrid($grid);
 
       $progression = self::getArg("progression", AT_posint, true);
+      $give_time = self::getArg("give_time", AT_bool, false, false);
 
-      $this->game->action_changeGrid($grid, $progression);
+      $this->game->action_changeGrid($grid, $progression, $give_time);
 
       self::ajaxResponse();
     }

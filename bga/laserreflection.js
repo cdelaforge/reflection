@@ -43,6 +43,7 @@ define([
                 utils.init(this);
                 gameUI.players = {};
                 gameUI.playersCount = 0;
+                gameUI.realtime = parseInt(data["tablespeed"], 10) < 3;
 
                 Object.keys(data.players).map((playerId) => {
                     gameUI.playersCount++;

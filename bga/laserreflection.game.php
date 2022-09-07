@@ -74,12 +74,13 @@ class LaserReflection extends Table {
         $multi_mode = $this->getGameStateValue('multi_mode');
         $compete_same = $this->getGameStateValue('compete_same');
         $items = $this->getRandomItems($black_hole, $items_count);
+        $jsonItems = json_encode($items);
 
-        $sql = "INSERT INTO gamestatus (game_param, game_value) VALUES ('elements', '".json_encode($items)."')";
+        $sql = "INSERT INTO gamestatus (game_param, game_value) VALUES ('elements', '$jsonItems')";
         self::DbQuery($sql);
-        $sql = "INSERT INTO gamestatus (game_param, game_value) VALUES ('grid_size', '".$grid_size."')";
+        $sql = "INSERT INTO gamestatus (game_param, game_value) VALUES ('grid_size', '$grid_size')";
         self::DbQuery($sql);
-        $sql = "INSERT INTO gamestatus (game_param, game_value) VALUES ('auto_start', '".$auto_start."')";
+        $sql = "INSERT INTO gamestatus (game_param, game_value) VALUES ('auto_start', '$auto_start')";
         self::DbQuery($sql);
 
         // Create players
@@ -360,7 +361,7 @@ class LaserReflection extends Table {
     function stEndRound_Solo() {
         $playerId = $this->getCurrentPlayerId();
 
-        $sql = "SELECT player_round_duration duration FROM player WHERE player_id='".$playerId."'";
+        $sql = "SELECT player_round_duration duration FROM player WHERE player_id=$playerId";
         $player = self::getObjectFromDB($sql);
         $playerScore = $player["duration"] >= 6666 ? 0 : 1;
 
@@ -380,13 +381,13 @@ class LaserReflection extends Table {
             $roundScores[$playerId] = $playerScore;
             self::notifyAllPlayers("roundScores", '', array('roundScores' => $roundScores));
 
-            $sql = "UPDATE player SET player_grid=NULL, player_round_score=".$playerScore.", player_score = player_score + ".$playerScore." WHERE player_id = ".$playerId;
+            $sql = "UPDATE player SET player_grid=NULL, player_round_score=$playerScore, player_score = player_score + $playerScore WHERE player_id=$playerId";
             self::DbQuery($sql);
 
             $this->gamestate->setAllPlayersMultiactive();
             $this->gamestate->initializePrivateStateForAllActivePlayers();
         } else {
-            $sql = "UPDATE player SET player_progression=0, player_start=0, player_round_duration=0, player_grid=NULL, player_round_score=".$playerScore.", player_score = player_score + ".$playerScore." WHERE player_id = ".$playerId;
+            $sql = "UPDATE player SET player_progression=0, player_start=0, player_round_duration=0, player_grid=NULL, player_round_score=$playerScore, player_score = player_score + $playerScore WHERE player_id=$playerId";
             self::DbQuery($sql);
 
             $this->gamestate->nextState("next");
@@ -397,7 +398,7 @@ class LaserReflection extends Table {
         $restingPlayerId = $this->getRestingPlayerId();
 
         if ($restingPlayerId > 0) {
-            $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_grid grid FROM player WHERE player_id<>".$restingPlayerId." ORDER BY player_round_duration";
+            $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_grid grid FROM player WHERE player_id<>$restingPlayerId ORDER BY player_round_duration";
         } else {
             $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_grid grid FROM player ORDER BY player_round_duration";
         }
@@ -437,7 +438,7 @@ class LaserReflection extends Table {
                 ));
             }
 
-            $sql = "UPDATE player SET player_grid=NULL, player_round_score=".$playerScore.", player_score = player_score + ".$playerScore.", player_score_aux = player_score_aux - ".$duration." WHERE player_id = ".$playerId;
+            $sql = "UPDATE player SET player_grid=NULL, player_round_score=$playerScore, player_score = player_score + $playerScore, player_score_aux = player_score_aux - $duration WHERE player_id=$playerId";
             self::DbQuery($sql);
         }
 
@@ -487,7 +488,7 @@ class LaserReflection extends Table {
 
     /* Player actions */
 
-    function action_changeGrid($grid, $progression) {
+    function action_changeGrid($grid, $progression, $give_time) {
         self::checkAction("gridChange");
 
         $jsonGrid = json_encode($grid);
@@ -508,6 +509,10 @@ class LaserReflection extends Table {
             'player_grid' => $jsonGrid
         ));
 
+        if ($give_time) {
+            $this->giveExtraTime($playerId, 60);
+        }
+
         if ($progression == 100) {
             $this->gamestate->nextPrivateState($playerId, 'continue');
         }
@@ -520,7 +525,7 @@ class LaserReflection extends Table {
         $jsonGrid = json_encode($puzzleGrid);
         $jsonPuzzle = json_encode($puzzle);
 
-        $sql = "UPDATE player SET player_grid='".$jsonGrid."', player_puzzle_grid='".$jsonGrid."', player_puzzle='".$jsonPuzzle."', player_progression=100, player_start=0 WHERE player_id='".$playerId."'";
+        $sql = "UPDATE player SET player_grid='$jsonGrid', player_puzzle_grid='$jsonGrid', player_puzzle='$jsonPuzzle', player_progression=100, player_start=0 WHERE player_id=$playerId";
         self::DbQuery($sql);
 
         self::notifyAllPlayers("log", clienttranslate('${player_name} submitted their puzzle'), array (
@@ -553,8 +558,9 @@ class LaserReflection extends Table {
         $playerId = $this->getCurrentPlayerId();
         $start = $startDate->getTimestamp();
         $grid = $this->getEmptyGrid();
+        $jsonGrid = json_encode($grid);
 
-        $sql = "UPDATE player SET player_progression=0, player_start=".$start.", player_grid='".json_encode($grid)."' WHERE player_id='".$playerId."' AND player_start=0";
+        $sql = "UPDATE player SET player_progression=0, player_start=$start, player_grid='$jsonGrid' WHERE player_id=$playerId AND player_start=0";
         self::DbQuery($sql);
 
         $this->sendPlayerStartNotification($start);
@@ -569,7 +575,7 @@ class LaserReflection extends Table {
         $playerId = $this->getCurrentPlayerId();
         $end = $endDate->getTimestamp();
 
-        $sql = "SELECT player_start start, player_total_duration total FROM player WHERE player_id='".$playerId."'";
+        $sql = "SELECT player_start start, player_total_duration total FROM player WHERE player_id=$playerId";
         $player = self::getObjectFromDB($sql);
 
         $duration = $end - $player["start"];
@@ -577,7 +583,7 @@ class LaserReflection extends Table {
         $total = $player["total"] + $duration;
         $jsonGrid = json_encode($grid);
 
-        $sql = "UPDATE player SET player_grid='".$jsonGrid."', player_rounds=player_rounds+1, player_progression=100, player_start=0, player_round_duration=".$duration.", player_total_duration=".$total." WHERE player_id='".$playerId."'";
+        $sql = "UPDATE player SET player_grid='$jsonGrid', player_rounds=player_rounds+1, player_progression=100, player_start=0, player_round_duration=$duration, player_total_duration=$total WHERE player_id=$playerId";
         self::DbQuery($sql);
 
         self::notifyAllPlayers("progression", "", array(
@@ -608,7 +614,7 @@ class LaserReflection extends Table {
 
         $playerId = $this->getCurrentPlayerId();
 
-        $sql = "UPDATE player SET player_start=0, player_round_duration=6666 WHERE player_id='".$playerId."'";
+        $sql = "UPDATE player SET player_start=0, player_round_duration=6666 WHERE player_id=$playerId";
         self::DbQuery($sql);
 
         self::notifyAllPlayers("stop", clienttranslate('${player_name} found the puzzle too hard and give up'), array (
@@ -632,7 +638,7 @@ class LaserReflection extends Table {
                 'player_progression' => 0
             ));
 
-            $sql = "UPDATE player SET player_progression=0, player_start=0, player_round_duration=0 WHERE player_id='".$playerId."'";
+            $sql = "UPDATE player SET player_progression=0, player_start=0, player_round_duration=0 WHERE player_id=$playerId";
             self::DbQuery($sql);
         }
 
@@ -717,7 +723,7 @@ class LaserReflection extends Table {
     function getRestingPlayer() {
         if ($this->isModeResting()) {
             $round = $this->getRound() - 1;
-            $sql = "SELECT player_id id, player_name name FROM player ORDER BY player_no LIMIT ".$round.",1";
+            $sql = "SELECT player_id id, player_name name FROM player ORDER BY player_no LIMIT $round,1";
             $players = self::getObjectListFromDB($sql);
             return $players[0];
         }
@@ -839,16 +845,16 @@ class LaserReflection extends Table {
     }
 
     function getGameDbValue($key) {
-        $sql = "SELECT game_value val FROM gamestatus WHERE game_param='".$key."'";
+        $sql = "SELECT game_value val FROM gamestatus WHERE game_param='$key'";
         $data = self::getObjectFromDB($sql);
         return $data['val'];
     }
 
     function setGameDbValue($key, $val) {
-        $sql = "DELETE FROM gamestatus WHERE game_param='".$key."'";
+        $sql = "DELETE FROM gamestatus WHERE game_param='$key'";
         self::DbQuery($sql);
 
-        $sql = "INSERT INTO gamestatus (game_param, game_value) VALUES ('".$key."', '".$val."')";
+        $sql = "INSERT INTO gamestatus (game_param, game_value) VALUES ('$key', '$val')";
         self::DbQuery($sql);
     }
 
@@ -1041,7 +1047,7 @@ class LaserReflection extends Table {
 
     function sendRoundScore($restingPlayerId) {
         if ($restingPlayerId > 0) {
-            $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_round_score score FROM player WHERE player_id<>".$restingPlayerId." ORDER BY player_round_score DESC";
+            $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_round_score score FROM player WHERE player_id<>$restingPlayerId ORDER BY player_round_score DESC";
         } else {
             $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_round_score score FROM player ORDER BY player_round_score DESC";
         }
@@ -1148,7 +1154,7 @@ class LaserReflection extends Table {
 
         if ($restingPlayerId > 0) {
             // all players are working on this player puzzle
-            $sql = "SELECT player_id id, player_name name, player_puzzle_grid puzzleGrid FROM player WHERE player_id=".$restingPlayerId;
+            $sql = "SELECT player_id id, player_name name, player_puzzle_grid puzzleGrid FROM player WHERE player_id=$restingPlayerId";
             $player = self::getObjectFromDB($sql);
             return $player;
         }
@@ -1228,7 +1234,7 @@ class LaserReflection extends Table {
                     $jsonPuzzleGrid = $puzzle['grid'];
                     $jsonPuzzle = $puzzle['puzzle'];
 
-                    $sql = "UPDATE player SET player_puzzle_grid='".$jsonPuzzleGrid."', player_puzzle='".$jsonPuzzle."' WHERE player_id='".$playerId."'";
+                    $sql = "UPDATE player SET player_puzzle_grid='$jsonPuzzleGrid', player_puzzle='$jsonPuzzle' WHERE player_id=$playerId";
                     self::DbQuery($sql);
 
                     self::notifyAllPlayers("puzzleChange", "", array(

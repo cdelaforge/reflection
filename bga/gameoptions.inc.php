@@ -37,20 +37,7 @@ $game_options = [
                 'type' => 'minplayers',
                 'value' => [2, 3, 4, 5, 6]
             ],
-        ],
-        /*
-        'startcondition' => [
-            0 => [[
-                'type' => 'minplayers',
-                'value' => 2,
-                'message' => totranslate('You need at least two players to start a game in multiplayer mode')
-            ]],
-            10 => [[
-                'type' => 'minplayers',
-                'value' => 2,
-                'message' => totranslate('You need at least two players to start a game in multiplayer mode')
-            ]],
-        ]*/
+        ]
     ],
     108 => [
         'name' => totranslate('Rounds'),

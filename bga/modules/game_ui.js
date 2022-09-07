@@ -107,6 +107,16 @@ const gameUI = {
     this.history = [];
   },
 
+  shouldAddTime: function () {
+    if (!this.realtime || this.mode !== "play") {
+      return false;
+    }
+
+    const timerTxt = document.getElementById('timeToThink_' + this.dojoGame.player_id).innerHTML;
+    /* If timer starts with - or 0, then it remains less than 1 minute */
+    return timerTxt[0] == '-' || timerTxt[0] == '0';
+  },
+
   live: function () {
     this.liveLoop = (this.liveLoop + 1) % 4;
 
@@ -136,10 +146,11 @@ const gameUI = {
       if (this.running && !g_archive_mode && (this.mode === "puzzleCreation" || this.mode === "play")) {
         const data = {
           grid: JSON.stringify(this.grid),
-          progression: this.progression || 0
+          progression: this.progression || 0,
+          give_time: this.shouldAddTime(),
         };
 
-        this.callAction("gridChange", data, false);
+        this.callAction("gridChange", data, data.give_time);
       }
     }
 
