@@ -298,19 +298,24 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   }
 
   const pushToStock = (elt: number) => {
-    stock.push(elt);
-    setStock([...stock.sort(numberCompare)]);
-    setStockIndex(stock.findIndex((s) => s === elt));
+    const newStock = [...stock];
+    newStock.push(elt);
+    newStock.sort(numberCompare);
+    setStock(newStock);
+    setStockIndex(newStock.findIndex((s) => s === elt));
   };
 
   const removeFromStock = (index: number) => {
-    stock[index] = 100;
-    const newStock = [...stock.sort(numberCompare)];
-    newStock.pop();
-    setStock(newStock);
-    if (newStock.length === 0) {
+    if (stock.length === 1) {
+      setStock([]);
       setStockIndex(undefined);
-    } else if (stockIndex !== undefined && stockIndex >= newStock.length) {
+      return;
+    }
+
+    const newStock = [...stock];
+    newStock.splice(index, 1);
+    setStock(newStock);
+    if (stockIndex !== undefined && stockIndex >= newStock.length) {
       setStockIndex(stockIndex - 1);
     }
   };
@@ -342,13 +347,21 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
 
       if (destVal !== 7) {
         if (source.stockIndex !== undefined) {
+          // drag from the stock
           const newVal = stock[source.stockIndex];
-          removeFromStock(source.stockIndex);
+
           if (destVal > 0) {
-            pushToStock(destVal);
+            const stockClone = [...stock];
+            stockClone[source.stockIndex] = destVal;
+            stockClone.sort(numberCompare);
+            setStock(stockClone);
+          } else {
+            removeFromStock(source.stockIndex);
           }
+
           gridClone[destination.row][destination.col] = newVal;
         } else if (source.row !== undefined && source.col !== undefined) {
+          // drag inside the grid
           if (source.row === destination.row && source.col === destination.col) {
             // pas de changement
             return;
