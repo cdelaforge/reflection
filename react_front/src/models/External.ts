@@ -1,3 +1,5 @@
+import { Teammate } from "../state/AppStateProvider";
+
 export interface GameSetup {
   mode: string,
   gridSize: number,
@@ -5,7 +7,7 @@ export interface GameSetup {
   grid?: number[][],
   solution?: number[][],
   puzzle?: string[][],
-  portals?: number[],
+  portals?: number[]
 }
 
 export interface WindowWithGameMethods {
@@ -13,6 +15,8 @@ export interface WindowWithGameMethods {
     setRunning: (r: boolean) => void;
     setup: (p: GameSetup) => number[][];
     setAreaSize: (width: number, height: number) => void;
+    setTeammateColor: (id: string, color: string) => void;
+    setTeammateGrid: (id: string, grid?: number[][]) => void;
     onGridChange?: (grid: number[][]) => void;
     onPuzzleChange?: (puzzle: string[][]) => void;
     onPuzzleResolve?: (grid: number[][]) => void;

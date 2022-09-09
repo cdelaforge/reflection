@@ -12,12 +12,20 @@ interface CellIconProps {
   row?: number;
   col?: number;
   stockIndex?: number;
-  display?: 'normal' | 'wrong' | 'solution';
+  display?: 'normal' | 'wrong' | 'solution' | 'team';
+  color?: string;
 }
 
-function CellIcon({ val, row, col, stockIndex, display }: CellIconProps) {
+function CellIcon({ val, row, col, stockIndex, display, color }: CellIconProps) {
   const { cellSize, mode, running, won } = useAppState();
-  const color = display === "wrong" ? colors.wrong : (display === "solution" ? colors.solution : colors.black);
+
+  if (display === 'wrong') {
+    color = colors.wrong;
+  } else if (display === 'solution') {
+    color = colors.solution;
+  } else if (display !== 'team') {
+    color = colors.black;
+  }
 
   const [{ isDragging }, drag, preview] = useDrag(() => ({
     type: "item",

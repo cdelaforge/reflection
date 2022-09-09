@@ -9,6 +9,12 @@ export interface Position {
   stockIndex?: number,
 }
 
+export interface Teammate {
+  id: string,
+  color: string,
+  grid?: number[][],
+}
+
 export interface IStateContext {
   mode: string;
 
@@ -44,6 +50,9 @@ export interface IStateContext {
   displayLaserPosition?: number,
   displayLaserIndex?: number,
   displayLaser: (position: number, index: number) => void,
+
+  /* team data */
+  team?: Teammate[],
 }
 
 export const StateContext = createContext<IStateContext>(null!);
@@ -153,6 +162,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   const [areaWidth, setAreaWidth] = useState<number>();
   const [areaHeight, setAreaHeight] = useState<number>();
   const [playerAction, setPlayerAction] = useState<boolean>(false);
+  const [team, setTeam] = useState<Teammate[]>();
 
   useEffect(() => {
     const w: WindowWithGameMethods = window as any;
@@ -201,7 +211,33 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
       setAreaSize: (width: number, height: number) => {
         setAreaWidth(width);
         setAreaHeight(height);
-      }
+      },
+      setTeammateColor: (id: string, color: string) => {
+        const teamCloned = team ? [...team] : [];
+        let teammate = teamCloned.find(t => t.id === id);
+
+        if (teammate) {
+          teammate.color = color;
+        } else {
+          teammate = { id, color };
+          teamCloned.push(teammate);
+        }
+
+        setTeam(teamCloned);
+      },
+      setTeammateGrid: (id: string, grid?: number[][]) => {
+        const teamCloned = team ? [...team] : [];
+        let teammate = teamCloned.find(t => t.id === id);
+
+        if (teammate) {
+          teammate.grid = grid;
+        } else {
+          teammate = { id, color: '#FFFFFF', grid };
+          teamCloned.push(teammate);
+        }
+
+        setTeam(teamCloned);
+      },
     }
   }, []);
 

@@ -10,7 +10,7 @@ interface CellProps {
 }
 
 function Cell({ row, col }: CellProps) {
-  const { cellSize, grid, solution, setGridElement, moveGridElement, laserElements, mode } = useAppState();
+  const { cellSize, grid, solution, team, setGridElement, moveGridElement, laserElements, mode } = useAppState();
 
   const [, drop] = useDrop(
     () => ({
@@ -77,6 +77,26 @@ function Cell({ row, col }: CellProps) {
     return <></>;
   }
 
+  const getTeamCellIcons = () => {
+    if (!team) {
+      return <></>;
+    }
+
+    const teammates = team.filter(t => t.grid && t.grid[row][col] && t.grid[row][col] !== 7);
+    if (!teammates.length) {
+      return <></>;
+    }
+
+    return teammates.map(t => {
+      const key = `${row}_${col}_${t.id}`;
+      return (
+        <CellContainerChild key={key}>
+          <CellIcon val={t.grid![row][col]} row={row} col={col} display="team" color={t.color} />
+        </CellContainerChild>
+      );
+    });
+  }
+
   const playerVal = getPlayerVal();
   const solutionVal = getSolutionVal();
 
@@ -86,6 +106,7 @@ function Cell({ row, col }: CellProps) {
         <CellBackground type="grid" size={cellSize} />
       </CellContainerChild>
       {cellLaserElements}
+      {getTeamCellIcons()}
       {getPlayerCellIcon(playerVal, solutionVal)}
       {getSolutionCellIcon(playerVal, solutionVal)}
     </CellContainer>
