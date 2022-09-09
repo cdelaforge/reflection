@@ -149,26 +149,44 @@ define([
                             const savedGrid = gameUI.getSavedGrid();
                             const isPlaying = args.private_state && args.private_state.id === "51";
 
+                            if (privateData.portals) {
+                                gameUI.portals = JSON.parse(privateData.portals);
+                            }
+
                             if (savedGrid) {
                                 gameUI.setGrid(savedGrid);
+                            } else if (!privateData.grid) {
+                                gameUI.setGrid(undefined);
                             } else {
-                                gameUI.setGrid(privateData.grid ? JSON.parse(privateData.grid) : undefined);
+                                const grid = JSON.parse(privateData.grid);
+
+                                const isGridCorrect = function (grid) {
+                                    if (!gameUI.portals) {
+                                        return true;
+                                    }
+                                    if (grid[gameUI.portals[0]][gameUI.portals[1]] !== 7) {
+                                        return false;
+                                    }
+                                    if (grid[gameUI.portals[2]][gameUI.portals[3]] !== 7) {
+                                        return false;
+                                    }
+                                    return true;
+                                };
+
+                                if (isGridCorrect(grid)) {
+                                    gameUI.setGrid(grid);
+                                } else {
+                                    gameUI.setGrid(undefined);
+                                    gameUI.saveGrid();
+                                    gameUI.history = [];
+                                }
                             }
+
                             gameUI.puzzle = JSON.parse(privateData.puzzle);
                             gameUI.puzzleUser = gameUI.players[privateData.id]; // player that did the puzzle
 
                             if (privateData.elements) {
                                 gameUI.elements = JSON.parse(privateData.elements);
-                            }
-                            if (privateData.portals) {
-                                gameUI.portals = JSON.parse(privateData.portals);
-
-                                // temp hack :
-                                if (!savedGrid) {
-                                    gameUI.setGrid(undefined);
-                                    gameUI.saveGrid();
-                                    gameUI.history = [];
-                                }
                             }
 
                             gameUI.mode = isPlaying || privateData.grid ? 'play' : 'empty';
