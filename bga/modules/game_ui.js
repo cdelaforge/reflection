@@ -163,18 +163,21 @@ const gameUI = {
   live: function () {
     this.liveLoop = (this.liveLoop + 1) % 4;
 
-    if (this.timeout || this.giveUp) {
+    if (this.resolved) {
+      this.resolved = false;
       this.giveUp = false;
       this.timeout = false;
       this.shouldSendProgression = false;
-      this.callAction(this.timeout ? "timeout" : "giveUp", null, true);
-    }
-
-    if (this.resolved) {
-      this.resolved = false;
-      this.shouldSendProgression = false;
       this.callAction("puzzleResolve", { grid: JSON.stringify(this.grid) }, true);
       this.clearSavedGrid();
+    }
+
+    if (this.timeout || this.giveUp) {
+      const action = this.timeout ? "timeout" : "giveUp";
+      this.giveUp = false;
+      this.timeout = false;
+      this.shouldSendProgression = false;
+      this.callAction(action, null, true);
     }
 
     if (this.puzzleCreationEnd) {

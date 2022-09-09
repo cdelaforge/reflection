@@ -129,12 +129,6 @@ $game_options = [
             ],
         ],
         'default' => 10,
-        'displaycondition' => [
-            [
-                'type' => 'minplayers',
-                'value' => [2, 3, 4, 5, 6]
-            ],
-        ],
     ],
     120 => [
         'name' => totranslate('Grid size'),

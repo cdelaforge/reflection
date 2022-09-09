@@ -80,7 +80,7 @@ define([
                             gameUI.ended = p.val;
                             break;
                         case "time_limit":
-                            gameUI.timeLimit = p.val || 60;
+                            gameUI.timeLimit = parseInt(p.val, 10) || 60;
                             break;
 
                     }
