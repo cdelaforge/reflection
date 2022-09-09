@@ -162,6 +162,13 @@ define([
                             }
                             if (privateData.portals) {
                                 gameUI.portals = JSON.parse(privateData.portals);
+
+                                // temp hack :
+                                if (!savedGrid) {
+                                    gameUI.setGrid(undefined);
+                                    gameUI.saveGrid();
+                                    gameUI.history = [];
+                                }
                             }
 
                             gameUI.mode = isPlaying || privateData.grid ? 'play' : 'empty';
