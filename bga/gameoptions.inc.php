@@ -85,6 +85,57 @@ $game_options = [
             ],
         ]
     ],
+    119 => [
+        'name' => totranslate('Maximum time to solve a puzzle'),
+        'values' => [
+            2 => [
+                'name' => totranslate('2 minutes'),
+                'description' => totranslate('After this time, the player will be forced to give up'),
+                'tmdisplay' => totranslate('2 minutes max. per round'),
+            ],
+            5 => [
+                'name' => totranslate('5 minutes'),
+                'description' => totranslate('After this time, the player will be forced to give up'),
+                'tmdisplay' => totranslate('5 minutes max. per round'),
+            ],
+            10 => [
+                'name' => totranslate('10 minutes'),
+                'description' => totranslate('After this time, the player will be forced to give up'),
+                'tmdisplay' => totranslate('10 minutes max. per round'),
+            ],
+            15 => [
+                'name' => totranslate('15 minutes'),
+                'description' => totranslate('After this time, the player will be forced to give up'),
+                'tmdisplay' => totranslate('15 minutes max. per round'),
+            ],
+            20 => [
+                'name' => totranslate('20 minutes'),
+                'description' => totranslate('After this time, the player will be forced to give up'),
+                'tmdisplay' => totranslate('20 minutes max. per round'),
+            ],
+            25 => [
+                'name' => totranslate('25 minutes'),
+                'description' => totranslate('After this time, the player will be forced to give up'),
+                'tmdisplay' => totranslate('25 minutes max. per round'),
+            ],
+            30 => [
+                 'name' => totranslate('30 minutes'),
+                 'description' => totranslate('After this time, the player will be forced to give up'),
+                 'tmdisplay' => totranslate('30 minutes max. per round'),
+            ],
+            60 => [
+                'name' => totranslate('1 hour (Recommended only with friends or in turn-based mode)'),
+                'description' => totranslate('After this time, the player will be forced to give up'),
+            ],
+        ],
+        'default' => 10,
+        'displaycondition' => [
+            [
+                'type' => 'minplayers',
+                'value' => [2, 3, 4, 5, 6]
+            ],
+        ],
+    ],
     120 => [
         'name' => totranslate('Grid size'),
         'values' => [

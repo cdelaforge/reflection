@@ -107,6 +107,38 @@ const gameUI = {
     this.history = [];
   },
 
+  savePlayerData: function (playerData, playerId) {
+    const result = {
+      id: playerId,
+      color: playerData.color,
+      progression: parseInt(playerData.progression, 10),
+      grid: JSON.parse(playerData.grid),
+      puzzle: playerData.puzzle ? JSON.parse(playerData.puzzle) : undefined,
+      name: playerData.name,
+      startTime: parseInt(playerData.start, 10),
+    };
+
+    result.running = result.startTime > 0;
+
+    if (!result.running) {
+      result.duration = utils.getDurationStr(parseInt(playerData.duration, 10));
+
+      if (playerData.state === "30") {
+        result.creating = true;
+      } else if (playerData.state === "52") {
+        result.failed = true;
+      } else if (playerData.state === "51" && result.progression === 100) {
+        result.success = true;
+      } else if (playerData.state === "80" && playerData.duration === "6666") {
+        result.failed = true;
+      } else if (playerData.state === "80" && result.progression === 100) {
+        result.success = true;
+      }
+    }
+
+    this.players[playerId] = result;
+  },
+
   shouldAddTime: function () {
     if (!this.realtime || this.mode !== "play") {
       return false;
@@ -117,13 +149,25 @@ const gameUI = {
     return timerTxt[0] == '-' || timerTxt[0] == '0';
   },
 
+  buildProgressionBars: function () {
+    Object.keys(this.players).map((playerId) => {
+      utils.displayProgression(
+        playerId,
+        this.players[playerId].progression,
+        this.players[playerId].startTime,
+        this.players[playerId].duration
+      );
+    });
+  },
+
   live: function () {
     this.liveLoop = (this.liveLoop + 1) % 4;
 
-    if (this.giveUp) {
+    if (this.timeout || this.giveUp) {
       this.giveUp = false;
+      this.timeout = false;
       this.shouldSendProgression = false;
-      this.callAction("giveUp", null, true);
+      this.callAction(this.timeout ? "timeout" : "giveUp", null, true);
     }
 
     if (this.resolved) {
@@ -155,19 +199,8 @@ const gameUI = {
     }
 
     if (this.shouldRefreshProgression) {
-      Object.keys(this.players).map((playerId) => {
-        utils.displayProgression(
-          playerId,
-          this.players[playerId].progression,
-          this.players[playerId].startTime,
-          this.players[playerId].duration
-        );
-      });
-
-      if (gameUI.ended) {
-        utils.displayBars();
-      }
-
+      this.buildProgressionBars();
+      utils.displayBars();
       this.shouldRefreshProgression = false;
     } else if (!gameUI.ended) {
       const time = Math.round(new Date().getTime() / 1000);
@@ -187,6 +220,10 @@ const gameUI = {
           );
         }
       });
+    }
+
+    if ((this.liveLoop === 0 || this.liveLoop === 2) && this.mode === "play") {
+      this.manageTimeLimit();
     }
 
     const titleBar = document.getElementById("page-title");
@@ -218,6 +255,25 @@ const gameUI = {
       dojo.query(".replay_last_move_button")[0].parentNode.parentNode.style.display = "none";
     }
     catch (error) { }
+  },
+
+  manageTimeLimit: function () {
+    const button = document.getElementById('giveUp');
+
+    if (button) {
+      const playerData = this.players[this.dojoGame.player_id];
+
+      if (playerData.startTime) {
+        const duration = utils.getDuration(playerData.startTime);
+        const remainingTime = this.timeLimit * 60 - duration;
+
+        if (remainingTime <= 0) {
+          this.timeout = true;
+        } else if (remainingTime <= 30) {
+          button.innerHTML = _('Give up') + " (" + remainingTime + " " + _('seconds') + ")";
+        }
+      }
+    }
   },
 
   setRootMargin: function (titleBar) {

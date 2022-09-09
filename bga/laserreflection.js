@@ -47,31 +47,8 @@ define([
 
                 Object.keys(data.players).map((playerId) => {
                     gameUI.playersCount++;
-                    const color = data.players[playerId].color;
-                    gameUI.players[playerId] = {
-                        id: playerId,
-                        color,
-                        progression: parseInt(data.players[playerId].progression, 10),
-                        grid: JSON.parse(data.players[playerId].grid),
-                        puzzle: data.players[playerId].puzzle ? JSON.parse(data.players[playerId].puzzle) : undefined,
-                        name: data.players[playerId].name,
-                        startTime: parseInt(data.players[playerId].start, 10),
-                    };
-
-                    gameUI.players[playerId].running = gameUI.players[playerId].startTime;
-                    if (!gameUI.players[playerId].running) {
-                        gameUI.players[playerId].duration = utils.getDurationStr(parseInt(data.players[playerId].duration, 10));
-                    }
+                    gameUI.savePlayerData(data.players[playerId], playerId)
                 });
-
-                if (data.puzzles) {
-                    gameUI.puzzles = data.puzzles.map(p => JSON.parse(p));
-                    utils.buildRoundsPuzzleSelect();
-                }
-
-                if (data.round_puzzle) {
-                    gameUI.puzzle = JSON.parse(data.round_puzzle);
-                }
 
                 data.params.map((p) => {
                     switch (p.key) {
@@ -91,17 +68,32 @@ define([
                         case "random":
                             gameUI.modeRandom = p.val;
                             break;
+                        case "same_puzzle":
+                            gameUI.samePuzzle = p.val;
+                            break;
                         case "resting_player":
-                            gameUI.samePuzzle = parseInt(p.val, 10) > 0;
-                            if (gameUI.samePuzzle) {
+                            if (p.val !== "0") {
                                 gameUI.puzzleUser = gameUI.players[p.val];
                             }
                             break;
                         case "ended":
                             gameUI.ended = p.val;
                             break;
+                        case "time_limit":
+                            gameUI.timeLimit = p.val || 60;
+                            break;
+
                     }
                 });
+
+                if (data.puzzles) {
+                    gameUI.puzzles = data.puzzles.map(p => JSON.parse(p));
+                    utils.buildRoundsPuzzleSelect();
+                }
+
+                if (data.round_puzzle) {
+                    gameUI.puzzle = JSON.parse(data.round_puzzle);
+                }
 
                 gameUI.step = "puzzleCreation";
                 gameUI.shouldRefreshProgression = true;
@@ -164,6 +156,7 @@ define([
                             }
                             gameUI.puzzle = JSON.parse(privateData.puzzle);
                             gameUI.puzzleUser = gameUI.players[privateData.id]; // player that did the puzzle
+
                             if (privateData.elements) {
                                 gameUI.elements = JSON.parse(privateData.elements);
                             }
@@ -176,7 +169,7 @@ define([
 
                         gameUI.setup();
                         utils.displayGrid();
-                        utils.displayBars();
+                        gameUI.shouldRefreshProgression = true;
                         break;
                     case "puzzlePlayWait":
                         if (gameUI.autoStart && !this.isSpectator && !g_archive_mode) {
@@ -355,6 +348,7 @@ define([
                 dojo.subscribe('roundsPuzzle', this, "notif_roundsPuzzle");
                 dojo.subscribe('start', this, "notif_start");
                 dojo.subscribe('stop', this, "notif_stop");
+                dojo.subscribe('roundStart', this, "notif_roundStart");
 
                 if (this.isSpectator || g_archive_mode) {
                     dojo.subscribe('gridChange', this, "notif_gridChange");
@@ -455,14 +449,28 @@ define([
                 playerData.startTime = 0;
 
                 if (!notif.args.duration) {
+                    playerData.failed = true;
                     playerData.duration = "0:00";
                     playerData.progression = 0;
                     gameUI.shouldRefreshProgression = true;
                 } else if (notif.args.duration[0] === '0') {
                     playerData.duration = notif.args.duration.substring(1);
+                    playerData.success = true;
                 } else {
                     playerData.duration = notif.args.duration;
+                    playerData.success = true;
                 }
             },
+
+            notif_roundStart: function (notif) {
+                console.log("notif_roundStart", notif);
+
+                Object.keys(gameUI.players).map((id) => {
+                    gameUI.players[id].failed = false;
+                    gameUI.players[id].success = false;
+                    gameUI.players[id].creating = false;
+                });
+                gameUI.shouldRefreshProgression = true;
+            }
         });
     });

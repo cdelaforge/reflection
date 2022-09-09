@@ -77,7 +77,15 @@
     public function giveUp() {
       self::setAjaxMode();
 
-      $this->game->action_giveup();
+      $this->game->action_giveup(false);
+
+      self::ajaxResponse();
+    }
+
+    public function timeout() {
+      self::setAjaxMode();
+
+      $this->game->action_giveup(true);
 
       self::ajaxResponse();
     }

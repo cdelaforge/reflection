@@ -145,7 +145,7 @@ $machinestates = array(
         "description" => clienttranslate('Waiting for other players'),
         "descriptionmyturn" => clienttranslate('${you} must resolve the puzzle of'),
         "type" => "private",
-        "possibleactions" => ["gridChange", "puzzleResolve", "giveUp"],
+        "possibleactions" => ["gridChange", "puzzleResolve", "giveUp", "timeout"],
         "transitions" => [ "continue" => STATE_PLAY_PUZZLE_PRIVATE, "solution" => STATE_SOLUTION_PRIVATE ]
     ],
 

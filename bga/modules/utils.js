@@ -31,6 +31,8 @@ const utils = {
     const cptId = "counter_" + playerId;
     const subId = "container_" + playerId;
     const rstId = "resting_" + playerId;
+    const falId = "fail_" + playerId;
+    const afkId = "afkId_" + playerId;
 
     if (!durationStr && startTime && !g_archive_mode) {
       durationStr = this.getDurationStr(this.getDuration(startTime));
@@ -43,7 +45,11 @@ const utils = {
       cid: cptId,
       sid: subId,
       rid: rstId,
+      fid: falId,
+      aid: afkId,
       my_puzzle: _("It's my puzzle"),
+      failed: _("Failed to solve the puzzle"),
+      sleeping: _("Not yet started"),
       color: gameUI.players[playerId].color,
       progression,
       dec: 100 - progression,
@@ -170,19 +176,27 @@ const utils = {
   },
 
   displayBars: function () {
-    if (gameUI.samePuzzle) {
-      Object.keys(gameUI.players).map(playerId => {
-        const divId = "progressbar_" + playerId;
-        const rstId = "resting_" + playerId;
+    Object.keys(gameUI.players).map(playerId => {
+      const divId = "progressbar_" + playerId;
+      const rstId = "resting_" + playerId;
+      const falId = "fail_" + playerId;
+      const afkId = "afkId_" + playerId;
+      const playerData = gameUI.players[playerId];
 
-        if (gameUI.puzzleUser.id === playerId) {
-          dojo.style(divId, "display", "none");
-          dojo.style(rstId, "display", "");
-        } else {
-          dojo.style(divId, "display", "");
-          dojo.style(rstId, "display", "none");
-        }
-      });
-    }
+      dojo.style(divId, "display", "none");
+      dojo.style(falId, "display", "none");
+      dojo.style(rstId, "display", "none");
+      dojo.style(afkId, "display", "none");
+
+      if (gameUI.samePuzzle && gameUI.puzzleUser && gameUI.puzzleUser.id === playerId) {
+        dojo.style(rstId, "display", "");
+      } else if (playerData.failed) {
+        dojo.style(falId, "display", "");
+      } else if (playerData.running || playerData.success || playerData.creating) {
+        dojo.style(divId, "display", "");
+      } else {
+        dojo.style(afkId, "display", "");
+      }
+    });
   }
 }
