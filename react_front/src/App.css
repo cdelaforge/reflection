@@ -9,11 +9,6 @@ body {
 }
 
 @font-face {
-  font-family: 'digital-7';
-  src: local('digital-7'), url('./fonts/digital-7.ttf')format('truetype');
-}
-
-@font-face {
-  font-family: 'digital-7-mono';
-  src: local('digital-7'), url('./fonts/digital-7 (mono).ttf')format('truetype');
+  font-family: 'DS-Digital';
+  src: url('https://fonts.cdnfonts.com/s/15049/DS-DIGI.woff') format('woff');
 }

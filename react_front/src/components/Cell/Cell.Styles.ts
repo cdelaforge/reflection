@@ -24,7 +24,7 @@ export const CellBackground = styled('div') <{ type: "side" | "grid" | "corner" 
 `;
 
 export const CellNumberBack = styled('div') <{ size: number, backColor: string, isCorrect: boolean }>`
-  font-family:digital-7, DS-Digital;
+  font-family:DS-Digital;
   font-size: ${(props) => `${props.size * 0.8}px`};
   font-weight: bold;
   color: black;
