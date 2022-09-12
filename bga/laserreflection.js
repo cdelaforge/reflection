@@ -33,88 +33,96 @@ define([
             setup: function (data) {
                 console.log("Starting game setup", data);
 
-                utils.serverTimeDec = Math.round(new Date().getTime() / 1000) - data["server_time"];
-                gameUI.initLocalStorage(this.table_id, this.player_id);
+                try {
+                    utils.serverTimeDec = Math.round(new Date().getTime() / 1000) - data["server_time"];
+                    gameUI.initLocalStorage(this.table_id, this.player_id);
 
-                if (g_archive_mode) {
-                    gameUI.playerSpied = this.player_id;
-                }
-
-                utils.init(this);
-                gameUI.players = {};
-                gameUI.playersCount = 0;
-                gameUI.realtime = parseInt(data["tablespeed"], 10) < 3;
-
-                Object.keys(data.players).map((playerId) => {
-                    gameUI.playersCount++;
-                    gameUI.savePlayerData(data.players[playerId], playerId)
-                });
-
-                data.params.map((p) => {
-                    switch (p.key) {
-                        case "auto_start":
-                            gameUI.autoStart = parseInt(p.val, 10) === 1;
-                            break;
-                        case "elements":
-                            gameUI.elements = JSON.parse(p.val);
-                            gameUI.elementsCount = gameUI.elements.length;
-                            break;
-                        case "grid_size":
-                            gameUI.gridSize = parseInt(p.val, 10);
-                            break;
-                        case "portals":
-                            gameUI.portals = JSON.parse(p.val);
-                            break;
-                        case "random":
-                            gameUI.modeRandom = p.val;
-                            break;
-                        case "same_puzzle":
-                            gameUI.samePuzzle = p.val;
-                            break;
-                        case "resting_player":
-                            if (p.val !== "0") {
-                                gameUI.puzzleUser = gameUI.players[p.val];
-                            }
-                            break;
-                        case "ended":
-                            gameUI.ended = p.val;
-                            break;
-                        case "time_limit":
-                            gameUI.timeLimit = parseInt(p.val, 10) || 60;
-                            break;
-
+                    if (g_archive_mode) {
+                        gameUI.playerSpied = this.player_id;
                     }
-                });
 
-                if (data.puzzles) {
-                    gameUI.puzzles = data.puzzles.map(p => JSON.parse(p));
-                    utils.buildRoundsPuzzleSelect();
+                    utils.init(this);
+                    gameUI.players = {};
+                    gameUI.playersCount = 0;
+                    gameUI.realtime = parseInt(data["tablespeed"], 10) < 3;
+
+                    Object.keys(data.players).map((playerId) => {
+                        gameUI.playersCount++;
+                        gameUI.savePlayerData(data.players[playerId], playerId)
+                    });
+
+                    data.params.map((p) => {
+                        switch (p.key) {
+                            case "auto_start":
+                                gameUI.autoStart = parseInt(p.val, 10) === 1;
+                                break;
+                            case "elements":
+                                gameUI.elements = JSON.parse(p.val);
+                                gameUI.elementsCount = gameUI.elements.length;
+                                break;
+                            case "grid_size":
+                                gameUI.gridSize = parseInt(p.val, 10);
+                                break;
+                            case "portals":
+                                gameUI.portals = JSON.parse(p.val);
+                                break;
+                            case "random":
+                                gameUI.modeRandom = p.val;
+                                break;
+                            case "same_puzzle":
+                                gameUI.samePuzzle = p.val;
+                                break;
+                            case "resting_player":
+                                if (p.val !== "0") {
+                                    gameUI.puzzleUser = gameUI.players[p.val];
+                                }
+                                break;
+                            case "ended":
+                                gameUI.ended = p.val;
+                                break;
+                            case "time_limit":
+                                gameUI.timeLimit = parseInt(p.val, 10) || 60;
+                                break;
+
+                        }
+                    });
+
+                    if (data.puzzles) {
+                        gameUI.puzzles = data.puzzles.map(p => JSON.parse(p));
+                        utils.buildRoundsPuzzleSelect();
+                    }
+
+                    if (data.round_puzzle) {
+                        gameUI.puzzle = JSON.parse(data.round_puzzle);
+                    }
+
+                    gameUI.step = "puzzleCreation";
+                    gameUI.shouldRefreshProgression = true;
+
+                    // Setting up player boards
+                    if (!this.isSpectator) {
+                        const me = data.players[this.player_id];
+                        gameUI.setGrid(me && me.grid ? JSON.parse(me.grid) : gameUI.getSavedGrid());
+                        timer.init(me.color, 5);
+                    } else if (gameUI.ended && gameUI.modeRandom) {
+                        utils.displayRoundPuzzle(0);
+                    } else {
+                        utils.displayPuzzle(document.getElementById("playerSelect").value);
+                    }
+
+                    gameUI.init(this);
+
+                    // Setup game notifications to handle (see "setupNotifications" method below)
+                    this.setupNotifications();
+
+                    console.log("Ending game setup");
                 }
-
-                if (data.round_puzzle) {
-                    gameUI.puzzle = JSON.parse(data.round_puzzle);
+                catch (error) {
+                    this.showMessage(error.stack, "error");
+                    setTimeout(function () {
+                        document.getElementById("head_infomsg_1").style.display = "";
+                    }, 7000);
                 }
-
-                gameUI.step = "puzzleCreation";
-                gameUI.shouldRefreshProgression = true;
-
-                // Setting up player boards
-                if (!this.isSpectator) {
-                    const me = data.players[this.player_id];
-                    gameUI.setGrid(me && me.grid ? JSON.parse(me.grid) : gameUI.getSavedGrid());
-                    timer.init(me.color, 5);
-                } else if (gameUI.ended && gameUI.modeRandom) {
-                    utils.displayRoundPuzzle(0);
-                } else {
-                    utils.displayPuzzle(document.getElementById("playerSelect").value);
-                }
-
-                gameUI.init(this);
-
-                // Setup game notifications to handle (see "setupNotifications" method below)
-                this.setupNotifications();
-
-                console.log("Ending game setup");
             },
 
 

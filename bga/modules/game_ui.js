@@ -36,8 +36,17 @@ const gameUI = {
       }
     }
 
-    gameUI.live();
-    setInterval(function () { gameUI.live(); }, 500);
+    const securedLive = function () {
+      try {
+        gameUI.live();
+      }
+      catch (error) {
+        console.error("Error in gameUI.live", error)
+      }
+    }
+
+    securedLive();
+    setInterval(securedLive, 500);
 
     this.history = [];
     this.dojoGame = dojoGame;
