@@ -22,37 +22,42 @@ const utils = {
   },
 
   displayProgression: function (playerId, progression, startTime, durationStr) {
-    const divId = "info_" + playerId;
-    const prgId = "progressbar_" + playerId;
-    const cptId = "counter_" + playerId;
-    const subId = "container_" + playerId;
-    const rstId = "resting_" + playerId;
-    const falId = "fail_" + playerId;
-    const afkId = "afkId_" + playerId;
+    try {
+      const divId = "info_" + playerId;
+      const prgId = "progressbar_" + playerId;
+      const cptId = "counter_" + playerId;
+      const subId = "container_" + playerId;
+      const rstId = "resting_" + playerId;
+      const falId = "fail_" + playerId;
+      const afkId = "afkId_" + playerId;
 
-    if (!durationStr && startTime && !g_archive_mode) {
-      durationStr = this.getDurationStr(this.getDuration(startTime));
+      if (!durationStr && startTime && !g_archive_mode) {
+        durationStr = this.getDurationStr(this.getDuration(startTime));
+      }
+
+      dojo.destroy(divId);
+      dojo.place(this.dojoGame.format_block('jstpl_progressbar', {
+        iid: divId,
+        pid: prgId,
+        cid: cptId,
+        sid: subId,
+        rid: rstId,
+        fid: falId,
+        aid: afkId,
+        my_puzzle: _("It's my puzzle"),
+        failed: _("Failed to solve the puzzle"),
+        sleeping: _("Not yet started"),
+        color: gameUI.players[playerId].color,
+        progression,
+        dec: 100 - progression,
+        text_disp: progression > 15 ? "" : "none",
+        bar_width: durationStr ? "78%" : "90%",
+        counter: durationStr || ""
+      }), 'overall_player_board_' + playerId);
     }
-
-    dojo.destroy(divId);
-    dojo.place(this.dojoGame.format_block('jstpl_progressbar', {
-      iid: divId,
-      pid: prgId,
-      cid: cptId,
-      sid: subId,
-      rid: rstId,
-      fid: falId,
-      aid: afkId,
-      my_puzzle: _("It's my puzzle"),
-      failed: _("Failed to solve the puzzle"),
-      sleeping: _("Not yet started"),
-      color: gameUI.players[playerId].color,
-      progression,
-      dec: 100 - progression,
-      text_disp: progression > 15 ? "" : "none",
-      bar_width: durationStr ? "78%" : "90%",
-      counter: durationStr || ""
-    }), 'overall_player_board_' + playerId);
+    catch (error) {
+      console.error("Error in displayProgression", error)
+    }
   },
 
   displayDuration: function (playerId, duration) {
@@ -111,87 +116,107 @@ const utils = {
   displayRoundPuzzle: function (round) {
     console.info("## Display rounds's puzzles ##");
 
-    dojo.style("lrf_main", "display", "flex");
-    dojo.style("lrf_timer", "display", "none");
-    dojo.style("lrf_end", "display", "none");
-    dojo.style("lrf_end_rnd", "display", "flex");
+    try {
+      dojo.style("lrf_main", "display", "flex");
+      dojo.style("lrf_timer", "display", "none");
+      dojo.style("lrf_end", "display", "none");
+      dojo.style("lrf_end_rnd", "display", "flex");
 
-    gameUI.mode = "view";
-    gameUI.grid = gameUI.puzzles[round];
+      gameUI.mode = "view";
+      gameUI.grid = gameUI.puzzles[round];
 
-    if (gameUI.dojoGame) {
-      gameUI.setup();
+      if (gameUI.dojoGame) {
+        gameUI.setup();
+      }
+    }
+    catch (error) {
+      console.error("Error in displayPuzzle", error)
     }
   },
 
   displayPuzzle: function (playerId) {
     console.info("## Display player's puzzles ##");
 
-    dojo.style("lrf_main", "display", "flex");
-    dojo.style("lrf_timer", "display", "none");
-    dojo.style("lrf_end", "display", "flex");
+    try {
+      dojo.style("lrf_main", "display", "flex");
+      dojo.style("lrf_timer", "display", "none");
+      dojo.style("lrf_end", "display", "flex");
 
-    if (playerId) {
-      gameUI.playerSpied = playerId;
-      gameUI.grid = gameUI.players[playerId].grid;
-    }
-
-    if (!this.dojoGame.isSpectator || gameUI.ended) {
-      gameUI.mode = "view";
-    } else if (!gameUI.modeRandom) {
-      if (gameUI.puzzleUsers) {
-        const otherPlayer = gameUI.puzzleUsers[playerId];
-        gameUI.puzzle = gameUI.players[otherPlayer].puzzle;
-      } else {
-        gameUI.puzzle = undefined;
+      if (playerId) {
+        gameUI.playerSpied = playerId;
+        gameUI.grid = gameUI.players[playerId].grid;
       }
-    }
-    if (gameUI.dojoGame) {
-      gameUI.setup();
-    }
-  },
 
-  refreshPuzzle: function (playerId) {
-    if (!playerId && gameUI.playerSpied) {
-      playerId = gameUI.playerSpied;
-    }
-    if (gameUI.playerSpied === playerId) {
-      gameUI.grid = gameUI.players[playerId].grid;
-
-      if (!gameUI.modeRandom) {
-        if (this.dojoGame.isSpectator && gameUI.puzzleUsers && !gameUI.ended) {
+      if (!this.dojoGame.isSpectator || gameUI.ended) {
+        gameUI.mode = "view";
+      } else if (!gameUI.modeRandom) {
+        if (gameUI.puzzleUsers) {
           const otherPlayer = gameUI.puzzleUsers[playerId];
           gameUI.puzzle = gameUI.players[otherPlayer].puzzle;
         } else {
           gameUI.puzzle = undefined;
         }
       }
+      if (gameUI.dojoGame) {
+        gameUI.setup();
+      }
+    }
+    catch (error) {
+      console.error("Error in displayPuzzle", error)
+    }
+  },
 
-      gameUI.setup();
+  refreshPuzzle: function (playerId) {
+    try {
+      if (!playerId && gameUI.playerSpied) {
+        playerId = gameUI.playerSpied;
+      }
+      if (gameUI.playerSpied === playerId) {
+        gameUI.grid = gameUI.players[playerId].grid;
+
+        if (!gameUI.modeRandom) {
+          if (this.dojoGame.isSpectator && gameUI.puzzleUsers && !gameUI.ended) {
+            const otherPlayer = gameUI.puzzleUsers[playerId];
+            gameUI.puzzle = gameUI.players[otherPlayer].puzzle;
+          } else {
+            gameUI.puzzle = undefined;
+          }
+        }
+
+        gameUI.setup();
+      }
+    }
+    catch (error) {
+      console.error("Error in refreshPuzzle", error)
     }
   },
 
   displayBars: function () {
     Object.keys(gameUI.players).map(playerId => {
-      const divId = "progressbar_" + playerId;
-      const rstId = "resting_" + playerId;
-      const falId = "fail_" + playerId;
-      const afkId = "afkId_" + playerId;
-      const playerData = gameUI.players[playerId];
+      try {
+        const divId = "progressbar_" + playerId;
+        const rstId = "resting_" + playerId;
+        const falId = "fail_" + playerId;
+        const afkId = "afkId_" + playerId;
+        const playerData = gameUI.players[playerId];
 
-      dojo.style(divId, "display", "none");
-      dojo.style(falId, "display", "none");
-      dojo.style(rstId, "display", "none");
-      dojo.style(afkId, "display", "none");
+        dojo.style(divId, "display", "none");
+        dojo.style(falId, "display", "none");
+        dojo.style(rstId, "display", "none");
+        dojo.style(afkId, "display", "none");
 
-      if (gameUI.samePuzzle && gameUI.puzzleUser && gameUI.puzzleUser.id === playerId) {
-        dojo.style(rstId, "display", "");
-      } else if (playerData.failed) {
-        dojo.style(falId, "display", "");
-      } else if (playerData.running || playerData.success || playerData.creating) {
-        dojo.style(divId, "display", "");
-      } else {
-        dojo.style(afkId, "display", "");
+        if (gameUI.samePuzzle && gameUI.puzzleUser && gameUI.puzzleUser.id === playerId) {
+          dojo.style(rstId, "display", "");
+        } else if (playerData.failed) {
+          dojo.style(falId, "display", "");
+        } else if (playerData.running || playerData.success || playerData.creating) {
+          dojo.style(divId, "display", "");
+        } else {
+          dojo.style(afkId, "display", "");
+        }
+      }
+      catch (error) {
+        console.error("Error in displayBars", error)
       }
     });
   }
