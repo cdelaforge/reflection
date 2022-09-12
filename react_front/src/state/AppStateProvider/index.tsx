@@ -212,32 +212,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
         setAreaWidth(width);
         setAreaHeight(height);
       },
-      setTeammateColor: (id: string, color: string) => {
-        const teamCloned = team ? [...team] : [];
-        let teammate = teamCloned.find(t => t.id === id);
-
-        if (teammate) {
-          teammate.color = color;
-        } else {
-          teammate = { id, color };
-          teamCloned.push(teammate);
-        }
-
-        setTeam(teamCloned);
-      },
-      setTeammateGrid: (id: string, grid?: number[][]) => {
-        const teamCloned = team ? [...team] : [];
-        let teammate = teamCloned.find(t => t.id === id);
-
-        if (teammate) {
-          teammate.grid = grid;
-        } else {
-          teammate = { id, color: '#FFFFFF', grid };
-          teamCloned.push(teammate);
-        }
-
-        setTeam(teamCloned);
-      },
+      setTeam,
     }
   }, []);
 
@@ -443,6 +418,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     displayLaser,
     running,
     won,
+    team,
     ...gridDimensions
   };
 

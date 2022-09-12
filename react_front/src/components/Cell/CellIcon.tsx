@@ -34,7 +34,7 @@ function CellIcon({ val, row, col, stockIndex, display, color }: CellIconProps) 
       isDragging: !!monitor.isDragging(),
     }),
     canDrag: () => {
-      return !isMobile && mode !== "empty" && mode !== "solution" && running && !won && val > 0 && val < 7;
+      return !isMobile && mode !== "empty" && mode !== "solution" && display !== "team" && running && !won && val > 0 && val < 7;
     },
   }), [val, stockIndex, mode, running, won]);
 
@@ -64,7 +64,7 @@ function CellIcon({ val, row, col, stockIndex, display, color }: CellIconProps) 
   };
 
   return (
-    <CellIconContainer ref={drag} transparent={isDragging || display === "wrong"}>
+    <CellIconContainer ref={drag} transparent={isDragging || display === "wrong" || display === "team"}>
       {getIconCode()}
     </CellIconContainer>
   );

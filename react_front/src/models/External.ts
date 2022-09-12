@@ -15,8 +15,7 @@ export interface WindowWithGameMethods {
     setRunning: (r: boolean) => void;
     setup: (p: GameSetup) => number[][];
     setAreaSize: (width: number, height: number) => void;
-    setTeammateColor: (id: string, color: string) => void;
-    setTeammateGrid: (id: string, grid?: number[][]) => void;
+    setTeam: (teams: Teammate[]) => void;
     onGridChange?: (grid: number[][]) => void;
     onPuzzleChange?: (puzzle: string[][]) => void;
     onPuzzleResolve?: (grid: number[][]) => void;

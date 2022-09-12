@@ -3,10 +3,16 @@ import { useAppState } from "../../state/AppStateProvider";
 import { CellBackground, CellContainer, CellContainerChild } from "./Cell.Styles";
 import CellIcon from "./CellIcon";
 import { useDrop } from 'react-dnd';
+import { colors } from "../../helpers/Style";
 
 interface CellProps {
   row: number;
   col: number;
+}
+
+interface TeamValue {
+  color: string;
+  val: number;
 }
 
 function Cell({ row, col }: CellProps) {
@@ -82,16 +88,29 @@ function Cell({ row, col }: CellProps) {
       return <></>;
     }
 
-    const teammates = team.filter(t => t.grid && t.grid[row][col] && t.grid[row][col] !== 7);
+    const teammates = team.filter(t => t.grid && t.grid[row][col] && t.grid[row][col] !== 7 && t.grid[row][col] !== grid[row][col]);
     if (!teammates.length) {
       return <></>;
     }
 
-    return teammates.map(t => {
-      const key = `${row}_${col}_${t.id}`;
+    const values = [] as TeamValue[];
+
+    teammates.forEach(t => {
+      const val = t.grid![row][col];
+      const obj = values.find(v => v.val === val);
+
+      if (obj) {
+        obj.color = colors.black;
+      } else {
+        values.push({ color: t.color, val })
+      }
+    });
+
+    return values.map((v, index) => {
+      const key = `${row}_${col}_${index}`;
       return (
         <CellContainerChild key={key}>
-          <CellIcon val={t.grid![row][col]} row={row} col={col} display="team" color={t.color} />
+          <CellIcon val={v.val} row={row} col={col} display="team" color={v.color} />
         </CellContainerChild>
       );
     });
