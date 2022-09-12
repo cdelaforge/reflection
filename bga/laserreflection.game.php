@@ -34,6 +34,12 @@ class LaserReflection extends Table {
             "count_players" => 31,
             "prev_resting" => 39,
             "resting" => 40,
+            "player_team_1" => 50,
+            "player_team_2" => 51,
+            "player_team_3" => 52,
+            "player_team_4" => 53,
+            "player_team_5" => 54,
+            "player_team_6" => 55,
             "multi_mode" => 103,
             "solo_mode" => 104,
             "rounds_param" => 108,
@@ -107,6 +113,11 @@ class LaserReflection extends Table {
         self::setGameStateInitialValue('prev_resting', 0);
         self::setGameStateInitialValue('resting', 0);
 
+        self::setGameStateInitialValue('player_team_1', 1);
+        self::setGameStateInitialValue('player_team_2', 1);
+        self::setGameStateInitialValue('player_team_3', 2);
+        self::setGameStateInitialValue('player_team_4', 2);
+
         if ($count_players == 1) {
             self::setGameStateInitialValue('rounds', 0);
         } else if ($multi_mode == 10) {
@@ -165,14 +176,18 @@ class LaserReflection extends Table {
         $gameEnded = $this->isGameEnded();
 
         if ($gameEnded) {
-            $sql = "SELECT player_id id, player_score score, player_puzzle_grid grid, player_progression progression, player_start start, player_round_duration duration, player_state state FROM player";
+            $sql = "SELECT player_id id, player_no num, player_score score, player_puzzle_grid grid, player_progression progression, player_start start, player_round_duration duration, player_state state FROM player";
         } else if ($this->isSpectator()) {
-            $sql = "SELECT player_id id, player_score score, player_grid grid, player_puzzle puzzle, player_progression progression, player_start start, player_round_duration duration, player_state state FROM player";
+            $sql = "SELECT player_id id, player_no num, player_score score, player_grid grid, player_puzzle puzzle, player_progression progression, player_start start, player_round_duration duration, player_state state FROM player";
         } else {
-            $sql = "SELECT player_id id, player_score score, player_grid grid, player_progression progression, player_start start, player_round_duration duration, player_state state FROM player";
+            $sql = "SELECT player_id id, player_no num, player_score score, player_grid grid, player_progression progression, player_start start, player_round_duration duration, player_state state FROM player";
         }
 
-        $result['players'] = self::getCollectionFromDb($sql);
+        $players = self::getCollectionFromDb($sql);
+        foreach ($players as $id => $player) {
+            $players[$id]['team'] = $this->getPlayerTeam($players[$id]['num']);
+        }
+        $result['players'] = $players;
 
         $sql = "SELECT game_param 'key', game_value val FROM gamestatus WHERE game_param IN ('auto_start', 'elements', 'grid_size', 'portals')";
         $result['params'] = self::getObjectListFromDB($sql);
@@ -331,7 +346,7 @@ class LaserReflection extends Table {
                 'player_progression' => 0
             ]);
 
-            self::notifyAllPlayers("gridChange", "", [
+            self::notifyAllPlayers("gridChange_".$playerId, "", [
                 'player_id' => $playerId,
                 'player_grid' => $jsonGrid
             ]);
@@ -514,7 +529,7 @@ class LaserReflection extends Table {
             'player_progression' => $progression
         ));
 
-        self::notifyAllPlayers("gridChange", "", array(
+        self::notifyAllPlayers("gridChange_".$playerId, "", array(
             'player_id' => $playerId,
             'player_grid' => $jsonGrid
         ));
@@ -553,7 +568,7 @@ class LaserReflection extends Table {
             'player_progression' => 100
         ));
 
-        self::notifyAllPlayers("gridChange", "", array(
+        self::notifyAllPlayers("gridChange_".$playerId, "", array(
             'player_id' => $playerId,
             'player_grid' => $jsonGrid
         ));
@@ -601,7 +616,7 @@ class LaserReflection extends Table {
             'player_progression' => 100
         ));
 
-        self::notifyAllPlayers("gridChange", "", array(
+        self::notifyAllPlayers("gridChange_".$playerId, "", array(
             'player_id' => $playerId,
             'player_grid' => $jsonGrid
         ));
@@ -735,6 +750,10 @@ class LaserReflection extends Table {
         return $this->getGameStateValue('multi_mode') == 0
             && $this->getGameStateValue('compete_same') == 1
             && $this->getGameStateValue('count_players') > 2;
+    }
+
+    function getPlayerTeam($player_no) {
+        return $this->getGameStateValue('player_team_'.$player_no);
     }
 
     function getRestingPlayer() {

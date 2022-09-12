@@ -1,11 +1,19 @@
 const STORAGE_TTL = 1000 * 60 * 20; // 20 minutes
 
 const gameUI = {
+  teamData: [],
+  history: [],
   init: function (dojoGame) {
+    if (!this.dojoGame) {
+      this.dojoGame = dojoGame;
+      this.playerId = dojoGame.player_id;
+    }
+
     if (!window.game) {
       setTimeout(function () { gameUI.init(dojoGame); }, 100);
       return;
     }
+
     window.game.onGridChange = function (grid) {
       const gridChanged = JSON.stringify(gameUI.grid) !== JSON.stringify(grid);
       if (gridChanged) {
@@ -39,8 +47,6 @@ const gameUI = {
     gameUI.live();
     setInterval(function () { gameUI.live(); }, 500);
 
-    this.history = [];
-    this.dojoGame = dojoGame;
     this.liveLoop = 0;
     this.initialized = true;
   },
@@ -116,6 +122,7 @@ const gameUI = {
       puzzle: playerData.puzzle ? JSON.parse(playerData.puzzle) : undefined,
       name: playerData.name,
       startTime: parseInt(playerData.start, 10),
+      team: playerData.team,
     };
 
     result.running = result.startTime > 0;
@@ -144,7 +151,7 @@ const gameUI = {
       return false;
     }
 
-    const timerTxt = document.getElementById('timeToThink_' + this.dojoGame.player_id).innerHTML;
+    const timerTxt = document.getElementById('timeToThink_' + this.playerId).innerHTML;
     /* If timer starts with - or 0, then it remains less than 1 minute */
     return timerTxt[0] == '-' || timerTxt[0] == '0';
   },
@@ -160,8 +167,31 @@ const gameUI = {
     });
   },
 
+  buildTeamDataAndRegister: function () {
+    const team = this.players[this.playerId].team;
+
+    if (team && !this.teamData.length) {
+      Object.keys(this.players).map((id) => {
+        if (this.playerId !== +id && this.players[id].team === team) {
+          this.teamData.push({ id, color: this.players[id].color });
+          this.dojoGame.subscribe('gridChange_' + id, "notif_gridChange");
+        }
+      });
+    }
+  },
+
   live: function () {
     this.liveLoop = (this.liveLoop + 1) % 4;
+
+    if (this.refreshTeamData) {
+      try {
+        window.game.setTeam(this.teamData);
+      }
+      catch (error) {
+        console.error("Error in setTeam", error, this.teamData);
+      }
+      this.refreshTeamData = false;
+    }
 
     if (this.resolved) {
       this.resolved = false;
@@ -264,7 +294,7 @@ const gameUI = {
     const button = document.getElementById('giveUp');
 
     if (button) {
-      const playerData = this.players[this.dojoGame.player_id];
+      const playerData = this.players[this.playerId];
 
       if (playerData.startTime) {
         const duration = utils.getDuration(playerData.startTime);

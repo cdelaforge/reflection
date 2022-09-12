@@ -350,10 +350,20 @@ define([
                 dojo.subscribe('stop', this, "notif_stop");
                 dojo.subscribe('roundStart', this, "notif_roundStart");
 
-                if (this.isSpectator || g_archive_mode) {
-                    dojo.subscribe('gridChange', this, "notif_gridChange");
+                if (this.isSpectator) {
+                    Object.keys(gameUI.players).map((id) => {
+                        dojo.subscribe('gridChange_' + id, this, "notif_gridChange");
+                    });
                     dojo.subscribe('puzzleChange', this, "notif_puzzleChange");
+                } else if (g_archive_mode) {
+                    dojo.subscribe('gridChange_' + this.player_id, this, "notif_gridChange");
+                } else {
+                    gameUI.buildTeamDataAndRegister();
                 }
+            },
+
+            subscribe: function (evt, funcName) {
+                dojo.subscribe(evt, this, funcName);
             },
 
             notif_progression: function (notif) {
@@ -375,10 +385,20 @@ define([
                 if (this.isSpectator) {
                     gameUI.players[playerId].grid = JSON.parse(notif.args.player_grid);
                     utils.refreshPuzzle(playerId);
-                } else if (this.player_id === parseInt(playerId, 10)) {
+                } else if (g_archive_mode) {
                     gameUI.setGrid(JSON.parse(notif.args.player_grid));
                     gameUI.setup();
+                } else {
+                    const data = gameUI.teamData.find((t) => t.id === playerId);
+                    if (data) {
+                        data.grid = JSON.parse(notif.args.player_grid);
+                    }
+                    gameUI.refreshTeamData = true;
                 }
+            },
+
+            notif_teamGridChange: function (notif) {
+                console.log("notif_teamGridChange", notif);
             },
 
             notif_puzzleChange: function (notif) {

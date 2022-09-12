@@ -22,10 +22,6 @@ const utils = {
   },
 
   displayProgression: function (playerId, progression, startTime, durationStr) {
-    if (gameUI.step === "play" && gameUI.samePuzzle && gameUI.puzzleUser && gameUI.puzzleUser.id === playerId) {
-      return;
-    }
-
     const divId = "info_" + playerId;
     const prgId = "progressbar_" + playerId;
     const cptId = "counter_" + playerId;
