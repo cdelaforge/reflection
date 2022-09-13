@@ -62,6 +62,7 @@ const gameUI = {
 
   initLocalStorage: function (tableId, playerId) {
     this.storageKey = "lr_" + tableId + "_" + playerId;
+    this.teamStorageKey = "lr_t_" + tableId + "_" + playerId;
 
     const len = localStorage.length;
     const now = new Date().getTime();
@@ -106,6 +107,11 @@ const gameUI = {
     localStorage.setItem(this.storageKey, JSON.stringify(item));
   },
 
+  _saveTeamData: function () {
+    const item = { team: this.teamData, expires: new Date().getTime() + STORAGE_TTL };
+    localStorage.setItem(this.teamStorageKey, JSON.stringify(item));
+  },
+
   getSavedGrid: function () {
     try {
       const jsonItem = localStorage.getItem(this.storageKey);
@@ -117,9 +123,25 @@ const gameUI = {
     return undefined;
   },
 
+  _getSavedTeamData: function () {
+    try {
+      const jsonItem = localStorage.getItem(this.teamStorageKey);
+      if (jsonItem) {
+        const item = JSON.parse(jsonItem);
+        return item.team;
+      }
+    } catch (error) { }
+    return undefined;
+  },
+
   clearSavedGrid: function () {
     localStorage.removeItem(this.storageKey);
     this.history = [];
+  },
+
+  clearSavedTeamData: function () {
+    localStorage.removeItem(this.teamStorageKey);
+    this.teamData.forEach(d => d.grid = undefined);
   },
 
   savePlayerData: function (playerData, playerId) {
@@ -178,29 +200,42 @@ const gameUI = {
 
   buildTeamDataAndRegister: function () {
     const team = this.players[this.playerId].team;
+    const savedTeamData = this._getSavedTeamData();
 
     if (team && !this.teamData.length) {
       Object.keys(this.players).map((id) => {
         if (this.playerId !== +id && this.players[id].team === team) {
-          this.teamData.push({ id, color: this.players[id].color });
+          if (!savedTeamData) {
+            this.teamData.push({ id, color: '#' + this.players[id].color });
+          }
           this.dojoGame.subscribe('gridChange_' + id, "notif_gridChange");
         }
       });
     }
+
+    if (savedTeamData) {
+      this.teamData = savedTeamData;
+      this.refreshTeamData = true;
+    }
   },
 
-  live: function () {
-    this.liveLoop = (this.liveLoop + 1) % 4;
-
+  _setTeam: function () {
     if (this.refreshTeamData) {
       try {
         window.game.setTeam(this.teamData);
+        this._saveTeamData(this.teamData);
       }
       catch (error) {
         console.error("Error in setTeam", error, this.teamData);
       }
       this.refreshTeamData = false;
     }
+  },
+
+  live: function () {
+    this.liveLoop = (this.liveLoop + 1) % 4;
+
+    this._setTeam();
 
     if (this.resolved) {
       this.resolved = false;
@@ -226,7 +261,8 @@ const gameUI = {
       this.clearSavedGrid();
     }
 
-    if (this.shouldSendProgression && (this.liveLoop === 0 || this.progression === 100)) {
+    // We send the grid content every 2 seconds max (when liveLoop is 0), or if progression is 100, or if we have a team
+    if (this.shouldSendProgression && (this.liveLoop === 0 || this.progression === 100 || this.teamData.length)) {
       this.shouldSendProgression = false;
 
       if (this.running && !g_archive_mode && (this.mode === "puzzleCreation" || this.mode === "play")) {

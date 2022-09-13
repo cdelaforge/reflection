@@ -84,7 +84,7 @@ function Cell({ row, col }: CellProps) {
   }
 
   const getTeamCellIcons = () => {
-    if (!team) {
+    if (!team || mode !== "play") {
       return <></>;
     }
 

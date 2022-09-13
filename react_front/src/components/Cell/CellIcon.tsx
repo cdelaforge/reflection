@@ -63,8 +63,18 @@ function CellIcon({ val, row, col, stockIndex, display, color }: CellIconProps) 
     }
   };
 
+  const getOpacity = () => {
+    if (isDragging || display === "wrong") {
+      return "40%";
+    }
+    if (display === "team") {
+      return "20%";
+    }
+    return "100%";
+  }
+
   return (
-    <CellIconContainer ref={drag} transparent={isDragging || display === "wrong" || display === "team"}>
+    <CellIconContainer ref={drag} opacity={getOpacity()}>
       {getIconCode()}
     </CellIconContainer>
   );

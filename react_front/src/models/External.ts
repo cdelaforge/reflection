@@ -1,7 +1,7 @@
-import { Teammate } from "../state/AppStateProvider";
+import { DisplayMode, Teammate } from "../state/AppStateProvider";
 
 export interface GameSetup {
-  mode: string,
+  mode: DisplayMode,
   gridSize: number,
   elements?: number[],
   grid?: number[][],

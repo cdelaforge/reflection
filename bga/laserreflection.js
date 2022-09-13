@@ -205,6 +205,7 @@ define([
                         gameUI.shouldRefreshProgression = true;
                         break;
                     case "puzzlePlayWait":
+                        gameUI.clearSavedTeamData();
                         if (gameUI.autoStart && !this.isSpectator && !g_archive_mode) {
                             utils.displayTimer(function () {
                                 self.callAction("puzzleStart", null, true);

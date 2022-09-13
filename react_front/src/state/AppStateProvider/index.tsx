@@ -15,8 +15,10 @@ export interface Teammate {
   grid?: number[][],
 }
 
+export type DisplayMode = 'puzzleCreation' | 'play' | 'empty' | 'solution' | 'view' | 'standalone';
+
 export interface IStateContext {
-  mode: string;
+  mode: DisplayMode;
 
   /* config */
   squaresCount: number;
@@ -212,7 +214,9 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
         setAreaWidth(width);
         setAreaHeight(height);
       },
-      setTeam,
+      setTeam: (teams: Teammate[]) => {
+        setTeam([...teams]);
+      },
     }
   }, []);
 
