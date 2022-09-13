@@ -190,3 +190,53 @@
 #page-title {
     min-height: 50px;
 }
+
+/* team selection */
+
+#lrf_teams {
+    position: absolute;
+    left: 50%;
+    width: 200px;
+    margin-left: -100px;
+    flex-flow: column;
+}
+
+.lrf_team_title {
+    font-weight: 700;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+    text-align: center;
+}
+
+.lrf_team {
+    padding-top: 0.25em;
+    padding-bottom: 0.25em;
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 5px;
+    border: 1px solid #ffffff;
+    opacity: 0.6;
+}
+
+.lrf_team:hover {
+    border: 1px solid #0A0A0A;
+}
+
+.lrf_team_selected {
+    border: 1px solid #0A0A0A;
+    opacity: 1;
+}
+
+#lrf_team_1 {
+    background-color: #77B5FE;
+}
+
+#lrf_team_2 {
+    background-color: #92CEA8;
+}
+
+#lrf_team_3 {
+    background-color: #F9665E;
+}

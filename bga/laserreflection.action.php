@@ -36,6 +36,24 @@
 
   	/* Player actions */
 
+    public function teamSelect() {
+      self::setAjaxMode();
+
+      $player_no = self::getArg("no", AT_posint, true);
+      $team = self::getArg("team", AT_posint, true);
+      $this->game->action_teamSelect($player_no, $team);
+
+      self::ajaxResponse();
+    }
+
+    public function teamValidate() {
+      self::setAjaxMode();
+
+      $this->game->action_teamValidate();
+
+      self::ajaxResponse();
+    }
+
     public function gridChange() {
       self::setAjaxMode();
 

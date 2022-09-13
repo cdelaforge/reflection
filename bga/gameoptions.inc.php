@@ -39,6 +39,26 @@ $game_options = [
             ],
         ]
     ],
+    106 => [
+        'name' => totranslate('Team mode'),
+        'values' => [
+            0 => [ 'name' => totranslate('No team') ],
+            2 => [ 'name' => totranslate('2 teams'), 'tmdisplay' => totranslate('2 teams') ],
+            3 => [ 'name' => totranslate('3 teams'), 'tmdisplay' => totranslate('3 teams') ],
+        ],
+        'default' => 0,
+        'displaycondition' => [
+            [
+                'type' => 'minplayers',
+                'value' => [3, 4, 5, 6]
+            ],
+            [
+                'type' => 'otheroption',
+                'id' => 103,
+                'value' => 10,
+            ],
+        ]
+    ],
     108 => [
         'name' => totranslate('Rounds'),
         'values' => [
@@ -245,7 +265,13 @@ $game_options = [
              'type' => 'otheroption',
              'id' => GAMESTATE_CLOCK_MODE,
              'value' => [0,1,2,9],
-           ],
+            ],
+            [
+                'type' => 'otheroption',
+                'id' => 103,
+                'value' => 666,
+            ],
+
         ]
     ]
 ];

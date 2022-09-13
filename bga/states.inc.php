@@ -14,6 +14,9 @@ if (!defined('STATE_END_GAME')) { // ensure this block is only invoked once, sin
     define("STATE_PLAY_PUZZLE_END", 7);
     define("STATE_END_ROUND", 8);
     define("STATE_END_ROUND_PRIVATE", 80);
+    define("STATE_TEAM_SELECTION", 9);
+    define("STATE_TEAM_SELECTION_PRIVATE", 90);
+    define("STATE_TEAM_SELECTED", 91);
     define("STATE_END_GAME", 99);
  }
 
@@ -88,8 +91,35 @@ $machinestates = array(
             "solo" => STATE_PLAY_PUZZLE_INIT,
             "normal" => STATE_CREATE_PUZZLE_INIT,
             "random" => STATE_PLAY_PUZZLE_INIT,
+            "team_selection" => STATE_TEAM_SELECTION,
         )
     ),
+
+    STATE_TEAM_SELECTION => [
+        "name" => "teamSelectionInit",
+        "description" => clienttranslate('Some players select their team'),
+        "descriptionmyturn" => "",
+        "type" => "multipleactiveplayer",
+        "initialprivate" => STATE_TEAM_SELECTION_PRIVATE,
+        "action" => "stTeamSelectionInit",
+        "transitions" => ["next" => STATE_PLAY_PUZZLE_INIT ]
+    ],
+
+    STATE_TEAM_SELECTION_PRIVATE => [
+        "name" => "teamSelection",
+        "description" => clienttranslate('Some players are creating their puzzle'),
+        "descriptionmyturn" => clienttranslate('${you} must select a team'),
+        "type" => "private",
+        "possibleactions" => ["teamSelect", "teamValidate"],
+        "transitions" => [ "continue" => STATE_TEAM_SELECTION_PRIVATE, "next" => STATE_TEAM_SELECTED ]
+    ],
+
+    STATE_TEAM_SELECTED => [
+        "name" => "teamSelected",
+        "description" => clienttranslate('Some players are creating their puzzle'),
+        "descriptionmyturn" => clienttranslate('${you} must select a team'),
+        "type" => "private"
+    ],
 
     STATE_CREATE_PUZZLE_INIT => [
         "name" => "puzzleCreationInit",

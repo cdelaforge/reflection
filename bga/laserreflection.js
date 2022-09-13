@@ -20,7 +20,6 @@ define([
     "ebg/core/gamegui",
     "ebg/counter",
     g_gamethemeurl + "modules/game_ui.js",
-    g_gamethemeurl + "modules/utils.js",
     g_gamethemeurl + "modules/timer.js",
     g_gamethemeurl + "modules/main.js"
 ],
@@ -34,21 +33,20 @@ define([
                 console.log("Starting game setup", data);
 
                 try {
-                    utils.serverTimeDec = Math.round(new Date().getTime() / 1000) - data["server_time"];
+                    gameUI.serverTimeDec = Math.round(new Date().getTime() / 1000) - data["server_time"];
                     gameUI.initLocalStorage(this.table_id, this.player_id);
 
                     if (g_archive_mode) {
                         gameUI.playerSpied = this.player_id;
                     }
 
-                    utils.init(this);
                     gameUI.players = {};
                     gameUI.playersCount = 0;
                     gameUI.realtime = parseInt(data["tablespeed"], 10) < 3;
 
                     Object.keys(data.players).map((playerId) => {
                         gameUI.playersCount++;
-                        gameUI.savePlayerData(data.players[playerId], playerId)
+                        gameUI.savePlayerData(data.players[playerId], playerId);
                     });
 
                     data.params.map((p) => {
@@ -83,13 +81,15 @@ define([
                             case "time_limit":
                                 gameUI.timeLimit = parseInt(p.val, 10) || 60;
                                 break;
-
+                            case "training_mode":
+                                gameUI.trainingMode = p.val;
+                                break;
                         }
                     });
 
                     if (data.puzzles) {
                         gameUI.puzzles = data.puzzles.map(p => JSON.parse(p));
-                        utils.buildRoundsPuzzleSelect();
+                        gameUI.buildRoundsPuzzleSelect();
                     }
 
                     if (data.round_puzzle) {
@@ -105,12 +105,13 @@ define([
                         gameUI.setGrid(me && me.grid ? JSON.parse(me.grid) : gameUI.getSavedGrid());
                         timer.init(me.color, 5);
                     } else if (gameUI.ended && gameUI.modeRandom) {
-                        utils.displayRoundPuzzle(0);
+                        gameUI.displayRoundPuzzle(0);
                     } else {
-                        utils.displayPuzzle(document.getElementById("playerSelect").value);
+                        gameUI.displayPuzzle(document.getElementById("playerSelect").value);
                     }
 
                     gameUI.init(this);
+                    gameUI.displayPlayerTeams();
 
                     // Setup game notifications to handle (see "setupNotifications" method below)
                     this.setupNotifications();
@@ -137,6 +138,12 @@ define([
                 const self = this;
 
                 switch (stateName) {
+                    case 'teamSelection':
+                        gameUI.displayTeamSelection();
+                        break;
+                    case 'teamSelected':
+                        gameUI.hideTeamSelection();
+                        break;
                     case 'puzzleCreationInit':
                         gameUI.mode = 'puzzleCreation';
                         gameUI.setup();
@@ -149,7 +156,7 @@ define([
                             Object.keys(publicData).map((id) => {
                                 gameUI.puzzleUsers[id] = parseInt(publicData[id].id, 10);
                             });
-                            utils.refreshPuzzle();
+                            gameUI.refreshPuzzle();
 
                             gameUI.mode = 'play';
                         } else {
@@ -201,13 +208,13 @@ define([
                         }
 
                         gameUI.setup();
-                        utils.displayGrid();
+                        gameUI.displayGrid();
                         gameUI.shouldRefreshProgression = true;
                         break;
                     case "puzzlePlayWait":
                         gameUI.clearSavedTeamData();
                         if (gameUI.autoStart && !this.isSpectator && !g_archive_mode) {
-                            utils.displayTimer(function () {
+                            gameUI.displayTimer(function () {
                                 self.callAction("puzzleStart", null, true);
                             });
                         }
@@ -215,7 +222,7 @@ define([
                     case "puzzlePlay":
                         gameUI.mode = 'play';
                         gameUI.setup();
-                        utils.displayGrid();
+                        gameUI.displayGrid();
                         break;
                     case "puzzleSolution":
                         const data = args.args;
@@ -223,17 +230,17 @@ define([
                         gameUI.mode = 'solution';
                         gameUI.solution = JSON.parse(data.grid);
                         gameUI.setup();
-                        utils.displayGrid();
+                        gameUI.displayGrid();
                         break;
                     case "gameEnd":
                         gameUI.ended = true;
 
                         if (gameUI.modeRandom) {
-                            utils.displayRoundPuzzle(0);
+                            gameUI.displayRoundPuzzle(0);
                         } else if (this.isSpectator) {
-                            utils.displayPuzzle(document.getElementById("playerSelect").value);
+                            gameUI.displayPuzzle(document.getElementById("playerSelect").value);
                         } else {
-                            utils.displayPuzzle(this.player_id);
+                            gameUI.displayPuzzle(this.player_id);
                         }
                         break;
                 }
@@ -264,6 +271,13 @@ define([
 
                 if (isPlayerActive) {
                     switch (stateName) {
+                        case "teamSelection":
+                            this.removeActionButtons();
+                            const team = gameUI.players[this.player_id].team;
+                            if (team) {
+                                this.addActionButton('teamValidate', _('OK'), 'onTeamValidate');
+                            }
+                            break;
                         case "puzzleCreation":
                             if (gameUI.elementsCount === gameUI.placedElements) {
                                 this.addActionButton('puzzleCreationEnd', _('Done'), 'onPuzzleCreationEnd');
@@ -301,6 +315,12 @@ define([
                             }
                             break;
                     }
+                }
+            },
+
+            onTeamValidate: function () {
+                if (!g_archive_mode) {
+                    this.callAction("teamValidate", null, true);
                 }
             },
 
@@ -383,16 +403,17 @@ define([
                 dojo.subscribe('start', this, "notif_start");
                 dojo.subscribe('stop', this, "notif_stop");
                 dojo.subscribe('roundStart', this, "notif_roundStart");
+                dojo.subscribe('teamSelect', this, "notif_teamSelect");
 
-                if (this.isSpectator) {
+                if (g_archive_mode) {
+                    dojo.subscribe('gridChange_' + this.player_id, this, "notif_gridChange");
+                } else if (!this.isSpectator) {
+                    gameUI.buildTeamDataAndRegister();
+                } else if (gameUI.trainingMode) {
                     Object.keys(gameUI.players).map((id) => {
                         dojo.subscribe('gridChange_' + id, this, "notif_gridChange");
                     });
                     dojo.subscribe('puzzleChange', this, "notif_puzzleChange");
-                } else if (g_archive_mode) {
-                    dojo.subscribe('gridChange_' + this.player_id, this, "notif_gridChange");
-                } else {
-                    gameUI.buildTeamDataAndRegister();
                 }
             },
 
@@ -412,13 +433,22 @@ define([
                 gameUI.shouldRefreshProgression = true;
             },
 
+            notif_teamSelect: function (notif) {
+                console.log("notif_teamSelect", notif);
+
+                const playerId = notif.args.player_id;
+                const playerData = gameUI.players[playerId];
+                playerData.team = parseInt(notif.args.team, 10);
+                gameUI.displayPlayerTeam(playerId);
+            },
+
             notif_gridChange: function (notif) {
                 console.log("notif_gridChange", notif);
                 const playerId = notif.args.player_id;
 
                 if (this.isSpectator) {
                     gameUI.players[playerId].grid = JSON.parse(notif.args.player_grid);
-                    utils.refreshPuzzle(playerId);
+                    gameUI.refreshPuzzle(playerId);
                 } else if (g_archive_mode) {
                     gameUI.setGrid(JSON.parse(notif.args.player_grid));
                     gameUI.setup();
@@ -431,10 +461,6 @@ define([
                 }
             },
 
-            notif_teamGridChange: function (notif) {
-                console.log("notif_teamGridChange", notif);
-            },
-
             notif_puzzleChange: function (notif) {
                 console.log("notif_puzzleChange", notif);
 
@@ -444,7 +470,7 @@ define([
                     Object.keys(gameUI.players).map(playerId => {
                         gameUI.players[playerId].grid = undefined;
                     });
-                    utils.refreshPuzzle();
+                    gameUI.refreshPuzzle();
                 } else {
                     const playerId = notif.args.player_id;
                     const puzzle = JSON.parse(notif.args.player_puzzle);
@@ -480,7 +506,7 @@ define([
             notif_roundsPuzzle: function (notif) {
                 console.log("notif_roundsPuzzle", notif);
                 gameUI.puzzles = notif.args.puzzles.map(p => JSON.parse(p));
-                utils.buildRoundsPuzzleSelect();
+                gameUI.buildRoundsPuzzleSelect();
             },
 
             notif_start: function (notif) {

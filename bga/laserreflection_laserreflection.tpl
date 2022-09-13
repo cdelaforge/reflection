@@ -32,7 +32,7 @@
     <div id="lrf_end" class="whiteblock" style="display:none">
         <div>{PUZZLES}</div>
         <div>
-            <select onchange="utils.displayPuzzle(this.value)" id="playerSelect">
+            <select onchange="gameUI.displayPuzzle(this.value)" id="playerSelect">
                 <!-- BEGIN player_puzzle -->
                 <option value="{PLAYER_ID}" {PLAYER_SELECTED}>{PLAYER_NAME}</option>
                 <!-- END player_puzzle -->
@@ -42,10 +42,20 @@
     <div id="lrf_end_rnd" class="whiteblock" style="display:none">
         <div>{ROUND_PUZZLES}</div>
         <div>
-            <select onchange="utils.displayRoundPuzzle(this.value)" id="roundSelect"></select>
+            <select onchange="gameUI.displayRoundPuzzle(this.value)" id="roundSelect"></select>
         </div>
     </div>
+</div>
 
+<div id="lrf_teams" class="whiteblock" style="display:none">
+    <div class="lrf_team_title">Team selection</div>
+    <div id="lrf_team_1" class="lrf_team" onclick="gameUI.selectTeam(1)">Mages 🧙</div>
+    <div id="lrf_team_2" class="lrf_team" onclick="gameUI.selectTeam(2)">Aliens 👽</div>
+    <div id="lrf_team_3" class="lrf_team" onclick="gameUI.selectTeam(3)">Vampires 🧛</div>
+</div>
+
+<div id="lrf_spectator" class="whiteblock" style="display:none">
+    <div>{SPECTATOR_TEXT}</div>
 </div>
 
 <script type="text/javascript">
@@ -73,6 +83,14 @@ var jstpl_progressbar = '\
         <div id="${aid}" class="lrf_resting" style="display:none">\
             <label>😴</label>\
             <span>${sleeping}</span>\
+        </div>\
+        <div id="${tid}" class="lrf_resting" style="display:none">\
+            <label>🤨</label>\
+            <span>${selecting}</span>\
+        </div>\
+        <div id="${oid}" class="lrf_resting" style="display:none">\
+            <label>👍</label>\
+            <span>${selected}</span>\
         </div>\
     </div>'
 </script>
