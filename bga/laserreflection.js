@@ -83,7 +83,9 @@ define([
                             case "time_limit":
                                 gameUI.timeLimit = parseInt(p.val, 10) || 60;
                                 break;
-
+                            case "training_mode":
+                                gameUI.trainingMode = p.val;
+                                break;
                         }
                     });
 
@@ -383,7 +385,7 @@ define([
                 dojo.subscribe('stop', this, "notif_stop");
                 dojo.subscribe('roundStart', this, "notif_roundStart");
 
-                if (this.isSpectator || g_archive_mode) {
+                if ((this.isSpectator && gameUI.trainingMode) || g_archive_mode) {
                     dojo.subscribe('gridChange', this, "notif_gridChange");
                     dojo.subscribe('puzzleChange', this, "notif_puzzleChange");
                 }

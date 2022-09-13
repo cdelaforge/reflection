@@ -37,7 +37,9 @@
         /*********** Place your code below:  ************/
         global $g_user;
 
+        $this->tpl['SPECTATOR_TEXT'] = self::_("As a spectator, you can only see the players' boards if the game is in training mode.");
         $this->tpl['PUZZLES'] = self::_("Players' boards");
+
         $this->page->begin_block("laserreflection_laserreflection", "player_puzzle");
         foreach ($players as $player) {
             $data = array(

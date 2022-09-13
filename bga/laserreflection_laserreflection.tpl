@@ -45,7 +45,10 @@
             <select onchange="utils.displayRoundPuzzle(this.value)" id="roundSelect"></select>
         </div>
     </div>
+</div>
 
+<div id="lrf_spectator" class="whiteblock" style="display:none">
+    <div>{SPECTATOR_TEXT}</div>
 </div>
 
 <script type="text/javascript">

@@ -121,7 +121,7 @@ const gameUI = {
       id: playerId,
       color: playerData.color,
       progression: parseInt(playerData.progression, 10),
-      grid: JSON.parse(playerData.grid),
+      grid: playerData.grid ? JSON.parse(playerData.grid) : undefined,
       puzzle: playerData.puzzle ? JSON.parse(playerData.puzzle) : undefined,
       name: playerData.name,
       startTime: parseInt(playerData.start, 10),

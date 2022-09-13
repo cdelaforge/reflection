@@ -44,6 +44,7 @@ class LaserReflection extends Table {
             "black_hole" => 122,
             "light_warp" => 123,
             "auto_start" => 190,
+            "training_mode" => 201,
         ]);
 	}
 
@@ -166,10 +167,12 @@ class LaserReflection extends Table {
 
         if ($gameEnded) {
             $sql = "SELECT player_id id, player_score score, player_puzzle_grid grid, player_progression progression, player_start start, player_round_duration duration, player_state state FROM player";
-        } else if ($this->isSpectator()) {
+        } else if ($this->isSpectator() && $this->isTrainingMode()) {
             $sql = "SELECT player_id id, player_score score, player_grid grid, player_puzzle puzzle, player_progression progression, player_start start, player_round_duration duration, player_state state FROM player";
+        } else if ($this->isSpectator()) {
+            $sql = "SELECT player_id id, player_score score, player_progression progression, player_start start, player_round_duration duration, player_state state FROM player";
         } else {
-            $sql = "SELECT player_id id, player_score score, player_grid grid, player_progression progression, player_start start, player_round_duration duration, player_state state FROM player";
+            $sql = "SELECT player_id id, player_score score, CASE WHEN player_id=$current_player_id THEN player_grid else NULL end grid, player_progression progression, player_start start, player_round_duration duration, player_state state FROM player";
         }
 
         $result['players'] = self::getCollectionFromDb($sql);
@@ -179,6 +182,7 @@ class LaserReflection extends Table {
         $result['params'][] = ['key' => 'random', 'val' => $this->isModeRandom()];
         $result['params'][] = ['key' => 'ended', 'val' => $this->isGameEnded()];
         $result['params'][] = ['key' => 'time_limit', 'val' => $this->getGameStateValue('time_limit')];
+        $result['params'][] = ['key' => 'training_mode', 'val' => $this->isTrainingMode()];
 
         if ($this->isModeResting()) {
             $restingPlayerId = $gameEnded ?  $this->getRestingPlayerId() : $this->getPreviouslyRestingPlayerId();
@@ -725,6 +729,10 @@ class LaserReflection extends Table {
 
     function isModeRandom() {
         return $this->isModeSolo() || $this->getGameStateValue('multi_mode') == 10;
+    }
+
+    function isTrainingMode() {
+        return $this->getGameStateValue('training_mode') == 1;
     }
 
     function isGameEnded() {

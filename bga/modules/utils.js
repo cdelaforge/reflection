@@ -8,9 +8,15 @@ const utils = {
 
     timer.abort();
 
-    dojo.style("lrf_main", "display", "flex");
-    dojo.style("lrf_end", "display", this.dojoGame.isSpectator ? "flex" : "none");
-    dojo.style("lrf_timer", "display", "none");
+    if (this.dojoGame.isSpectator && !gameUI.trainingMode && !gameUI.ended) {
+      dojo.style("lrf_spectator", "display", "flex");
+      dojo.style("lrf_main", "display", "none");
+    } else {
+      dojo.style("lrf_spectator", "display", "none");
+      dojo.style("lrf_main", "display", "flex");
+      dojo.style("lrf_end", "display", this.dojoGame.isSpectator ? "flex" : "none");
+      dojo.style("lrf_timer", "display", "none");
+    }
   },
 
   hideGrid: function () {
@@ -138,27 +144,33 @@ const utils = {
     console.info("## Display player's puzzles ##");
 
     try {
-      dojo.style("lrf_main", "display", "flex");
-      dojo.style("lrf_timer", "display", "none");
-      dojo.style("lrf_end", "display", "flex");
+      if (this.dojoGame.isSpectator && !gameUI.trainingMode && !gameUI.ended) {
+        dojo.style("lrf_spectator", "display", "flex");
+        dojo.style("lrf_main", "display", "none");
+      } else {
+        dojo.style("lrf_spectator", "display", "none");
+        dojo.style("lrf_main", "display", "flex");
+        dojo.style("lrf_timer", "display", "none");
+        dojo.style("lrf_end", "display", "flex");
 
-      if (playerId) {
-        gameUI.playerSpied = playerId;
-        gameUI.grid = gameUI.players[playerId].grid;
-      }
-
-      if (!this.dojoGame.isSpectator || gameUI.ended) {
-        gameUI.mode = "view";
-      } else if (!gameUI.modeRandom) {
-        if (gameUI.puzzleUsers) {
-          const otherPlayer = gameUI.puzzleUsers[playerId];
-          gameUI.puzzle = gameUI.players[otherPlayer].puzzle;
-        } else {
-          gameUI.puzzle = undefined;
+        if (playerId) {
+          gameUI.playerSpied = playerId;
+          gameUI.grid = gameUI.players[playerId].grid;
         }
-      }
-      if (gameUI.dojoGame) {
-        gameUI.setup();
+
+        if (!this.dojoGame.isSpectator || gameUI.ended) {
+          gameUI.mode = "view";
+        } else if (!gameUI.modeRandom) {
+          if (gameUI.puzzleUsers) {
+            const otherPlayer = gameUI.puzzleUsers[playerId];
+            gameUI.puzzle = gameUI.players[otherPlayer].puzzle;
+          } else {
+            gameUI.puzzle = undefined;
+          }
+        }
+        if (gameUI.dojoGame) {
+          gameUI.setup();
+        }
       }
     }
     catch (error) {
