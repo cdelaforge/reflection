@@ -728,7 +728,7 @@ const gameUI = {
   displayPlayerTeam: function (playerId) {
     const divId = "player_board_" + playerId;
     const iconId = "icon_" + playerId;
-    const icon = ['', '🧙‍♂️', '👽', '🧛'][this.players[playerId].team];
+    const icon = ['', '🧙', '👽', '🧛'][this.players[playerId].team];
 
     dojo.destroy(iconId);
     dojo.place("<span id='" + iconId + "'>" + icon + "</span>", $(divId).firstElementChild, 0);

@@ -15,11 +15,13 @@
  *
  */
 
+const fileType = ".min"; // ".min" or ""
+
 define([
     "dojo", "dojo/_base/declare",
     "ebg/core/gamegui",
     "ebg/counter",
-    g_gamethemeurl + "modules/game_ui.js",
+    g_gamethemeurl + "modules/game_ui" + fileType + ".js",
     g_gamethemeurl + "modules/timer.js",
     g_gamethemeurl + "modules/main.js"
 ],

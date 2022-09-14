@@ -83,12 +83,12 @@ $game_options = [
         'name' => totranslate('Players compete on the same puzzles'),
         'values' => [
             1 => [
-                'name' => totranslate('yes'),
+                'name' => totranslate('Yes'),
                 'description' => totranslate('There are as many rounds as there are players, but for each round the player who proposed the current puzzle does not play.'),
                 'tmdisplay' => totranslate('Players compete on the same puzzles')
             ],
             2 => [
-                'name' => totranslate('no'),
+                'name' => totranslate('No'),
                 'description' => totranslate('There is one less round than there are players. In each round each player works on a different player\'s puzzle.')
             ]
         ],
@@ -240,24 +240,24 @@ $game_options = [
     122 => [
         'name' => totranslate('Black holes'),
         'values' => [
-            1 => [ 'name' => totranslate('yes'), 'tmdisplay' => totranslate('Black holes') ],
-            2 => [ 'name' => totranslate('no') ]
+            1 => [ 'name' => totranslate('Yes'), 'tmdisplay' => totranslate('Black holes') ],
+            2 => [ 'name' => totranslate('No') ]
         ],
         'default' => 1
     ],
     123 => [
         'name' => totranslate('Light warps'),
         'values' => [
-            1 => [ 'name' => totranslate('yes'), 'tmdisplay' => totranslate('Light warps') ],
-            2 => [ 'name' => totranslate('no') ]
+            1 => [ 'name' => totranslate('Yes'), 'tmdisplay' => totranslate('Light warps') ],
+            2 => [ 'name' => totranslate('No') ]
         ],
         'default' => 2
     ],
     190 => [
         'name' => totranslate('Auto. start rounds'),
         'values' => [
-            1 => [ 'name' => totranslate('yes') ],
-            2 => [ 'name' => totranslate('no') ]
+            1 => [ 'name' => totranslate('Yes') ],
+            2 => [ 'name' => totranslate('No') ]
         ],
         'default' => 2,
         'displaycondition' => [
