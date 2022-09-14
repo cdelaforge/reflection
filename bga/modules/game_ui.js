@@ -159,23 +159,34 @@ const gameUI = {
 
     result.running = result.startTime > 0;
 
-    if (!result.running) {
+    if (result.running) {
+      result.state = "playing";
+    } else {
       result.duration = gameUI.getDurationStr(parseInt(playerData.duration, 10));
 
       if (playerData.state === "90") {
-        result.teamSelecting = true;
+        result.state = "teamSelecting";
+        //result.teamSelecting = true;
       } else if (playerData.state === "91") {
-        result.teamSelected = true;
+        //result.teamSelected = true;
+        result.state = "teamSelected";
       } else if (playerData.state === "30") {
-        result.creating = true;
+        //result.creating = true;
+        result.state = "creating";
       } else if (playerData.state === "52") {
-        result.failed = true;
+        //result.failed = true;
+        result.state = "failed";
       } else if (playerData.state === "51" && result.progression === 100) {
-        result.success = true;
+        //result.success = true;
+        result.state = "success";
       } else if (playerData.state === "80" && playerData.duration === "6666") {
-        result.failed = true;
+        //result.failed = true;
+        result.state = "failed";
       } else if (playerData.state === "80" && result.progression === 100) {
-        result.success = true;
+        //result.success = true;
+        result.state = "success";
+      } else {
+        result.state = "unknown";
       }
     }
 
@@ -506,7 +517,28 @@ const gameUI = {
         dojo.style(selId, "display", "none");
         dojo.style(okId, "display", "none");
 
-        if (playerData.teamSelecting) {
+        switch (playerData.state) {
+          case "teamSelecting":
+            dojo.style(selId, "display", "");
+            break;
+          case "teamSelected":
+            dojo.style(okId, "display", "");
+            break;
+          case "failed":
+            dojo.style(falId, "display", "");
+            break;
+          case "playing":
+          case "success":
+          case "creating":
+            dojo.style(divId, "display", "");
+            break;
+          default:
+            dojo.style(afkId, "display", "");
+            break;
+        }
+
+        /*
+        if (playerData.state) {
           dojo.style(selId, "display", "");
         } else if (playerData.teamSelected) {
           dojo.style(okId, "display", "");
@@ -518,7 +550,7 @@ const gameUI = {
           dojo.style(divId, "display", "");
         } else {
           dojo.style(afkId, "display", "");
-        }
+        }*/
       }
       catch (error) {
         console.error("Error in displayBars", error)
@@ -688,7 +720,9 @@ const gameUI = {
       }
     }
 
-    this.callAction("teamSelect", { no: this.players[this.playerId].num, team }, true);
+    if (this.players[this.playerId].team !== team) {
+      this.callAction("teamSelect", { no: this.players[this.playerId].num, team }, true);
+    }
   },
 
   displayPlayerTeam: function (playerId) {

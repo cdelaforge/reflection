@@ -54,6 +54,14 @@
       self::ajaxResponse();
     }
 
+    public function teamCancel() {
+      self::setAjaxMode();
+
+      $this->game->action_teamCancel();
+
+      self::ajaxResponse();
+    }
+
     public function gridChange() {
       self::setAjaxMode();
 

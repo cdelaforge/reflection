@@ -97,7 +97,7 @@ $machinestates = array(
 
     STATE_TEAM_SELECTION => [
         "name" => "teamSelectionInit",
-        "description" => clienttranslate('Some players select their team'),
+        "description" => clienttranslate('Some players are selecting their team'),
         "descriptionmyturn" => "",
         "type" => "multipleactiveplayer",
         "initialprivate" => STATE_TEAM_SELECTION_PRIVATE,
@@ -107,7 +107,7 @@ $machinestates = array(
 
     STATE_TEAM_SELECTION_PRIVATE => [
         "name" => "teamSelection",
-        "description" => clienttranslate('Some players are creating their puzzle'),
+        "description" => clienttranslate('Some players are selecting their team'),
         "descriptionmyturn" => clienttranslate('${you} must select a team'),
         "type" => "private",
         "possibleactions" => ["teamSelect", "teamValidate"],
@@ -116,9 +116,11 @@ $machinestates = array(
 
     STATE_TEAM_SELECTED => [
         "name" => "teamSelected",
-        "description" => clienttranslate('Some players are creating their puzzle'),
-        "descriptionmyturn" => clienttranslate('${you} must select a team'),
-        "type" => "private"
+        "description" => clienttranslate('Some players are selecting their team'),
+        "descriptionmyturn" => clienttranslate('Some players are selecting their team'),
+        "type" => "private",
+        "possibleactions" => ["teamCancel"],
+        "transitions" => [ "continue" => STATE_TEAM_SELECTED, "previous" => STATE_TEAM_SELECTION_PRIVATE ]
     ],
 
     STATE_CREATE_PUZZLE_INIT => [

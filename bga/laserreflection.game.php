@@ -532,8 +532,9 @@ class LaserReflection extends Table {
 
         $this->setPlayerTeam($player_no, $team);
 
-        self::notifyAllPlayers("teamSelect", "", [
+        self::notifyAllPlayers("teamSelection", "", [
             'player_id' => $playerId,
+            'action' => 'selected',
             'team' => $team
         ]);
 
@@ -545,7 +546,60 @@ class LaserReflection extends Table {
 
         $playerId = $this->getCurrentPlayerId();
         $this->gamestate->nextPrivateState($playerId, 'next');
-        $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+
+        $allPlayersSelectSameTeam = true;
+        $allPlayersSelectTeam = true;
+        $prevTeam = -1;
+
+        $sql = "SELECT player_id id, player_no num, player_state state FROM player";
+        $players = self::getObjectListFromDB($sql);
+
+        foreach ($players as $player_id => $player) {
+            $playerTeam = $this->getPlayerTeam($player['num']);
+            $playerState = $player['state'];
+
+            if ($playerTeam == 0) {
+                $allPlayersSelectTeam = false;
+            } else {
+                if ($prevTeam != -1 && $prevTeam != $playerTeam) {
+                    $allPlayersSelectSameTeam = false;
+                }
+                if ($playerState == STATE_TEAM_SELECTION_PRIVATE) {
+                    $allPlayersSelectTeam = false;
+                }
+
+                $prevTeam = $playerTeam;
+            }
+        }
+
+        if ($allPlayersSelectTeam && $allPlayersSelectSameTeam) {
+            self::notifyAllPlayers(
+                "teamSelection",
+                clienttranslate('All players have selected the same team, we must restart.'),
+                [ 'action' => 'devalidated' ]
+            );
+            $this->gamestate->nextPrivateStateForAllActivePlayers("previous");
+        } else if ($allPlayersSelectTeam) {
+            self::notifyAllPlayers("log", clienttranslate('All players have selected a team, we can start.'), []);
+            $this->gamestate->setAllPlayersNonMultiactive("next");
+        } else {
+            self::notifyAllPlayers("teamSelection", "", [
+                'player_id' => $playerId,
+                'action' => 'validated'
+            ]);
+        }
+    }
+
+    function action_teamCancel() {
+        self::checkAction("teamCancel");
+        $playerId = $this->getCurrentPlayerId();
+
+        self::notifyAllPlayers("teamSelection", "", [
+            'player_id' => $playerId,
+            'action' => 'devalidated'
+        ]);
+
+        $this->gamestate->nextPrivateState($playerId, 'previous');
     }
 
     function action_changeGrid($grid, $progression, $give_time) {

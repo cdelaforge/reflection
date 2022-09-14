@@ -278,6 +278,10 @@ define([
                                 this.addActionButton('teamValidate', _('OK'), 'onTeamValidate');
                             }
                             break;
+                        case "teamSelected":
+                            this.removeActionButtons();
+                            this.addActionButton('teamCancel', _('I changed my mind'), 'onTeamDevalidate');
+                            break;
                         case "puzzleCreation":
                             if (gameUI.elementsCount === gameUI.placedElements) {
                                 this.addActionButton('puzzleCreationEnd', _('Done'), 'onPuzzleCreationEnd');
@@ -321,6 +325,12 @@ define([
             onTeamValidate: function () {
                 if (!g_archive_mode) {
                     this.callAction("teamValidate", null, true);
+                }
+            },
+
+            onTeamDevalidate: function () {
+                if (!g_archive_mode) {
+                    this.callAction("teamCancel", null, true);
                 }
             },
 
@@ -403,7 +413,7 @@ define([
                 dojo.subscribe('start', this, "notif_start");
                 dojo.subscribe('stop', this, "notif_stop");
                 dojo.subscribe('roundStart', this, "notif_roundStart");
-                dojo.subscribe('teamSelect', this, "notif_teamSelect");
+                dojo.subscribe('teamSelection', this, "notif_teamSelection");
 
                 if (g_archive_mode) {
                     dojo.subscribe('gridChange_' + this.player_id, this, "notif_gridChange");
@@ -433,13 +443,33 @@ define([
                 gameUI.shouldRefreshProgression = true;
             },
 
-            notif_teamSelect: function (notif) {
-                console.log("notif_teamSelect", notif);
+            notif_teamSelection: function (notif) {
+                console.log("notif_teamSelection", notif);
 
+                const action = notif.args.action;
                 const playerId = notif.args.player_id;
-                const playerData = gameUI.players[playerId];
-                playerData.team = parseInt(notif.args.team, 10);
-                gameUI.displayPlayerTeam(playerId);
+                const playerData = playerId ? gameUI.players[playerId] : undefined;
+
+                switch (action) {
+                    case "selected":
+                        playerData.team = parseInt(notif.args.team, 10);
+                        playerData.state = "teamSelecting";
+                        gameUI.displayPlayerTeam(playerId);
+                        break;
+                    case "validated":
+                        playerData.state = "teamSelected";
+                        break;
+                    case "devalidated":
+                        if (playerData) {
+                            playerData.state = "teamSelecting";
+                        } else {
+                            Object.keys(gameUI.players).map(playerId => {
+                                gameUI.players[playerId].state = "teamSelecting";
+                            });
+                        }
+                        break;
+                }
+                gameUI.shouldRefreshProgression = true;
             },
 
             notif_gridChange: function (notif) {
@@ -529,16 +559,16 @@ define([
                 playerData.startTime = 0;
 
                 if (!notif.args.duration) {
-                    playerData.failed = true;
+                    playerData.state = "failed";
                     playerData.duration = "0:00";
                     playerData.progression = 0;
                     gameUI.shouldRefreshProgression = true;
                 } else if (notif.args.duration[0] === '0') {
                     playerData.duration = notif.args.duration.substring(1);
-                    playerData.success = true;
+                    playerData.state = "success";
                 } else {
                     playerData.duration = notif.args.duration;
-                    playerData.success = true;
+                    playerData.state = "success";
                 }
             },
 
@@ -546,9 +576,7 @@ define([
                 console.log("notif_roundStart", notif);
 
                 Object.keys(gameUI.players).map((id) => {
-                    gameUI.players[id].failed = false;
-                    gameUI.players[id].success = false;
-                    gameUI.players[id].creating = false;
+                    gameUI.players[id].state = "inactive";
                 });
                 gameUI.shouldRefreshProgression = true;
             }
