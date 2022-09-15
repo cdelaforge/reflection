@@ -48,10 +48,10 @@
 </div>
 
 <div id="lrf_teams" class="whiteblock" style="display:none">
-    <div class="lrf_team_title">Team selection</div>
-    <div id="lrf_team_1" class="lrf_team" onclick="gameUI.selectTeam(1)">Mages 🧙</div>
-    <div id="lrf_team_2" class="lrf_team" onclick="gameUI.selectTeam(2)">Aliens 👽</div>
-    <div id="lrf_team_3" class="lrf_team" onclick="gameUI.selectTeam(3)">Vampires 🧛</div>
+    <div class="lrf_team_title">{TEAM_SELECTION}</div>
+    <div id="lrf_team_1" class="lrf_team" onclick="gameUI.selectTeam(1)">{TEAM_1} 🧙</div>
+    <div id="lrf_team_2" class="lrf_team" onclick="gameUI.selectTeam(2)">{TEAM_2} 👽</div>
+    <div id="lrf_team_3" class="lrf_team" onclick="gameUI.selectTeam(3)">{TEAM_3} 🧛</div>
 </div>
 
 <div id="lrf_spectator" class="whiteblock" style="display:none">

@@ -15,7 +15,7 @@
  *
  */
 
-const fileType = ".min"; // ".min" or ""
+const fileType = ""; // ".min" or ""
 
 define([
     "dojo", "dojo/_base/declare",
@@ -85,6 +85,9 @@ define([
                                 break;
                             case "training_mode":
                                 gameUI.trainingMode = p.val;
+                                break;
+                            case "teams":
+                                gameUI.teamsCount = p.val;
                                 break;
                         }
                     });
@@ -162,6 +165,8 @@ define([
 
                             gameUI.mode = 'play';
                         } else {
+                            gameUI.buildTeamData();
+
                             const privateData = args.args["_private"];
                             const savedGrid = gameUI.getSavedGrid();
                             const isPlaying = args.private_state && args.private_state.id === "51";
@@ -416,15 +421,9 @@ define([
                 dojo.subscribe('stop', this, "notif_stop");
                 dojo.subscribe('roundStart', this, "notif_roundStart");
                 dojo.subscribe('teamSelection', this, "notif_teamSelection");
+                dojo.subscribe('gridChange', this, "notif_gridChange");
 
-                if (g_archive_mode) {
-                    dojo.subscribe('gridChange_' + this.player_id, this, "notif_gridChange");
-                } else if (!this.isSpectator) {
-                    gameUI.buildTeamDataAndRegister();
-                } else if (gameUI.trainingMode) {
-                    Object.keys(gameUI.players).map((id) => {
-                        dojo.subscribe('gridChange_' + id, this, "notif_gridChange");
-                    });
+                if (this.isSpectator) {
                     dojo.subscribe('puzzleChange', this, "notif_puzzleChange");
                 }
             },
@@ -484,12 +483,12 @@ define([
                 } else if (g_archive_mode) {
                     gameUI.setGrid(JSON.parse(notif.args.player_grid));
                     gameUI.setup();
-                } else {
+                } else if (gameUI.teamsCount > 0) {
                     const data = gameUI.teamData.find((t) => t.id === playerId);
                     if (data) {
                         data.grid = JSON.parse(notif.args.player_grid);
+                        gameUI.refreshTeamData = true;
                     }
-                    gameUI.refreshTeamData = true;
                 }
             },
 
@@ -548,6 +547,7 @@ define([
 
                 playerData.startTime = notif.args.start;
                 playerData.running = true;
+                playerData.state = "playing";
                 playerData.duration = "";
                 gameUI.shouldRefreshProgression = true;
             },

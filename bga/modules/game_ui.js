@@ -166,24 +166,17 @@ const gameUI = {
 
       if (playerData.state === "90") {
         result.state = "teamSelecting";
-        //result.teamSelecting = true;
       } else if (playerData.state === "91") {
-        //result.teamSelected = true;
         result.state = "teamSelected";
       } else if (playerData.state === "30") {
-        //result.creating = true;
         result.state = "creating";
       } else if (playerData.state === "52") {
-        //result.failed = true;
         result.state = "failed";
       } else if (playerData.state === "51" && result.progression === 100) {
-        //result.success = true;
         result.state = "success";
       } else if (playerData.state === "80" && playerData.duration === "6666") {
-        //result.failed = true;
         result.state = "failed";
       } else if (playerData.state === "80" && result.progression === 100) {
-        //result.success = true;
         result.state = "success";
       } else {
         result.state = "unknown";
@@ -214,24 +207,23 @@ const gameUI = {
     });
   },
 
-  buildTeamDataAndRegister: function () {
-    const team = this.players[this.playerId].team;
+  buildTeamData: function () {
     const savedTeamData = this._getSavedTeamData();
-
-    if (team && !this.teamData.length) {
-      Object.keys(this.players).map((id) => {
-        if (this.playerId !== +id && this.players[id].team === team) {
-          if (!savedTeamData) {
-            this.teamData.push({ id, color: '#' + this.players[id].color });
-          }
-          this.dojoGame.subscribe('gridChange_' + id, "notif_gridChange");
-        }
-      });
-    }
 
     if (savedTeamData) {
       this.teamData = savedTeamData;
       this.refreshTeamData = true;
+      return;
+    }
+
+    const team = this.players[this.playerId].team;
+
+    if (team && !this.teamData.length) {
+      Object.keys(this.players).map((id) => {
+        if (this.playerId !== +id && this.players[id].team === team) {
+          this.teamData.push({ id, color: '#' + this.players[id].color });
+        }
+      });
     }
   },
 
@@ -484,7 +476,7 @@ const gameUI = {
         failed: _("Failed to solve the puzzle"),
         sleeping: _("Not yet started"),
         selecting: _("Team selection"),
-        selected: _("Team validated"),
+        selected: _("Team selected"),
         color: this.players[playerId].color,
         progression,
         dec: 100 - progression,
@@ -700,9 +692,12 @@ const gameUI = {
     dojo.style("lrf_teams", "display", "flex");
 
     const team = this.players[this.playerId].team;
-
     if (team) {
       dojo.addClass("lrf_team_" + team, "lrf_team_selected");
+    }
+
+    if (this.teamsCount == 2) {
+      dojo.style("lrf_team_3", "display", "none");
     }
   },
 
@@ -726,12 +721,12 @@ const gameUI = {
   },
 
   displayPlayerTeam: function (playerId) {
-    const divId = "player_board_" + playerId;
+    const divId = "player_name_" + playerId;
     const iconId = "icon_" + playerId;
     const icon = ['', '🧙', '👽', '🧛'][this.players[playerId].team];
 
     dojo.destroy(iconId);
-    dojo.place("<span id='" + iconId + "'>" + icon + "</span>", $(divId).firstElementChild, 0);
+    dojo.place("<span id='" + iconId + "'>" + icon + "&nbsp;</span>", $(divId).firstElementChild, 0);
   },
 
   displayPlayerTeams: function () {
