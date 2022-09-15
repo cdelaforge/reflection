@@ -548,6 +548,15 @@ class LaserReflection extends Table {
         $playerId = $this->getCurrentPlayerId();
         $this->gamestate->nextPrivateState($playerId, 'next');
 
+        $player_team_name = $this->getPlayerTeamName($playerId);
+        self::notifyAllPlayers("log", clienttranslate('${player_name} joined the ${team_name} team'), [
+            'player_name' => self::getCurrentPlayerName(),
+            'team_name' => [
+                'log' => '${name}',
+                'args'=> [ 'name' => clienttranslate($player_team_name), 'i18n'=>['name'] ]
+            ]
+        ]);
+
         $allPlayersSelectSameTeam = true;
         $allPlayersSelectTeam = true;
         $prevTeam = -1;
@@ -595,6 +604,15 @@ class LaserReflection extends Table {
         self::checkAction("teamCancel");
         $playerId = $this->getCurrentPlayerId();
 
+        $player_team_name = $this->getPlayerTeamName($playerId);
+        self::notifyAllPlayers("log", clienttranslate('${player_name} left the ${team_name} team'), [
+            'player_name' => self::getCurrentPlayerName(),
+            'team_name' => [
+                'log' => '${name}',
+                'args'=> [ 'name' => clienttranslate($player_team_name), 'i18n'=>['name'] ]
+            ]
+        ]);
+
         self::notifyAllPlayers("teamSelection", "", [
             'player_id' => $playerId,
             'action' => 'devalidated'
@@ -640,9 +658,9 @@ class LaserReflection extends Table {
         $sql = "UPDATE player SET player_grid='$jsonGrid', player_puzzle_grid='$jsonGrid', player_puzzle='$jsonPuzzle', player_progression=100, player_start=0 WHERE player_id=$playerId";
         self::DbQuery($sql);
 
-        self::notifyAllPlayers("log", clienttranslate('${player_name} submitted their puzzle'), array (
+        self::notifyAllPlayers("log", clienttranslate('${player_name} submitted their puzzle'), [
             'player_name' => self::getCurrentPlayerName()
-        ));
+        ]);
 
         if ($this->isTrainingMode()) {
             self::notifyAllPlayers("puzzleChange", "", array(
@@ -801,6 +819,11 @@ class LaserReflection extends Table {
         }
 
         $cpt = self::getPlayersNumber();
+
+        if ($this->isModeResting()) {
+            return round(100 * $round / ($cpt + 1));
+        }
+
         return round(100 * $round / $cpt);
     }
 
@@ -868,7 +891,7 @@ class LaserReflection extends Table {
 
         foreach ($this->gamestate->getActivePlayerList() as $active_id) {
             if ($active_id == $playerId) {
-                // the concerned player should received the event
+                // the concerned player should received the event (for replay)
                 self::notifyPlayer($active_id, "gridChange", "", [
                     'player_id' => $playerId,
                     'player_grid' => $jsonGrid,
@@ -896,6 +919,14 @@ class LaserReflection extends Table {
 
     function getPlayerTeam($player_no) {
         return $this->getGameStateValue('player_team_'.$player_no);
+    }
+
+    function getPlayerTeamName($playerId) {
+        $player_no = self::getPlayerNoById($playerId);
+        $player_team = $this->getPlayerTeam($player_no);
+        $names = ['', 'Mages', 'Aliens', 'Vampires'];
+
+        return $names[$player_team];
     }
 
     function getRestingPlayer() {
