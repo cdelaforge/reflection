@@ -368,9 +368,24 @@ define([
             },
             onGiveUp: function () {
                 if (!g_archive_mode) {
-                    if (gameUI.playersCount === 1) {
+                    let askConfirmation = false;
+
+                    if (gameUI.teamsCount > 0) {
+                        const team = gameUI.players[this.player_id].team;
+                        const teammates = gameUI.getTeamPlayersId(team);
+
+                        if (teammates.length === 1) {
+                            askConfirmation = true;
+                        } else {
+                            this.callAction("giveUpPropose", null, true);
+                        }
+                    } else if (gameUI.playersCount === 1) {
                         gameUI.giveUp = true;
                     } else {
+                        askConfirmation = true;
+                    }
+
+                    if (askConfirmation) {
                         this.confirmationDialog(_('Are you sure to give up? You will have a score penalty'), () => {
                             gameUI.giveUp = true;
                         });

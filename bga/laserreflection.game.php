@@ -41,6 +41,7 @@ class LaserReflection extends Table {
             "player_team_4" => 53,
             "player_team_5" => 54,
             "player_team_6" => 55,
+            "giveup_propose" => 60,
             "multi_mode" => 103,
             "solo_mode" => 104,
             "teams" => 106,
@@ -112,6 +113,7 @@ class LaserReflection extends Table {
         self::setGameStateInitialValue('round', 1);
         self::setGameStateInitialValue('prev_resting', 0);
         self::setGameStateInitialValue('resting', 0);
+        self::setGameStateInitialValue('giveup_propose', 0);
 
         for ($i=1; $i<=6; $i++) {
             self::setGameStateInitialValue('player_team_'.$i, 0);
@@ -856,6 +858,21 @@ class LaserReflection extends Table {
         }
     }
 
+    function action_giveupPropose() {
+        self::checkAction("giveUpPropose");
+
+        $playerId = $this->getCurrentPlayerId();
+
+        self::setGameStateValue('giveup_propose', $playerId);
+
+        self::notifyAllPlayers("giveup_propose", clienttranslate('${player_name} proposes to give up'), [
+            'player_name' => self::getCurrentPlayerName(),
+            'player_id' => $playerId
+        ]);
+
+        $this->gamestate->nextPrivateState($playerId, 'continue');
+    }
+
     function action_giveup($timeout) {
         self::checkAction("giveUp");
 
@@ -863,6 +880,8 @@ class LaserReflection extends Table {
 
         $sql = "UPDATE player SET player_start=0, player_round_duration=6666 WHERE player_id=$playerId";
         self::DbQuery($sql);
+
+        $this->gamestate->nextPrivateState($playerId, 'solution');
 
         if ($timeout) {
             self::notifyAllPlayers("stop", clienttranslate('The time limit for solving the puzzle ran out and ${player_name} was forced to give up.'), [
@@ -875,8 +894,6 @@ class LaserReflection extends Table {
                 'player_id' => $playerId
             ]);
         }
-
-        $this->gamestate->nextPrivateState($playerId, 'solution');
     }
 
     function action_hideScore() {

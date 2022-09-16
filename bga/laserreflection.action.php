@@ -108,6 +108,14 @@
       self::ajaxResponse();
     }
 
+    public function giveUpPropose() {
+      self::setAjaxMode();
+
+      $this->game->action_giveupPropose(false);
+
+      self::ajaxResponse();
+    }
+
     public function timeout() {
       self::setAjaxMode();
 
