@@ -521,8 +521,15 @@ define([
             notif_roundScores: function (notif) {
                 console.log("notif_roundScores", notif);
 
-                for (let player_id in notif.args.roundScores) {
-                    this.scoreCtrl[player_id].incValue(notif.args.roundScores[player_id]);
+                if (notif.args.type === "teams") {
+                    Object.keys(gameUI.players).map((player_id) => {
+                        const roundScore = notif.args.roundScores[gameUI.players[player_id].team];
+                        this.scoreCtrl[player_id].incValue(roundScore);
+                    });
+                } else {
+                    for (let player_id in notif.args.roundScores) {
+                        this.scoreCtrl[player_id].incValue(notif.args.roundScores[player_id]);
+                    }
                 }
             },
 

@@ -237,7 +237,6 @@ const gameUI = {
     return result;
   },
 
-
   _setTeam: function () {
     if (this.refreshTeamData) {
       try {
@@ -539,21 +538,6 @@ const gameUI = {
             dojo.style(afkId, "display", "");
             break;
         }
-
-        /*
-        if (playerData.state) {
-          dojo.style(selId, "display", "");
-        } else if (playerData.teamSelected) {
-          dojo.style(okId, "display", "");
-        } else if (this.samePuzzle && this.puzzleUser && this.puzzleUser.id === playerId) {
-          dojo.style(rstId, "display", "");
-        } else if (playerData.failed) {
-          dojo.style(falId, "display", "");
-        } else if (playerData.running || playerData.success || playerData.creating) {
-          dojo.style(divId, "display", "");
-        } else {
-          dojo.style(afkId, "display", "");
-        }*/
       }
       catch (error) {
         console.error("Error in displayBars", error)
