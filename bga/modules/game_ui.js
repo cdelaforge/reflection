@@ -227,6 +227,17 @@ const gameUI = {
     }
   },
 
+  getTeamPlayersId: function (team) {
+    const result = [];
+    Object.keys(this.players).forEach((id) => {
+      if (this.players[id].team === team) {
+        result.push(id);
+      }
+    });
+    return result;
+  },
+
+
   _setTeam: function () {
     if (this.refreshTeamData) {
       try {
@@ -723,7 +734,7 @@ const gameUI = {
   displayPlayerTeam: function (playerId) {
     const divId = "player_name_" + playerId;
     const iconId = "icon_" + playerId;
-    const icon = ['', '🧙', '👽', '🧛'][this.players[playerId].team];
+    const icon = ['', '🧙', '🧛', '👽'][this.players[playerId].team];
 
     dojo.destroy(iconId);
     dojo.place("<span id='" + iconId + "'>" + icon + "&nbsp;</span>", $(divId).firstElementChild, 0);

@@ -53,8 +53,8 @@
         $this->tpl['ROUND_PUZZLES'] = self::_("Puzzles of each round");
         $this->tpl['TEAM_SELECTION'] = self::_("Team selection");
         $this->tpl['TEAM_1'] = self::_("Mages");
-        $this->tpl['TEAM_2'] = self::_("Aliens");
-        $this->tpl['TEAM_3'] = self::_("Vampires");
+        $this->tpl['TEAM_2'] = self::_("Vampires");
+        $this->tpl['TEAM_3'] = self::_("Aliens");
 
         /*********** Do not change anything below this line  ************/
   	}

@@ -298,7 +298,7 @@ define([
                             break;
                         case "puzzlePlayWait":
                             this.removeActionButtons();
-                            this.addActionButton('start', _('Start now'), 'onStartNow');
+                            this.addActionButton('start', _('Start'), 'onStartNow');
                             break;
                         case "puzzlePlay":
                             if (gameUI.modeRandom) {
@@ -453,7 +453,7 @@ define([
 
                 switch (action) {
                     case "selected":
-                        playerData.team = parseInt(notif.args.team, 10);
+                        playerData.team = parseInt(notif.args.player_team, 10);
                         playerData.state = "teamSelecting";
                         gameUI.displayPlayerTeam(playerId);
                         break;
@@ -542,36 +542,43 @@ define([
 
             notif_start: function (notif) {
                 console.log("notif_start", notif);
-                const playerId = notif.args.player_id;
-                const playerData = gameUI.players[playerId];
+                const team = notif.args.player_team;
+                const idList = team ? gameUI.getTeamPlayersId(+team) : [notif.args.player_id];
 
-                playerData.startTime = notif.args.start;
-                playerData.running = true;
-                playerData.state = "playing";
-                playerData.duration = "";
+                idList.forEach(id => {
+                    const playerData = gameUI.players[id];
+                    playerData.startTime = notif.args.start;
+                    playerData.running = true;
+                    playerData.state = "playing";
+                    playerData.duration = "";
+                });
+
                 gameUI.shouldRefreshProgression = true;
             },
 
             notif_stop: function (notif) {
                 console.log("notif_stop", notif);
-                const playerId = notif.args.player_id;
-                const playerData = gameUI.players[playerId];
+                const team = notif.args.player_team;
+                const idList = team ? gameUI.getTeamPlayersId(+team) : [notif.args.player_id];
 
-                playerData.running = false;
-                playerData.startTime = 0;
+                idList.forEach(id => {
+                    const playerData = gameUI.players[id];
+                    playerData.running = false;
+                    playerData.startTime = 0;
 
-                if (!notif.args.duration) {
-                    playerData.state = "failed";
-                    playerData.duration = "0:00";
-                    playerData.progression = 0;
-                    gameUI.shouldRefreshProgression = true;
-                } else if (notif.args.duration[0] === '0') {
-                    playerData.duration = notif.args.duration.substring(1);
-                    playerData.state = "success";
-                } else {
-                    playerData.duration = notif.args.duration;
-                    playerData.state = "success";
-                }
+                    if (!notif.args.duration) {
+                        playerData.state = "failed";
+                        playerData.duration = "0:00";
+                        playerData.progression = 0;
+                        gameUI.shouldRefreshProgression = true;
+                    } else if (notif.args.duration[0] === '0') {
+                        playerData.duration = notif.args.duration.substring(1);
+                        playerData.state = "success";
+                    } else {
+                        playerData.duration = notif.args.duration;
+                        playerData.state = "success";
+                    }
+                });
             },
 
             notif_roundStart: function (notif) {

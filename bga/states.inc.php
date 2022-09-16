@@ -11,6 +11,8 @@ if (!defined('STATE_END_GAME')) { // ensure this block is only invoked once, sin
     define("STATE_PLAY_PUZZLE_WAIT_PRIVATE", 50);
     define("STATE_PLAY_PUZZLE_PRIVATE", 51);
     define("STATE_SOLUTION_PRIVATE", 52);
+    define("STATE_PLAY_PUZZLE_WAIT_TEAM", 53);
+    define("STATE_PLAY_PUZZLE_RESOLVED_TEAM", 54);
     define("STATE_PLAY_PUZZLE_END", 7);
     define("STATE_END_ROUND", 8);
     define("STATE_END_ROUND_PRIVATE", 80);
@@ -166,9 +168,17 @@ $machinestates = array(
     STATE_PLAY_PUZZLE_WAIT_PRIVATE => [
         "name" => "puzzlePlayWait",
         "description" => "",
-        "descriptionmyturn" => clienttranslate('Get ready ! ${you} prepare to resolve the puzzle !'),
+        "descriptionmyturn" => clienttranslate('Get ready to solve your puzzle!'),
         "type" => "private",
         "possibleactions" => ["gridChange", "puzzleStart"],
+        "transitions" => [ "continue" => STATE_PLAY_PUZZLE_PRIVATE, "teamWait" => STATE_PLAY_PUZZLE_WAIT_TEAM ]
+    ],
+
+    STATE_PLAY_PUZZLE_WAIT_TEAM => [
+        "name" => "puzzlePlayWaitTeam",
+        "description" => "",
+        "descriptionmyturn" => clienttranslate('Some of your teammates are not ready yet, the game will start soon...'),
+        "type" => "private",
         "transitions" => [ "continue" => STATE_PLAY_PUZZLE_PRIVATE ]
     ],
 
@@ -178,7 +188,18 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('${you} must resolve the puzzle of'),
         "type" => "private",
         "possibleactions" => ["gridChange", "puzzleResolve", "giveUp", "timeout"],
-        "transitions" => [ "continue" => STATE_PLAY_PUZZLE_PRIVATE, "solution" => STATE_SOLUTION_PRIVATE ]
+        "transitions" => [
+            "continue" => STATE_PLAY_PUZZLE_PRIVATE,
+            "solution" => STATE_SOLUTION_PRIVATE,
+            "teamWait" => STATE_PLAY_PUZZLE_RESOLVED_TEAM
+        ]
+    ],
+
+    STATE_PLAY_PUZZLE_RESOLVED_TEAM => [
+        "name" => "puzzleResolvedWaitTeam",
+        "description" => "",
+        "descriptionmyturn" => clienttranslate('Some of your teammates have not yet solved the puzzle.'),
+        "type" => "private",
     ],
 
     STATE_SOLUTION_PRIVATE => [

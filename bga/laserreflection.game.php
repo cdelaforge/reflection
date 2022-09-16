@@ -352,12 +352,9 @@ class LaserReflection extends Table {
         $jsonGrid = json_encode($this->getEmptyGrid());
 
         foreach ($this->gamestate->getActivePlayerList() as $playerId) {
-            $this->giveExtraTime($playerId, 60);
+            $this->giveExtraTime($playerId);
 
-            self::notifyAllPlayers("progression", "", [
-                'player_id' => $playerId,
-                'player_progression' => 0
-            ]);
+            $this->notifyProgression($playerId, 0);
 
             self::notifyPlayer($playerId, "gridChange", "", [
                 'player_id' => $playerId,
@@ -506,11 +503,8 @@ class LaserReflection extends Table {
 
             if ($this->isAsync()) {
                 // turn-based mode, skip the display of round score
-                foreach($players as $player) {
-                    self::notifyAllPlayers("progression", "", array(
-                        'player_id' => $player["id"],
-                        'player_progression' => 0
-                    ));
+                foreach ($players as $player) {
+                    $this->notifyProgression($player["id"], 0);
                 }
 
                 $sql = "UPDATE player SET player_progression=0, player_start=0, player_round_duration=0";
@@ -536,7 +530,7 @@ class LaserReflection extends Table {
         self::notifyAllPlayers("teamSelection", "", [
             'player_id' => $playerId,
             'action' => 'selected',
-            'team' => $team
+            'player_team' => $team
         ]);
 
         $this->gamestate->nextPrivateState($playerId, 'continue');
@@ -548,12 +542,16 @@ class LaserReflection extends Table {
         $playerId = $this->getCurrentPlayerId();
         $this->gamestate->nextPrivateState($playerId, 'next');
 
-        $player_team_name = $this->getPlayerTeamName($playerId);
+        $playerTeam = $this->getPlayerTeamNameAndIcon($playerId);
         self::notifyAllPlayers("log", clienttranslate('${player_name} joined the ${team_name} team'), [
             'player_name' => self::getCurrentPlayerName(),
             'team_name' => [
-                'log' => '${name}',
-                'args'=> [ 'name' => clienttranslate($player_team_name), 'i18n'=>['name'] ]
+                'log' => '${name} ${icon}',
+                'args'=> [
+                    'name' => clienttranslate($playerTeam['name']),
+                    'icon' => $playerTeam['icon'],
+                    'i18n' => ['name']
+                ]
             ]
         ]);
 
@@ -604,12 +602,16 @@ class LaserReflection extends Table {
         self::checkAction("teamCancel");
         $playerId = $this->getCurrentPlayerId();
 
-        $player_team_name = $this->getPlayerTeamName($playerId);
+        $playerTeam = $this->getPlayerTeamNameAndIcon($playerId);
         self::notifyAllPlayers("log", clienttranslate('${player_name} left the ${team_name} team'), [
             'player_name' => self::getCurrentPlayerName(),
             'team_name' => [
-                'log' => '${name}',
-                'args'=> [ 'name' => clienttranslate($player_team_name), 'i18n'=>['name'] ]
+                'log' => '${name} ${icon}',
+                'args'=> [
+                    'name' => clienttranslate($playerTeam["name"]),
+                    'icon' => $playerTeam["icon"],
+                    'i18n' => ['name']
+                ]
             ]
         ]);
 
@@ -632,11 +634,7 @@ class LaserReflection extends Table {
         self::DbQuery($sql);
         */
 
-        self::notifyAllPlayers("progression", "", array(
-            'player_id' => $playerId,
-            'player_progression' => $progression
-        ));
-
+        $this->notifyProgression($playerId, $progression);
         $this->notifyPlayerGridChange($playerId, $jsonGrid);
 
         if ($give_time) {
@@ -663,18 +661,14 @@ class LaserReflection extends Table {
         ]);
 
         if ($this->isTrainingMode()) {
-            self::notifyAllPlayers("puzzleChange", "", array(
+            self::notifyAllPlayers("puzzleChange", "", [
                 'player_id' => $playerId,
                 'player_puzzle' => $jsonPuzzle,
                 'default' => false
-            ));
+            ]);
         }
 
-        self::notifyAllPlayers("progression", "", array(
-            'player_id' => $playerId,
-            'player_progression' => 100
-        ));
-
+        $this->notifyProgression($playerId, 100);
         $this->notifyPlayerGridChange($playerId, $jsonGrid);
 
         $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
@@ -683,28 +677,56 @@ class LaserReflection extends Table {
     function action_start() {
         self::checkAction("puzzleStart");
 
-        $startDate = new DateTime();
-        $playerId = $this->getCurrentPlayerId();
-        $start = $startDate->getTimestamp();
-        $grid = $this->getEmptyGrid();
-        $jsonGrid = json_encode($grid);
+        $currentPlayerId = $this->getCurrentPlayerId();
 
-        $sql = "UPDATE player SET player_progression=0, player_start=$start, player_grid='$jsonGrid' WHERE player_id=$playerId AND player_start=0";
-        self::DbQuery($sql);
+        if (!$this->isRealtimeTeamMode()) {
+            $startDate = new DateTime();
+            $start = $startDate->getTimestamp();
+            $grid = $this->getEmptyGrid();
+            $jsonGrid = json_encode($grid);
 
-        $this->sendPlayerStartNotification($start);
+            $sql = "UPDATE player SET player_progression=0, player_start=$start, player_grid='$jsonGrid' WHERE player_id=$currentPlayerId AND player_start=0";
+            self::DbQuery($sql);
 
-        $this->gamestate->nextPrivateState($playerId, 'continue');
+            $this->sendPlayerStartNotification($currentPlayerId, $start);
+
+            $this->gamestate->nextPrivateState($currentPlayerId, 'continue');
+            return;
+        }
+
+        // team management
+        $this->gamestate->nextPrivateState($currentPlayerId, 'teamWait');
+
+        $currentPlayerTeam = $this->getPlayerTeam(self::getPlayerNoById($currentPlayerId));
+        $teamData = $this->getTeammatesAndCheckState($currentPlayerTeam, STATE_PLAY_PUZZLE_WAIT_TEAM);
+
+        if ($teamData['result']) {
+            $startDate = new DateTime();
+            $start = $startDate->getTimestamp();
+            $grid = $this->getEmptyGrid();
+            $jsonGrid = json_encode($grid);
+
+            $teammates = $teamData['teammates'];
+            $teammatesStr = implode(",", $teammates);
+            $sql = "UPDATE player SET player_progression=0, player_start=$start, player_grid='$jsonGrid' WHERE player_id IN ($teammatesStr) AND player_start=0";
+            self::DbQuery($sql);
+
+            $this->sendPlayerStartNotification($currentPlayerId, $start);
+
+            foreach ($teammates as $playerId) {
+                $this->gamestate->nextPrivateState($playerId, 'continue');
+            }
+        }
     }
 
     function action_resolve($grid) {
         self::checkAction("puzzleResolve");
 
         $endDate = new DateTime();
-        $playerId = $this->getCurrentPlayerId();
+        $currentPlayerId = $this->getCurrentPlayerId();
         $end = $endDate->getTimestamp();
 
-        $sql = "SELECT player_start start, player_total_duration total FROM player WHERE player_id=$playerId";
+        $sql = "SELECT player_start start, player_total_duration total FROM player WHERE player_id=$currentPlayerId";
         $player = self::getObjectFromDB($sql);
 
         $duration = $end - $player["start"];
@@ -712,23 +734,39 @@ class LaserReflection extends Table {
         $total = $player["total"] + $duration;
         $jsonGrid = json_encode($grid);
 
-        $sql = "UPDATE player SET player_grid='$jsonGrid', player_rounds=player_rounds+1, player_progression=100, player_start=0, player_round_duration=$duration, player_total_duration=$total WHERE player_id=$playerId";
+        if ($this->isRealtimeTeamMode()) {
+            $sql = "UPDATE player SET player_grid='$jsonGrid', player_rounds=player_rounds+1, player_progression=100 WHERE player_id=$currentPlayerId";
+        } else {
+            $sql = "UPDATE player SET player_grid='$jsonGrid', player_rounds=player_rounds+1, player_progression=100, player_start=0, player_round_duration=$duration, player_total_duration=$total WHERE player_id=$currentPlayerId";
+        }
         self::DbQuery($sql);
 
-        self::notifyAllPlayers("progression", "", array(
-            'player_id' => $playerId,
-            'player_progression' => 100
-        ));
+        $this->notifyProgression($currentPlayerId, 100);
+        $this->notifyPlayerGridChange($currentPlayerId, $jsonGrid);
 
-        $this->notifyPlayerGridChange($playerId, $jsonGrid);
+        if ($this->isRealtimeTeamMode()) {
+            $this->gamestate->nextPrivateState($currentPlayerId, 'teamWait');
 
-        self::notifyAllPlayers("stop", clienttranslate('${player_name} solved their puzzle in ${duration}'), array (
-            'player_name' => self::getCurrentPlayerName(),
-            'duration' => $durationStr,
-            'player_id' => $playerId
-        ));
+            $currentPlayerTeam = $this->getPlayerTeam(self::getPlayerNoById($currentPlayerId));
+            $teamData = $this->getTeammatesAndCheckState($currentPlayerTeam, STATE_PLAY_PUZZLE_RESOLVED_TEAM);
 
-        $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+            if ($teamData['result']) {
+                $teammates = $teamData['teammates'];
+                $teammatesStr = implode(",", $teammates);
+
+                $sql = "UPDATE player SET player_start=0, player_round_duration=$duration, player_total_duration=$total WHERE player_id IN ($teammatesStr)";
+                self::DbQuery($sql);
+
+                $this->sendPlayerResolveNotification($currentPlayerId, $durationStr);
+
+                foreach ($teammates as $playerId) {
+                    $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+                }
+            }
+        } else {
+            $this->sendPlayerResolveNotification($currentPlayerId, $durationStr);
+            $this->gamestate->setPlayerNonMultiactive($currentPlayerId, 'next');
+        }
     }
 
     function action_giveup($timeout) {
@@ -762,10 +800,7 @@ class LaserReflection extends Table {
                 'player_name' => self::getCurrentPlayerName()
             ));
 
-            self::notifyAllPlayers("progression", "", array(
-                'player_id' => $playerId,
-                'player_progression' => 0
-            ));
+            $this->notifyProgression($playerId, 0);
 
             $sql = "UPDATE player SET player_progression=0, player_start=0, player_round_duration=0 WHERE player_id=$playerId";
             self::DbQuery($sql);
@@ -859,56 +894,98 @@ class LaserReflection extends Table {
     }
 
     function getTeamsCount() {
-        if ($this->isModeRandom() && $this->getGameStateValue('count_players') > 2) {
-            return $this->getGameStateValue('teams');
+        $teamsCount = $this->getGameStateValue('teams');
+
+        if ($teamsCount > 0 && $this->isModeRandom()) {
+            $countPLayers = $this->getGameStateValue('count_players');
+            return ($countPLayers > 3) ? $teamsCount : 2;
         }
         return 0;
     }
 
+    function getTeammatesAndCheckState($currentPlayerTeam, $state) {
+        $sql = "SELECT player_id id, player_no num, player_state state FROM player";
+        $players = self::getObjectListFromDB($sql);
+        $teammates = [];
+        $result = true;
+
+        foreach ($players as $playerId => $player) {
+            $playerTeam = $this->getPlayerTeam($player['num']);
+
+            if ($currentPlayerTeam == $playerTeam) {
+                $teammates[] = $player['id'];
+                $playerState = $player['state'];
+
+                if ($playerState != $state) {
+                    // the player is not in the right state
+                    $result = false;
+                }
+            }
+        }
+
+        return [ 'teammates' => $teammates, 'result' => $result ];
+    }
+
+    function isRealtimeTeamMode() {
+        return !$this->isAsync() && $this->getTeamsCount() > 0;
+    }
+
+    function notifyProgression($playerId, $val) {
+        self::notifyAllPlayers("progression", "", [
+            'player_id' => $playerId,
+            'player_progression' => $val
+        ]);
+    }
+
     function notifyPlayerGridChange($playerId, $jsonGrid) {
-        if ($this->isTrainingMode() && $this->getTeamsCount() == 0) {
-            // no team mode and training mode, we can send the information to everyone
+        if ($this->getTeamsCount() == 0) {
+            $player_team = 0;
+        } else {
+            $player_no = self::getPlayerNoById($playerId);
+            $player_team = $this->getPlayerTeam($player_no);
+        }
+
+        if ($this->isTrainingMode()) {
+            // training mode, we can send the information to everyone
             self::notifyAllPlayers("gridChange", "", [
                 'player_id' => $playerId,
-                'player_grid' => $jsonGrid
+                'player_grid' => $jsonGrid,
+                'player_team' => $player_team,
             ]);
             return;
         }
 
-        if ($this->getTeamsCount() == 0 || $this->isAsync()) {
-            // no team mode (and not training mode), or turn-based mode, only the concerned player should receive the event
+        if (!$this->isRealtimeTeamMode()) {
+            // no team mode, or turn-based mode, only the concerned player should receive the event
             self::notifyPlayer($playerId, "gridChange", "", [
                 'player_id' => $playerId,
-                'player_grid' => $jsonGrid
+                'player_grid' => $jsonGrid,
+                'player_team' => $player_team,
             ]);
             return;
         }
 
-        // team mode management !
-
-        $player_no = self::getPlayerNoById($playerId);
-        $player_team = $this->getPlayerTeam($player_no);
+        // realtime team mode management !
 
         foreach ($this->gamestate->getActivePlayerList() as $active_id) {
+            $shouldSend = false;
+
             if ($active_id == $playerId) {
                 // the concerned player should received the event (for replay)
+                $shouldSend = true;
+            } else {
+                // the teammates as well
+                $other_player_no = self::getPlayerNoById($active_id);
+                $other_player_team = $this->getPlayerTeam($other_player_no);
+                $shouldSend = $other_player_team == $player_team;
+            }
+
+            if ($shouldSend) {
                 self::notifyPlayer($active_id, "gridChange", "", [
                     'player_id' => $playerId,
                     'player_grid' => $jsonGrid,
                     'player_team' => $player_team,
                 ]);
-            } else {
-                $other_player_no = self::getPlayerNoById($active_id);
-                $other_player_team = $this->getPlayerTeam($other_player_no);
-
-                // the teammates (or everyone in training mode) as well
-                if ($this->isTrainingMode() || $other_player_team == $player_team) {
-                    self::notifyPlayer($active_id, "gridChange", "", [
-                        'player_id' => $playerId,
-                        'player_grid' => $jsonGrid,
-                        'player_team' => $other_player_team,
-                    ]);
-                }
             }
         }
     }
@@ -921,12 +998,13 @@ class LaserReflection extends Table {
         return $this->getGameStateValue('player_team_'.$player_no);
     }
 
-    function getPlayerTeamName($playerId) {
+    function getPlayerTeamNameAndIcon($playerId) {
         $player_no = self::getPlayerNoById($playerId);
         $player_team = $this->getPlayerTeam($player_no);
-        $names = ['', 'Mages', 'Aliens', 'Vampires'];
+        $names = ['', 'Mages', 'Vampires', 'Aliens'];
+        $icons = ['', '🧙', '🧛', '👽'];
 
-        return $names[$player_team];
+        return [ 'name' => $names[$player_team], 'icon' => $icons[$player_team], 'team' => $player_team ];
     }
 
     function getRestingPlayer() {
@@ -1390,8 +1468,7 @@ class LaserReflection extends Table {
         return null;
     }
 
-    function sendPlayerStartNotification($start) {
-        $playerId = $this->getCurrentPlayerId();
+    function sendPlayerStartNotification($playerId, $start) {
         $ownerName = null;
 
         if ($this->isModeRandom()) {
@@ -1403,12 +1480,56 @@ class LaserReflection extends Table {
             }
         }
 
-        if ($ownerName != null) {
+        if ($ownerName == null) {
+            return;
+        }
+
+        if ($this->isRealtimeTeamMode()) {
+            $playerTeam = $this->getPlayerTeamNameAndIcon($playerId);
+            self::notifyAllPlayers("start", clienttranslate('The ${team_name} team has started to work on ${other_player_name}\'s puzzle'), array (
+                'team_name' => [
+                    'log' => '${name} ${icon}',
+                    'args'=> [
+                        'name' => clienttranslate($playerTeam['name']),
+                        'icon' => $playerTeam['icon'],
+                        'i18n' => ['name']
+                    ]
+                ],
+                'other_player_name' => $ownerName,
+                'player_team' => $playerTeam['team'],
+                'start' => $start
+            ));
+        } else {
             self::notifyAllPlayers("start", clienttranslate('${player_name} has started to work on ${other_player_name}\'s puzzle'), array (
                 'player_name' => self::getCurrentPlayerName(),
                 'other_player_name' => $ownerName,
                 'player_id' => $playerId,
                 'start' => $start
+            ));
+        }
+    }
+
+    function sendPlayerResolveNotification($playerId, $durationStr) {
+        if ($this->isRealtimeTeamMode()) {
+            $playerTeam = $this->getPlayerTeamNameAndIcon($playerId);
+
+            self::notifyAllPlayers("stop", clienttranslate('The ${team_name} team solved their puzzle in ${duration}'), array (
+                'team_name' => [
+                    'log' => '${name} ${icon}',
+                    'args'=> [
+                        'name' => clienttranslate($playerTeam['name']),
+                        'icon' => $playerTeam['icon'],
+                        'i18n' => ['name']
+                    ]
+                ],
+                'duration' => $durationStr,
+                'player_team' => $playerTeam['team']
+            ));
+        } else {
+            self::notifyAllPlayers("stop", clienttranslate('${player_name} solved their puzzle in ${duration}'), array (
+                'player_name' => self::getCurrentPlayerName(),
+                'duration' => $durationStr,
+                'player_id' => $playerId
             ));
         }
     }
@@ -1452,11 +1573,11 @@ class LaserReflection extends Table {
                     $sql = "UPDATE player SET player_puzzle_grid='$jsonPuzzleGrid', player_puzzle='$jsonPuzzle' WHERE player_id=$playerId";
                     self::DbQuery($sql);
 
-                    self::notifyAllPlayers("puzzleChange", "", array(
+                    self::notifyAllPlayers("puzzleChange", "", [
                         'player_id' => $playerId,
                         'player_puzzle' => $jsonPuzzle,
                         'default' => true
-                    ));
+                    ]);
                 }
             }
         }
