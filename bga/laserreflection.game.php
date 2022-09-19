@@ -41,7 +41,15 @@ class LaserReflection extends Table {
             "player_team_4" => 53,
             "player_team_5" => 54,
             "player_team_6" => 55,
-            "giveup_propose" => 60,
+            "giveup_propose_1" => 60,
+            "giveup_propose_2" => 61,
+            "giveup_propose_3" => 62,
+            "giveup_agree_1" => 70,
+            "giveup_agree_2" => 71,
+            "giveup_agree_3" => 72,
+            "giveup_agree_4" => 73,
+            "giveup_agree_5" => 74,
+            "giveup_agree_6" => 75,
             "multi_mode" => 103,
             "solo_mode" => 104,
             "teams" => 106,
@@ -55,6 +63,8 @@ class LaserReflection extends Table {
             "auto_start" => 190,
             "training_mode" => 201,
         ]);
+
+
 	}
 
     protected function getGameName() {
@@ -113,10 +123,14 @@ class LaserReflection extends Table {
         self::setGameStateInitialValue('round', 1);
         self::setGameStateInitialValue('prev_resting', 0);
         self::setGameStateInitialValue('resting', 0);
-        self::setGameStateInitialValue('giveup_propose', 0);
+
+        for ($i=1; $i<=3; $i++) {
+            self::setGameStateInitialValue('giveup_propose_'.$i, 0);
+        }
 
         for ($i=1; $i<=6; $i++) {
             self::setGameStateInitialValue('player_team_'.$i, 0);
+            self::setGameStateInitialValue('giveup_agree_'.$i, 0);
         }
 
         if ($count_players == 1) {
@@ -199,6 +213,23 @@ class LaserReflection extends Table {
         $result['params'][] = ['key' => 'time_limit', 'val' => $this->getGameStateValue('time_limit')];
         $result['params'][] = ['key' => 'training_mode', 'val' => $this->isTrainingMode()];
         $result['params'][] = ['key' => 'teams', 'val' => $this->getTeamsCount()];
+
+        $collectiveGiveup = [
+            'teams' => [
+                $this->getGameStateValue('giveup_propose_1'),
+                $this->getGameStateValue('giveup_propose_2'),
+                $this->getGameStateValue('giveup_propose_3')
+            ],
+            'players' => [
+                $this->getGameStateValue('giveup_agree_1'),
+                $this->getGameStateValue('giveup_agree_2'),
+                $this->getGameStateValue('giveup_agree_3'),
+                $this->getGameStateValue('giveup_agree_4'),
+                $this->getGameStateValue('giveup_agree_5'),
+                $this->getGameStateValue('giveup_agree_6')
+            ]
+        ];
+        $result['params'][] = ['key' => 'giveup', 'val' => $collectiveGiveup];
 
         if ($this->isModeResting()) {
             $restingPlayerId = $gameEnded ?  $this->getRestingPlayerId() : $this->getPreviouslyRestingPlayerId();
@@ -862,12 +893,17 @@ class LaserReflection extends Table {
         self::checkAction("giveUpPropose");
 
         $playerId = $this->getCurrentPlayerId();
+        $player_no = self::getPlayerNoById($playerId);
+        $player_team = $this->getPlayerTeam($player_no);
 
-        self::setGameStateValue('giveup_propose', $playerId);
+        self::setGameStateValue('giveup_propose_'.$player_team, $playerId);
+        self::setGameStateValue('giveup_agree_'.$player_no, 1);
 
-        self::notifyAllPlayers("giveup_propose", clienttranslate('${player_name} proposes to give up'), [
-            'player_name' => self::getCurrentPlayerName(),
-            'player_id' => $playerId
+        self::notifyAllPlayers('collectiveGiveup', '', [
+            'action' => 'propose',
+            'player_id' => $playerId,
+            'player_num' => $player_no,
+            'player_team' => $player_team,
         ]);
 
         $this->gamestate->nextPrivateState($playerId, 'continue');

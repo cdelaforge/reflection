@@ -234,9 +234,16 @@
 }
 
 #lrf_team_2 {
-    background-color: #92CEA8;
+    background-color: #F9665E;
 }
 
 #lrf_team_3 {
-    background-color: #F9665E;
+    background-color: #92CEA8;
+}
+
+#giveup-decision {
+    font-size: 120%;
+    font-weight: 700;
+    margin-top: 5px;
+    text-align: center;
 }

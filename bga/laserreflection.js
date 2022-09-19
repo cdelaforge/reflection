@@ -89,6 +89,9 @@ define([
                             case "teams":
                                 gameUI.teamsCount = p.val;
                                 break;
+                            case "giveup":
+                                gameUI.setCollectiveGiveup(p.val);
+                                break;
                         }
                     });
 
@@ -117,6 +120,8 @@ define([
 
                     gameUI.init(this);
                     gameUI.displayPlayerTeams();
+                    gameUI.buildCollectiveGiveupArea();
+                    gameUI.displayCollectiveGiveup();
 
                     // Setup game notifications to handle (see "setupNotifications" method below)
                     this.setupNotifications();
@@ -437,6 +442,7 @@ define([
                 dojo.subscribe('roundStart', this, "notif_roundStart");
                 dojo.subscribe('teamSelection', this, "notif_teamSelection");
                 dojo.subscribe('gridChange', this, "notif_gridChange");
+                dojo.subscribe('collectiveGiveup', this, "notif_collectiveGiveup");
 
                 if (this.isSpectator) {
                     dojo.subscribe('puzzleChange', this, "notif_puzzleChange");
@@ -505,6 +511,33 @@ define([
                         gameUI.refreshTeamData = true;
                     }
                 }
+            },
+
+            collectiveGiveup: function (notif) {
+                console.log("notif_giveupPropose", notif);
+
+                const playerTeam = +notif.args.player_team;
+                const playerId = +notif.args.player_id;
+                const playerNum = +notif.args.player_num;
+
+                switch (notif.args.action) {
+                    case "propose":
+                        gameUI.collectiveGiveupTeams[playerTeam] = playerId;
+                        gameUI.collectiveGiveupPlayers[playerNum] = 1;
+                        break;
+                    case "agree":
+                        gameUI.collectiveGiveupPlayers[playerNum] = 1;
+                        break;
+                    case "disagree":
+                        gameUI.collectiveGiveupTeams[playerTeam] = 0;
+                        Object.keys(gameUI.players).map(id => {
+                            if (gameUI.players[id].team === playerTeam) {
+                                gameUI.collectiveGiveupPlayers[gameUI.players[id].num] = 0;
+                            }
+                        });
+                        break;
+                }
+                gameUI.displayCollectiveGiveup();
             },
 
             notif_puzzleChange: function (notif) {

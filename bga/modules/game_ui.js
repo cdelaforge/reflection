@@ -186,6 +186,43 @@ const gameUI = {
     this.players[playerId] = result;
   },
 
+  setCollectiveGiveup: function (data) {
+    this.collectiveGiveupTeams = [0].concat(data.teams.map(t => +t));
+    this.collectiveGiveupPlayers = [0].concat(data.players.map(p => +p));
+  },
+
+  buildCollectiveGiveupArea: function () {
+    dojo.place(this.dojoGame.format_block('jstpl_giveup', {
+      giveup_decision_title: _("Would you like to giveup this round (you will receive a point penalty)?"),
+      yes: _("Yes"),
+      no: _("No"),
+    }), 'left-side', 12);
+  },
+
+  displayCollectiveGiveup: function () {
+    const team = this.players[this.playerId].team;
+    const askedGiveup = this.collectiveGiveupTeams[team];
+    const players = [];
+
+    if (askedGiveup) {
+      dojo.style("giveup-decision", "display", "");
+
+      Object.keys(this.players).map((playerId) => {
+        const playerTeam = this.players[playerId].team;
+        const playerNum = this.players[playerId].num;
+        const playerGiveup = this.collectiveGiveupPlayers[playerNum];
+
+        if (playerTeam === team && playerGiveup) {
+          players.push(this.players[playerId].name);
+        }
+      });
+
+      document.getElementById('giveup-decision-players').innerHTML = players.join(', ');
+    } else {
+      dojo.style("giveup-decision", "display", "none");
+    }
+  },
+
   shouldAddTime: function () {
     if (!this.realtime || this.mode !== "play") {
       return false;

@@ -62,6 +62,17 @@
 
 // Javascript HTML templates
 
+var jstpl_giveup = '\
+    <div id="giveup-decision" class="whiteblock" style="display: none;">\
+        <span id="giveup-decision-title">${giveup_decision_title}</span><br>\
+        <a href="#" id="giveup_decision_yes" class="bgabutton bgabutton_blue" data-ol-has-click-handler="">${yes}</a>\
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\
+        <a href="#" id="giveup_decision_no" class="bgabutton bgabutton_blue" data-ol-has-click-handler="">${no}</a>\
+        <div id="giveup-decision-players-div">\
+            <p>${yes}: <span id="giveup-decision-players"></span></p>\
+        </div>\
+    </div>';
+
 var jstpl_progressbar = '\
     <div id="${iid}" class="lrf_info">\
         <div id="${pid}" class="lrf_progress-bar__main">\
@@ -92,7 +103,7 @@ var jstpl_progressbar = '\
             <label>👍</label>\
             <span>${selected}</span>\
         </div>\
-    </div>'
+    </div>';
 </script>
 
 {OVERALL_GAME_FOOTER}
