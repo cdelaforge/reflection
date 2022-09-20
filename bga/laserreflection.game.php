@@ -416,7 +416,9 @@ class LaserReflection extends Table {
 
     function stEndRound() {
         if ($this->isRealtimeTeamMode()) {
-            $this->stEndRound_TeamReatime();
+            $this->stEndRound_TeamRealtime();
+        } else if ($this->getTeamsCount() > 0) {
+            $this->stEndRound_TeamTurnBased();
         } else if ($this->isModeSolo()) {
             $this->stEndRound_Solo();
         } else {
@@ -424,7 +426,7 @@ class LaserReflection extends Table {
         }
     }
 
-    function stEndRound_TeamReatime() {
+    function stEndRound_TeamRealtime() {
         $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_grid grid FROM player ORDER BY player_round_duration";
 
         $players = self::getObjectListFromDB($sql);
@@ -509,6 +511,103 @@ class LaserReflection extends Table {
 
             $this->gamestate->setAllPlayersMultiactive();
             $this->gamestate->initializePrivateStateForAllActivePlayers();
+        }
+    }
+
+    function stEndRound_TeamTurnBased() {
+        $sql = "SELECT player_id id, player_name name, player_round_duration duration, player_grid grid FROM player ORDER BY player_round_duration";
+
+        $players = self::getObjectListFromDB($sql);
+        $cpt = count($players);
+        $rounds = $this->getRounds();
+        $scorePart = (120 / $rounds) / $cpt;
+
+        $prevScore = 0;
+        $prevDuration = 0;
+        $teamScore = [0, 0, 0, 0];
+        $teamsDuration = [0, 0, 0, 0];
+        $teamsPlayers = [0, 0, 0, 0];
+        $playersScore = [];
+        $playersTeam = [];
+
+        for ($i=0; $i<$cpt; $i++) {
+            $playerId = $players[$i]['id'];
+            $playerTeamData = $this->getPlayerTeamNameAndIcon($playerId);
+            $playerTeamNum = $playerTeamData['team'];
+            $duration =  $players[$i]['duration'];
+
+            if ($duration == $prevDuration) {
+                $playerScore = $prevScore;
+            } else if ($duration >= 6666) {
+                $duration = 6666;
+                $playerScore = -floor($scorePart);
+            } else {
+                $playerScore = floor(($cpt - $i) * $scorePart);
+                $prevDuration = $duration;
+                $prevScore = $playerScore;
+            }
+
+            $playersScore[] = $playerScore;
+            $playersTeam[] = $playerTeamNum;
+            $teamsPlayers[$playerTeamNum] = $teamsPlayers[$playerTeamNum] + 1;
+            $teamScore[$playerTeamNum] = $teamScore[$playerTeamNum] + $playerScore;
+            $teamsDuration[$playerTeamNum] = $teamsDuration[$playerTeamNum] + $duration;
+        }
+
+        for ($i=0; $i<$cpt; $i++) {
+            $playerId = $players[$i]['id'];
+            $playerName = $players[$i]['name'];
+            $playerScore = $playersScore[$i];
+            $playerTeamNum = $playersTeam[$i];
+            $playerTeamPoints = floatval($playerScore) / $teamsPlayers[$playerTeamNum];
+            $teamPoints = $teamScore[$playerTeamNum] / $teamsPlayers[$playerTeamNum];
+            $duration = $teamsDuration[$playerTeamNum];
+            $explanation = '('.$playerScore.' / '.$teamsPlayers[$playerTeamNum].')';
+
+            self::notifyAllPlayers("log", $playerId." ".$playerName." ".$playerScore." ".$playerTeamNum." ".$playerTeamPoints." ".$teamPoints." ".$duration, []);
+
+            if ($playerScore < 0) {
+                self::notifyAllPlayers("log", clienttranslate('${player_name} makes his team lose ${player_points} points. ${explanation}'), [
+                    'player_name' => $playerName,
+                    'player_points' => -number_format($playerTeamPoints, 1),
+                    'explanation' => $explanation
+                ]);
+            } else {
+                self::notifyAllPlayers("log", clienttranslate('${player_name} makes his team win ${player_points} points. ${explanation}'), [
+                    'player_name' => $playerName,
+                    'player_points' => number_format($playerTeamPoints, 1),
+                    'explanation' => $explanation
+                ]);
+            }
+
+            $sql = "UPDATE player SET player_grid=NULL, player_round_score=$teamPoints, player_score = player_score + $teamPoints, player_score_aux = player_score_aux - $duration WHERE player_id=$playerId";
+            self::DbQuery($sql);
+        }
+
+        //$this->sendRoundScore(0);
+
+        $round = $this->getRound() + 1;
+
+        if ($round > $rounds) {
+            // end of game !
+            $this->setGameStateValue('ended', 1);
+            $this->calcStats();
+            $this->sendAllPuzzles();
+            $this->gamestate->nextState("endGame");
+        } else {
+            // create a new puzzle
+            $this->updatePuzzle();
+            $this->setRound($round);
+
+            // turn-based mode, skip the display of round score
+            foreach ($players as $player) {
+                $this->notifyProgression($player["id"], 0);
+            }
+
+            $sql = "UPDATE player SET player_progression=0, player_start=0, player_round_duration=0";
+            self::DbQuery($sql);
+
+            $this->gamestate->nextState("next");
         }
     }
 

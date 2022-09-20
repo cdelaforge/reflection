@@ -374,7 +374,7 @@ define([
             },
             onGiveUp: function () {
                 if (!g_archive_mode) {
-                    if (gameUI.teamsCount > 0) {
+                    if (gameUI.teamsCount > 0 && gameUI.realtime) {
                         const team = gameUI.getMyData().team;
                         const teammates = gameUI.getTeamPlayersId(team);
 
