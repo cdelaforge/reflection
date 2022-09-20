@@ -893,17 +893,79 @@ class LaserReflection extends Table {
         self::checkAction("giveUpPropose");
 
         $playerId = $this->getCurrentPlayerId();
-        $player_no = self::getPlayerNoById($playerId);
-        $player_team = $this->getPlayerTeam($player_no);
+        $playerTeam = $this->getPlayerTeamNameAndIcon($playerId);
 
-        self::setGameStateValue('giveup_propose_'.$player_team, $playerId);
-        self::setGameStateValue('giveup_agree_'.$player_no, 1);
+        $everybodyAgree = true;
+
+        for ($i=1; $i<=6; $i++) {
+            if ($playerTeam['num'] != $i
+                && $this->getPlayerTeam($i) == $playerTeam['team']
+                && $this->getGameStateValue('giveup_agree_'.$i) == 0) {
+                    $everybodyAgree = false;
+                    break;
+            }
+        }
+
+        if ($everybodyAgree) {
+            self::notifyAllPlayers("stop", clienttranslate('The ${team_name} team found the puzzle too hard and give up'), [
+                'team_name' => [
+                    'log' => '${name} ${icon}',
+                    'args'=> [
+                        'name' => clienttranslate($playerTeam['name']),
+                        'icon' => $playerTeam['icon'],
+                        'i18n' => ['name']
+                    ]
+                ],
+                'player_team' => $playerTeam['team']
+            ]);
+
+            $teamData = $this->getTeammatesAndCheckState($playerTeam['team'], STATE_PLAY_PUZZLE_PRIVATE);
+            $teammates = $teamData['teammates'];
+            $teammatesStr = implode(",", $teammates);
+
+            $sql = "UPDATE player SET player_start=0, player_round_duration=6666 WHERE player_id IN ($teammatesStr)";
+            self::DbQuery($sql);
+
+            self::setGameStateValue('giveup_propose_'.$playerTeam['team'], 0);
+
+            foreach ($teammates as $id) {
+                $num = self::getPlayerNoById($id);
+                self::setGameStateValue('giveup_agree_'.$num, 0);
+                $this->gamestate->nextPrivateState($id, 'solution');
+            }
+        } else {
+            self::setGameStateValue('giveup_propose_'.$playerTeam['team'], $playerId);
+            self::setGameStateValue('giveup_agree_'.$playerTeam['num'], 1);
+
+            self::notifyAllPlayers('collectiveGiveup', '', [
+                'action' => 'propose',
+                'player_id' => $playerId,
+                'player_num' => $playerTeam['num'],
+                'player_team' => $playerTeam['team'],
+            ]);
+
+            $this->gamestate->nextPrivateState($playerId, 'continue');
+        }
+    }
+
+    function action_giveupRefuse() {
+        self::checkAction("giveUpRefuse");
+
+        $playerId = $this->getCurrentPlayerId();
+        $playerTeam = $this->getPlayerTeamNameAndIcon($playerId);
+        $teamData = $this->getTeammatesAndCheckState($playerTeam['team'], STATE_PLAY_PUZZLE_PRIVATE);
+        $teammates = $teamData['teammates'];
+
+        foreach ($teammates as $id) {
+            $num = self::getPlayerNoById($id);
+            self::setGameStateValue('giveup_agree_'.$num, 0);
+        }
 
         self::notifyAllPlayers('collectiveGiveup', '', [
-            'action' => 'propose',
+            'action' => 'cancel',
             'player_id' => $playerId,
-            'player_num' => $player_no,
-            'player_team' => $player_team,
+            'player_num' => $playerTeam['num'],
+            'player_team' => $playerTeam['team'],
         ]);
 
         $this->gamestate->nextPrivateState($playerId, 'continue');
@@ -1144,7 +1206,12 @@ class LaserReflection extends Table {
         $names = ['', 'Mages', 'Vampires', 'Aliens'];
         $icons = ['', '🧙', '🧛', '👽'];
 
-        return [ 'name' => $names[$player_team], 'icon' => $icons[$player_team], 'team' => $player_team ];
+        return [
+            'name' => $names[$player_team],
+            'icon' => $icons[$player_team],
+            'team' => $player_team,
+            'num' => $player_no,
+        ];
     }
 
     function getRestingPlayer() {

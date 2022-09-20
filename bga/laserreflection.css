@@ -50,8 +50,8 @@
     width: 100%;
 }
 
-.tableWindow td {
-    text-align: left;
+.tableWindow th {
+    text-align: center;
 }
 
 .tableWindow td:first-child {

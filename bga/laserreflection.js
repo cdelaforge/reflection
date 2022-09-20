@@ -243,6 +243,7 @@ define([
                         gameUI.solution = JSON.parse(data.grid);
                         gameUI.setup();
                         gameUI.displayGrid();
+                        gameUI.hideCollectiveGiveup();
                         break;
                     case "gameEnd":
                         gameUI.ended = true;
@@ -285,7 +286,7 @@ define([
                     switch (stateName) {
                         case "teamSelection":
                             this.removeActionButtons();
-                            const team = gameUI.players[this.player_id].team;
+                            const team = gameUI.getMyData().team;
                             if (team) {
                                 this.addActionButton('teamValidate', _('OK'), 'onTeamValidate');
                             }
@@ -373,28 +374,25 @@ define([
             },
             onGiveUp: function () {
                 if (!g_archive_mode) {
-                    let askConfirmation = false;
-
                     if (gameUI.teamsCount > 0) {
-                        const team = gameUI.players[this.player_id].team;
+                        const team = gameUI.getMyData().team;
                         const teammates = gameUI.getTeamPlayersId(team);
 
                         if (teammates.length === 1) {
-                            askConfirmation = true;
+                            this.confirmationDialog(_('Are you sure to give up? You will have a score penalty'), () => {
+                                gameUI.callAction("giveUpPropose", null, true);
+                            });
                         } else {
                             this.callAction("giveUpPropose", null, true);
                         }
                     } else if (gameUI.playersCount === 1) {
                         gameUI.giveUp = true;
                     } else {
-                        askConfirmation = true;
-                    }
-
-                    if (askConfirmation) {
                         this.confirmationDialog(_('Are you sure to give up? You will have a score penalty'), () => {
                             gameUI.giveUp = true;
                         });
                     }
+
                 }
             },
             onScoreDisplayEnd: function () {
@@ -513,8 +511,8 @@ define([
                 }
             },
 
-            collectiveGiveup: function (notif) {
-                console.log("notif_giveupPropose", notif);
+            notif_collectiveGiveup: function (notif) {
+                console.log("notif_collectiveGiveup", notif);
 
                 const playerTeam = +notif.args.player_team;
                 const playerId = +notif.args.player_id;
@@ -525,10 +523,7 @@ define([
                         gameUI.collectiveGiveupTeams[playerTeam] = playerId;
                         gameUI.collectiveGiveupPlayers[playerNum] = 1;
                         break;
-                    case "agree":
-                        gameUI.collectiveGiveupPlayers[playerNum] = 1;
-                        break;
-                    case "disagree":
+                    case "cancel":
                         gameUI.collectiveGiveupTeams[playerTeam] = 0;
                         Object.keys(gameUI.players).map(id => {
                             if (gameUI.players[id].team === playerTeam) {

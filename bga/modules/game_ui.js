@@ -38,7 +38,7 @@ const gameUI = {
       if (gameUI.mode === "play") {
         gameUI.setGrid(grid);
 
-        if (dojoGame.isCurrentPlayerActive()) {
+        if (dojoGame.isCurrentPlayerActive() && gameUI.getMyData().state === "playing") {
           gameUI.resolved = true;
         }
       }
@@ -58,6 +58,10 @@ const gameUI = {
 
     this.liveLoop = 0;
     this.initialized = true;
+  },
+
+  getMyData: function () {
+    return this.players[this.playerId];
   },
 
   initLocalStorage: function (tableId, playerId) {
@@ -160,7 +164,11 @@ const gameUI = {
     result.running = result.startTime > 0;
 
     if (result.running) {
-      result.state = "playing";
+      if (playerData.state === "54") {
+        result.state = "success";
+      } else {
+        result.state = "playing";
+      }
     } else {
       result.duration = gameUI.getDurationStr(parseInt(playerData.duration, 10));
 
@@ -197,10 +205,30 @@ const gameUI = {
       yes: _("Yes"),
       no: _("No"),
     }), 'left-side', 12);
+
+    $('giveup_decision_yes').onclick = function () {
+      gameUI.callAction("giveUpPropose", null, true);
+    };
+    $('giveup_decision_no').onclick = function () {
+      gameUI.callAction("giveUpRefuse", null, true);
+    };
+  },
+
+  hideCollectiveGiveup: function () {
+    const playerTeam = this.getMyData().team;
+
+    gameUI.collectiveGiveupTeams[playerTeam] = 0;
+    Object.keys(gameUI.players).map(id => {
+      if (gameUI.players[id].team === playerTeam) {
+        gameUI.collectiveGiveupPlayers[gameUI.players[id].num] = 0;
+      }
+    });
+
+    this.displayCollectiveGiveup();
   },
 
   displayCollectiveGiveup: function () {
-    const team = this.players[this.playerId].team;
+    const team = this.getMyData().team;
     const askedGiveup = this.collectiveGiveupTeams[team];
     const players = [];
 
@@ -253,7 +281,7 @@ const gameUI = {
       return;
     }
 
-    const team = this.players[this.playerId].team;
+    const team = this.getMyData().team;
 
     if (team && !this.teamData.length) {
       Object.keys(this.players).map((id) => {
@@ -394,7 +422,7 @@ const gameUI = {
     const button = document.getElementById('giveUp');
 
     if (button) {
-      const playerData = this.players[this.playerId];
+      const playerData = this.getMyData();
 
       if (playerData.startTime) {
         const duration = gameUI.getDuration(playerData.startTime);
@@ -723,7 +751,7 @@ const gameUI = {
     dojo.style("lrf_main", "display", "none");
     dojo.style("lrf_teams", "display", "flex");
 
-    const team = this.players[this.playerId].team;
+    const team = this.getMyData().team;
     if (team) {
       dojo.addClass("lrf_team_" + team, "lrf_team_selected");
     }
@@ -747,8 +775,9 @@ const gameUI = {
       }
     }
 
-    if (this.players[this.playerId].team !== team) {
-      this.callAction("teamSelect", { no: this.players[this.playerId].num, team }, true);
+    const myData = this.getMyData();
+    if (myData.team !== team) {
+      this.callAction("teamSelect", { no: myData.num, team }, true);
     }
   },
 
