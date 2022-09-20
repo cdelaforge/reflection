@@ -632,7 +632,7 @@ class LaserReflection extends Table {
 
             $roundScores = [];
             $roundScores[$playerId] = $playerScore;
-            self::notifyAllPlayers("roundScores", '', ['type' => 'teams', 'roundScores' => $roundScores]);
+            self::notifyAllPlayers("roundScores", '', ['type' => 'players', 'roundScores' => $roundScores]);
 
             $sql = "UPDATE player SET player_grid=NULL, player_round_score=$playerScore, player_score = player_score + $playerScore WHERE player_id=$playerId";
             self::DbQuery($sql);

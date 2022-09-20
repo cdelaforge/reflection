@@ -325,7 +325,7 @@ const gameUI = {
       this.giveUp = false;
       this.timeout = false;
       this.shouldSendProgression = false;
-      this.callAction("puzzleResolve", { grid: JSON.stringify(this.grid) }, true);
+      this.callAction("puzzleResolve", { grid: JSON.stringify(this.grid) }, true, "post");
       this.clearSavedGrid();
     }
 
@@ -344,7 +344,7 @@ const gameUI = {
     if (this.puzzleCreationEnd) {
       this.puzzleCreationEnd = false;
       this.shouldSendProgression = false;
-      this.callAction("creationEnd", { grid: JSON.stringify(this.grid), puzzle: JSON.stringify(this.puzzle) }, true);
+      this.callAction("creationEnd", { grid: JSON.stringify(this.grid), puzzle: JSON.stringify(this.puzzle) }, true, "post");
       this.clearSavedGrid();
     }
 
@@ -359,7 +359,7 @@ const gameUI = {
           give_time: this.shouldAddTime(),
         };
 
-        this.callAction("gridChange", data, data.give_time);
+        this.callAction("gridChange", data, data.give_time, "post");
       }
     }
 
@@ -492,8 +492,8 @@ const gameUI = {
     }
   },
 
-  callAction: function (action, args, lock) {
-    this.dojoGame.callAction(action, args, lock);
+  callAction: function (action, args, lock, verb) {
+    this.dojoGame.callAction(action, args, lock, verb);
   },
 
   displayGrid: function () {
