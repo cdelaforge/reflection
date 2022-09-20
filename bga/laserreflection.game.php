@@ -438,8 +438,8 @@ class LaserReflection extends Table {
         $prevScore = 0;
         $prevDuration = 0;
         $teamIndex = 0;
-        $teamScore = [0, 0, 0, 0];
-        $teamDuration = [0, 0, 0, 0];
+        $teamsScore = [0, 0, 0, 0];
+        $teamsDuration = [0, 0, 0, 0];
 
         for ($i=0; $i<$playersCpt; $i++) {
             $player = $players[$i];
@@ -458,9 +458,9 @@ class LaserReflection extends Table {
                 $prevScore = $playerScore;
             }
 
-            if ($teamScore[$playerTeam['team']] == 0) {
-                $teamScore[$playerTeam['team']] = $playerScore;
-                $teamDuration[$playerTeam['team']] = $duration;
+            if ($teamsScore[$playerTeam['team']] == 0) {
+                $teamsScore[$playerTeam['team']] = $playerScore;
+                $teamsDuration[$playerTeam['team']] = $duration;
                 ++$teamIndex;
 
                 if ($playerScore < 0) {
@@ -494,7 +494,7 @@ class LaserReflection extends Table {
             self::DbQuery($sql);
         }
 
-        $this->sendTeamRoundScore($teamScore, $teamDuration);
+        $this->sendTeamRoundScore($teamsScore, $teamsDuration);
 
         $round = $this->getRound() + 1;
 
@@ -524,11 +524,12 @@ class LaserReflection extends Table {
 
         $prevScore = 0;
         $prevDuration = 0;
-        $teamScore = [0, 0, 0, 0];
+        $teamsScore = [0, 0, 0, 0];
         $teamsDuration = [0, 0, 0, 0];
         $teamsPlayers = [0, 0, 0, 0];
         $playersScore = [];
         $playersTeam = [];
+        $playersIcon = [];
 
         for ($i=0; $i<$cpt; $i++) {
             $playerId = $players[$i]['id'];
@@ -549,42 +550,51 @@ class LaserReflection extends Table {
 
             $playersScore[] = $playerScore;
             $playersTeam[] = $playerTeamNum;
+            $playersIcon[] = $playerTeamData['icon'];
             $teamsPlayers[$playerTeamNum] = $teamsPlayers[$playerTeamNum] + 1;
-            $teamScore[$playerTeamNum] = $teamScore[$playerTeamNum] + $playerScore;
+            $teamsScore[$playerTeamNum] = $teamsScore[$playerTeamNum] + $playerScore;
             $teamsDuration[$playerTeamNum] = $teamsDuration[$playerTeamNum] + $duration;
         }
+
+        $teamsMultiplier = $this->getTeamsScoreMultiplier($teamsPlayers);
 
         for ($i=0; $i<$cpt; $i++) {
             $playerId = $players[$i]['id'];
             $playerName = $players[$i]['name'];
             $playerScore = $playersScore[$i];
             $playerTeamNum = $playersTeam[$i];
-            $playerTeamPoints = floatval($playerScore) / $teamsPlayers[$playerTeamNum];
-            $teamPoints = $teamScore[$playerTeamNum] / $teamsPlayers[$playerTeamNum];
             $duration = $teamsDuration[$playerTeamNum];
-            $explanation = '('.$playerScore.' / '.$teamsPlayers[$playerTeamNum].')';
+            $teamMultiplier = $teamsMultiplier[$playerTeamNum];
+            $playerTeamScore = $playerScore * $teamMultiplier;
+            $teamScore = $teamsScore[$playerTeamNum] * $teamMultiplier;
 
-            self::notifyAllPlayers("log", $playerId." ".$playerName." ".$playerScore." ".$playerTeamNum." ".$playerTeamPoints." ".$teamPoints." ".$duration, []);
+            if ($teamMultiplier > 1) {
+                $explanation = '('.$playerScore.' × '.$teamMultiplier.')';
+            } else {
+                $explanation = '';
+            }
 
             if ($playerScore < 0) {
-                self::notifyAllPlayers("log", clienttranslate('${player_name} makes his team lose ${player_points} points. ${explanation}'), [
+                self::notifyAllPlayers("log", clienttranslate('${team_icon} ${player_name} makes his team lose ${player_points} points ${explanation}'), [
+                    'team_icon' => $playersIcon[$i],
                     'player_name' => $playerName,
-                    'player_points' => -number_format($playerTeamPoints, 1),
+                    'player_points' => -$playerTeamScore,
                     'explanation' => $explanation
                 ]);
             } else {
-                self::notifyAllPlayers("log", clienttranslate('${player_name} makes his team win ${player_points} points. ${explanation}'), [
+                self::notifyAllPlayers("log", clienttranslate('${team_icon} ${player_name} makes his team win ${player_points} points ${explanation}'), [
+                    'team_icon' => $playersIcon[$i],
                     'player_name' => $playerName,
-                    'player_points' => number_format($playerTeamPoints, 1),
+                    'player_points' => $playerTeamScore,
                     'explanation' => $explanation
                 ]);
             }
 
-            $sql = "UPDATE player SET player_grid=NULL, player_round_score=$teamPoints, player_score = player_score + $teamPoints, player_score_aux = player_score_aux - $duration WHERE player_id=$playerId";
+            $sql = "UPDATE player SET player_grid=NULL, player_round_score=$teamScore, player_score = player_score + $teamScore, player_score_aux = player_score_aux - $duration WHERE player_id=$playerId";
             self::DbQuery($sql);
         }
 
-        //$this->sendRoundScore(0);
+        self::notifyAllPlayers("roundScores", '', ['type' => 'teams', 'roundScores' => $teamsScore]);
 
         $round = $this->getRound() + 1;
 
@@ -762,16 +772,18 @@ class LaserReflection extends Table {
         $this->gamestate->nextPrivateState($playerId, 'next');
 
         $playerTeam = $this->getPlayerTeamNameAndIcon($playerId);
-        self::notifyAllPlayers("log", clienttranslate('${player_name} joined the ${team_name} team'), [
-            'player_name' => self::getCurrentPlayerName(),
-            'team_name' => [
-                'log' => '${name} ${icon}',
+
+        self::notifyAllPlayers("log", '${icon} ${message}', [
+            'icon' => $playerTeam['icon'],
+            'message' => [
+                'log' => clienttranslate('${player_name} joined the ${team_name} team'),
                 'args'=> [
-                    'name' => clienttranslate($playerTeam['name']),
-                    'icon' => $playerTeam['icon'],
-                    'i18n' => ['name']
+                    'player_name' => self::getCurrentPlayerName(),
+                    'team_name' => clienttranslate($playerTeam['name']),
+                    'i18n' => ['team_name']
                 ]
-            ]
+            ],
+            'i18n' => ['name']
         ]);
 
         $allPlayersSelectSameTeam = true;
@@ -1198,10 +1210,39 @@ class LaserReflection extends Table {
         $teamsCount = $this->getGameStateValue('teams');
 
         if ($teamsCount > 0 && $this->isModeRandom()) {
-            $countPLayers = $this->getGameStateValue('count_players');
-            return ($countPLayers > 3) ? $teamsCount : 2;
+            $countPlayers = $this->getGameStateValue('count_players');
+            return ($countPlayers > 3) ? $teamsCount : 2;
         }
         return 0;
+    }
+
+    function getTeamsScoreMultiplier($teamsPlayers) {
+        $teamsCount = $this->getTeamsCount();
+
+        if ($teamsCount == 2) {
+            if ($teamsPlayers[1] == $teamsPlayers[2]) {
+                return [0, 1, 1];
+            }
+            return [0, $teamsPlayers[2], $teamsPlayers[1]];
+        }
+
+        if ($teamsPlayers[1] == $teamsPlayers[2] && $teamsPlayers[1] == $teamsPlayers[3]) {
+            return [0, 1, 1, 1];
+        }
+
+        if ($teamsPlayers[1] == $teamsPlayers[2]) {
+            return [0, $teamsPlayers[3], $teamsPlayers[3], $teamsPlayers[1]];
+        }
+
+        if ($teamsPlayers[1] == $teamsPlayers[3]) {
+            return [0, $teamsPlayers[2], $teamsPlayers[1], $teamsPlayers[2]];
+        }
+
+        if ($teamsPlayers[2] == $teamsPlayers[3]) {
+            return [0, $teamsPlayers[2], $teamsPlayers[1], $teamsPlayers[1]];
+        }
+
+        return [0, $teamsPlayers[2] * $teamsPlayers[3], $teamsPlayers[1] * $teamsPlayers[3], $teamsPlayers[1] * $teamsPlayers[2]];
     }
 
     function getTeammatesAndCheckState($currentPlayerTeam, $state) {
@@ -1644,7 +1685,7 @@ class LaserReflection extends Table {
           return str_pad($minutes, 2, "0", STR_PAD_LEFT).":".str_pad($seconds, 2, "0", STR_PAD_LEFT);
     }
 
-    function sendTeamRoundScore($teamScore, $teamDuration) {
+    function sendTeamRoundScore($teamsScore, $teamsDuration) {
         $firstRow = [];
         $secondRow = [];
         $thirdRow = [];
@@ -1658,7 +1699,7 @@ class LaserReflection extends Table {
         $icons = ['', '🧙', '🧛', '👽'];
 
         for ($i=1; $i<4; $i++) {
-            $score = $teamScore[$i];
+            $score = $teamsScore[$i];
 
             if ($score == 0) {
                 break;
@@ -1675,14 +1716,14 @@ class LaserReflection extends Table {
             ];
             $secondRow[] = [
                 'str' => '${team_duration}',
-                'args' => ['team_duration' =>  $this->getDurationStr($teamDuration[$i])]
+                'args' => ['team_duration' =>  $this->getDurationStr($teamsDuration[$i])]
             ];
             $thirdRow[] = [
                 'str' => '${team_score}',
-                'args' => ['team_score' => $teamScore[$i]]
+                'args' => ['team_score' => $teamsScore[$i]]
             ];
 
-            $roundScores[$i] = $teamScore[$i];
+            $roundScores[$i] = $teamsScore[$i];
         }
 
         $table[] = $firstRow;
