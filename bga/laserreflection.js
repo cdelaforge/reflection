@@ -412,7 +412,7 @@ define([
                 }
             },
 
-            callAction: function (action, args, lock, handler) {
+            callAction: function (action, args, lock) {
                 if (!args) {
                     args = [];
                 }
@@ -421,7 +421,7 @@ define([
                 }
 
                 if (this.checkAction(action)) {
-                    this.ajaxcall("/" + this.game_name + "/" + this.game_name + "/" + action + ".html", args, this, (result) => { }, handler);
+                    this.ajaxcall("/" + this.game_name + "/" + this.game_name + "/" + action + ".html", args, this, (result) => { }, undefined);
                 }
             },
 

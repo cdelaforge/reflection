@@ -334,7 +334,11 @@ const gameUI = {
       this.giveUp = false;
       this.timeout = false;
       this.shouldSendProgression = false;
+      this.mode = 'solution';
+
       this.callAction(action, null, true);
+    } else if ((this.liveLoop === 0 || this.liveLoop === 2) && this.mode === "play") {
+      this.manageTimeLimit();
     }
 
     if (this.puzzleCreationEnd) {
@@ -381,10 +385,6 @@ const gameUI = {
           );
         }
       });
-    }
-
-    if ((this.liveLoop === 0 || this.liveLoop === 2) && this.mode === "play") {
-      this.manageTimeLimit();
     }
 
     const titleBar = document.getElementById("page-title");
@@ -492,8 +492,8 @@ const gameUI = {
     }
   },
 
-  callAction: function (action, args, lock, handler) {
-    this.dojoGame.callAction(action, args, lock, handler);
+  callAction: function (action, args, lock) {
+    this.dojoGame.callAction(action, args, lock);
   },
 
   displayGrid: function () {
