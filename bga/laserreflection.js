@@ -31,6 +31,21 @@ define([
                 console.log('laserreflection constructor');
             },
 
+            addMoveToLog: function (t, i) {
+                this.log_to_move_id[t] = i;
+
+                try {
+                    const div = document.getElementById('log_' + t);
+                    if (div.innerText.startsWith('🧙')) {
+                        div.classList.add("lrf_team_1");
+                    } else if (div.innerText.startsWith('🧛')) {
+                        div.classList.add("lrf_team_2");
+                    } else if (div.innerText.startsWith('👽')) {
+                        div.classList.add("lrf_team_3");
+                    }
+                } catch (error) { }
+            },
+
             setup: function (data) {
                 console.log("Starting game setup", data);
 

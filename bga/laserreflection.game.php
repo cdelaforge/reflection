@@ -464,28 +464,28 @@ class LaserReflection extends Table {
                 ++$teamIndex;
 
                 if ($playerScore < 0) {
-                    self::notifyAllPlayers("log", clienttranslate('The ${team_name} team loses ${points} points'), [
-                        'team_name' => [
-                            'log' => '${name} ${icon}',
+                    self::notifyAllPlayers("log", '${icon} ${message}', [
+                        'icon' => $playerTeam['icon'],
+                        'message' => [
+                            'log' => clienttranslate('The ${team_name} team loses ${points} points'),
                             'args'=> [
-                                'name' => clienttranslate($playerTeam['name']),
-                                'icon' => $playerTeam['icon'],
-                                'i18n' => ['name']
+                                'team_name' => clienttranslate($playerTeam['name']),
+                                'points' => -$playerScore,
+                                'i18n' => ['team_name']
                             ]
-                        ],
-                        'points' => -$playerScore
+                        ]
                     ]);
                 } else {
-                    self::notifyAllPlayers("log", clienttranslate('The ${team_name} team scores ${points} points'), [
-                        'team_name' => [
-                            'log' => '${name} ${icon}',
+                    self::notifyAllPlayers("log", '${icon} ${message}', [
+                        'icon' => $playerTeam['icon'],
+                        'message' => [
+                            'log' => clienttranslate('The ${team_name} team scores ${points} points'),
                             'args'=> [
-                                'name' => clienttranslate($playerTeam['name']),
-                                'icon' => $playerTeam['icon'],
-                                'i18n' => ['name']
+                                'team_name' => clienttranslate($playerTeam['name']),
+                                'points' => $playerScore,
+                                'i18n' => ['team_name']
                             ]
-                        ],
-                        'points' => $playerScore
+                        ]
                     ]);
                 }
             }
@@ -567,6 +567,7 @@ class LaserReflection extends Table {
             $teamMultiplier = $teamsMultiplier[$playerTeamNum];
             $playerTeamScore = $playerScore * $teamMultiplier;
             $teamScore = $teamsScore[$playerTeamNum] * $teamMultiplier;
+            $teamsScore[$playerTeamNum] = $teamScore;
 
             if ($teamMultiplier > 1) {
                 $explanation = '('.$playerScore.' × '.$teamMultiplier.')';
@@ -575,17 +576,27 @@ class LaserReflection extends Table {
             }
 
             if ($playerScore < 0) {
-                self::notifyAllPlayers("log", clienttranslate('${team_icon} ${player_name} makes his team lose ${player_points} points ${explanation}'), [
-                    'team_icon' => $playersIcon[$i],
-                    'player_name' => $playerName,
-                    'player_points' => -$playerTeamScore,
+                self::notifyAllPlayers("log", '${icon} ${message} ${explanation}', [
+                    'icon' => $playersIcon[$i],
+                    'message' => [
+                        'log' => clienttranslate('${player_name} makes his team lose ${player_points} points'),
+                        'args'=> [
+                            'player_name' => $playerName,
+                            'player_points' => -$playerTeamScore
+                        ]
+                    ],
                     'explanation' => $explanation
                 ]);
             } else {
-                self::notifyAllPlayers("log", clienttranslate('${team_icon} ${player_name} makes his team win ${player_points} points ${explanation}'), [
-                    'team_icon' => $playersIcon[$i],
-                    'player_name' => $playerName,
-                    'player_points' => $playerTeamScore,
+                self::notifyAllPlayers("log", '${icon} ${message} ${explanation}', [
+                    'icon' => $playersIcon[$i],
+                    'message' => [
+                        'log' => clienttranslate('${player_name} makes his team win ${player_points} points'),
+                        'args'=> [
+                            'player_name' => $playerName,
+                            'player_points' => $playerTeamScore
+                        ]
+                    ],
                     'explanation' => $explanation
                 ]);
             }
@@ -773,7 +784,7 @@ class LaserReflection extends Table {
 
         $playerTeam = $this->getPlayerTeamNameAndIcon($playerId);
 
-        self::notifyAllPlayers("log", '${icon} ${message}', [
+        self::notifyAllPlayers("log", '<span class="lrf_team_1">${icon} ${message}</span>', [
             'icon' => $playerTeam['icon'],
             'message' => [
                 'log' => clienttranslate('${player_name} joined the ${team_name} team'),
@@ -782,8 +793,7 @@ class LaserReflection extends Table {
                     'team_name' => clienttranslate($playerTeam['name']),
                     'i18n' => ['team_name']
                 ]
-            ],
-            'i18n' => ['name']
+            ]
         ]);
 
         $allPlayersSelectSameTeam = true;
@@ -834,16 +844,17 @@ class LaserReflection extends Table {
         $playerId = $this->getCurrentPlayerId();
 
         $playerTeam = $this->getPlayerTeamNameAndIcon($playerId);
-        self::notifyAllPlayers("log", clienttranslate('${player_name} left the ${team_name} team'), [
-            'player_name' => self::getCurrentPlayerName(),
-            'team_name' => [
-                'log' => '${name} ${icon}',
+
+        self::notifyAllPlayers("log", '${icon} ${message}', [
+            'icon' => $playerTeam['icon'],
+            'message' => [
+                'log' => clienttranslate('${player_name} left the ${team_name} team'),
                 'args'=> [
-                    'name' => clienttranslate($playerTeam["name"]),
-                    'icon' => $playerTeam["icon"],
-                    'i18n' => ['name']
+                    'player_name' => self::getCurrentPlayerName(),
+                    'team_name' => clienttranslate($playerTeam['name']),
+                    'i18n' => ['team_name']
                 ]
-            ]
+            ],
         ]);
 
         self::notifyAllPlayers("teamSelection", "", [
@@ -1018,16 +1029,15 @@ class LaserReflection extends Table {
         }
 
         if ($everybodyAgree) {
-            self::notifyAllPlayers("stop", clienttranslate('The ${team_name} team found the puzzle too hard and give up'), [
-                'team_name' => [
-                    'log' => '${name} ${icon}',
+            self::notifyAllPlayers("log", '${icon} ${message}', [
+                'icon' => $playerTeam['icon'],
+                'message' => [
+                    'log' => clienttranslate('The ${team_name} team found the puzzle too hard and give up'),
                     'args'=> [
-                        'name' => clienttranslate($playerTeam['name']),
-                        'icon' => $playerTeam['icon'],
-                        'i18n' => ['name']
+                        'team_name' => clienttranslate($playerTeam['name']),
+                        'i18n' => ['team_name']
                     ]
                 ],
-                'player_team' => $playerTeam['team']
             ]);
 
             $teamData = $this->getTeammatesAndCheckState($playerTeam['team'], STATE_PLAY_PUZZLE_PRIVATE);
@@ -1888,16 +1898,17 @@ class LaserReflection extends Table {
 
         if ($this->isRealtimeTeamMode()) {
             $playerTeam = $this->getPlayerTeamNameAndIcon($playerId);
-            self::notifyAllPlayers("start", clienttranslate('The ${team_name} team has started to work on ${other_player_name}\'s puzzle'), [
-                'team_name' => [
-                    'log' => '${name} ${icon}',
+
+            self::notifyAllPlayers("start", '${icon} ${message}', [
+                'icon' => $playerTeam['icon'],
+                'message' => [
+                    'log' => clienttranslate('The ${team_name} team has started to work on ${other_player_name}\'s puzzle'),
                     'args'=> [
-                        'name' => clienttranslate($playerTeam['name']),
-                        'icon' => $playerTeam['icon'],
-                        'i18n' => ['name']
+                        'team_name' => clienttranslate($playerTeam['name']),
+                        'other_player_name' => $ownerName,
+                        'i18n' => ['team_name']
                     ]
                 ],
-                'other_player_name' => $ownerName,
                 'player_team' => $playerTeam['team'],
                 'start' => $start
             ]);
@@ -1915,17 +1926,18 @@ class LaserReflection extends Table {
         if ($this->isRealtimeTeamMode()) {
             $playerTeam = $this->getPlayerTeamNameAndIcon($playerId);
 
-            self::notifyAllPlayers("stop", clienttranslate('The ${team_name} team solved their puzzle in ${duration}'), [
-                'team_name' => [
-                    'log' => '${name} ${icon}',
+            self::notifyAllPlayers("stop", '${icon} ${message}', [
+                'icon' => $playerTeam['icon'],
+                'message' => [
+                    'log' => clienttranslate('The ${team_name} team solved their puzzle in ${duration}'),
                     'args'=> [
-                        'name' => clienttranslate($playerTeam['name']),
-                        'icon' => $playerTeam['icon'],
-                        'i18n' => ['name']
+                        'team_name' => clienttranslate($playerTeam['name']),
+                        'duration' => $durationStr,
+                        'i18n' => ['team_name']
                     ]
                 ],
-                'duration' => $durationStr,
-                'player_team' => $playerTeam['team']
+                'player_team' => $playerTeam['team'],
+                'duration' => $durationStr
             ]);
         } else {
             self::notifyAllPlayers("stop", clienttranslate('${player_name} solved their puzzle in ${duration}'), [

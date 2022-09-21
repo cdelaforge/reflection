@@ -241,6 +241,23 @@
     background-color: #92CEA8;
 }
 
+.log>div:first-child {
+    border: 1px solid #0A0A0A;
+    border-radius: 5px;
+}
+
+.lrf_team_1>div:first-child {
+    background-color: #cde4fe !important;
+}
+
+.lrf_team_2>div:first-child {
+    background-color: #fdd0ce !important;
+}
+
+.lrf_team_3>div:first-child {
+    background-color: #cbe7d5 !important;
+}
+
 #giveup-decision {
     font-size: 120%;
     font-weight: 700;
