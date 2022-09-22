@@ -924,6 +924,10 @@ class LaserReflection extends Table {
 
         $currentPlayerId = $this->getCurrentPlayerId();
 
+        if (!$this->isAsync()) {
+            $this->giveExtraTime($currentPlayerId);
+        }
+
         if (!$this->isRealtimeTeamMode()) {
             $startDate = new DateTime();
             $start = $startDate->getTimestamp();
@@ -1142,24 +1146,7 @@ class LaserReflection extends Table {
                 ]);
             }
 
-            if ($this->isRealtimeTeamMode()) {
-                // management of a case that should not occurs : a teammate had won but we are on time out
-                // => everybody is count as timeout ...
-                $teamData = $this->getTeammatesAndCheckState($playerTeam['team'], STATE_PLAY_PUZZLE_RESOLVED_TEAM);
-                $teammates = $teamData['teammates'];
-                $states = $teamData['states'];
-
-                for ($i=0; $i<count($teammates); $i++) {
-                    $id = $teammates[$i];
-
-                    if ($states[$i] == STATE_PLAY_PUZZLE_RESOLVED_TEAM) {
-                        $this->gamestate->setPlayerNonMultiactive($id, 'next');
-
-                        $sql = "UPDATE player SET player_start=0, player_round_duration=6666 WHERE player_id=$id";
-                        self::DbQuery($sql);
-                    }
-                }
-            }
+            $this->forceTeammatesGiveUp($playerTeam['team']);
         } else {
             if ($timeout) {
                 self::notifyAllPlayers("stop", clienttranslate('The time limit for solving the puzzle ran out and ${player_name} was forced to give up.'), [
@@ -1193,8 +1180,13 @@ class LaserReflection extends Table {
     }
 
     function action_hideSolution() {
-        $playerId = $this->getCurrentPlayerId();
-        $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
+        $currentPlayerId = $this->getCurrentPlayerId();
+        $this->gamestate->setPlayerNonMultiactive($currentPlayerId, 'next');
+
+        if ($this->isRealtimeTeamMode()) {
+            $currentPlayerTeam = $this->getPlayerTeam(self::getPlayerNoById($currentPlayerId));
+            $this->forceTeammatesGiveUp($currentPlayerTeam);
+        }
     }
 
     function action_stopGame() {
@@ -1350,6 +1342,27 @@ class LaserReflection extends Table {
         }
 
         return [ 'teammates' => $teammates, 'states' => $states, 'result' => $result ];
+    }
+
+    function forceTeammatesGiveUp($team) {
+        if ($this->isRealtimeTeamMode()) {
+            // management of a case that should not occurs : a teammate had won but another is on time out
+            // => everybody is count as timeout ...
+            $teamData = $this->getTeammatesAndCheckState($team, STATE_PLAY_PUZZLE_RESOLVED_TEAM);
+            $teammates = $teamData['teammates'];
+            $states = $teamData['states'];
+
+            for ($i=0; $i<count($teammates); $i++) {
+                $id = $teammates[$i];
+
+                if ($states[$i] == STATE_PLAY_PUZZLE_RESOLVED_TEAM) {
+                    $this->gamestate->setPlayerNonMultiactive($id, 'next');
+
+                    $sql = "UPDATE player SET player_start=0, player_round_duration=6666 WHERE player_id=$id";
+                    self::DbQuery($sql);
+                }
+            }
+        }
     }
 
     function isRealtimeTeamMode() {

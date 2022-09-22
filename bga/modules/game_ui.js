@@ -258,7 +258,19 @@ const gameUI = {
 
     const timerTxt = document.getElementById('timeToThink_' + this.playerId).innerHTML;
     /* If timer starts with - or 0, then it remains less than 1 minute */
-    return timerTxt[0] == '-' || timerTxt[0] == '0';
+    const result = timerTxt[0] == '-' || timerTxt[0] == '0';
+
+    if (!result) {
+      return false;
+    }
+
+    const now = new Date().getTime() / 1000;
+    if (this.lastAddTime && ((now - this.lastAddTime) < 2)) {
+      return false;
+    }
+
+    this.lastAddTime = now;
+    return true;
   },
 
   buildProgressionBars: function () {
