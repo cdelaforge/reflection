@@ -43,8 +43,16 @@ $game_options = [
         'name' => totranslate('Team mode'),
         'values' => [
             0 => [ 'name' => totranslate('No team') ],
-            2 => [ 'name' => totranslate('2 teams'), 'tmdisplay' => totranslate('2 teams') ],
-            3 => [ 'name' => totranslate('3 teams'), 'tmdisplay' => totranslate('3 teams') ],
+            2 => [
+                'name' => totranslate('2 teams'),
+                'tmdisplay' => totranslate('2 teams'),
+                'description' => totranslate('In "Real Time" mode, players see the items of their teammates.')
+            ],
+            3 => [
+                'name' => totranslate('3 teams'),
+                'tmdisplay' => totranslate('3 teams'),
+                'description' => totranslate('In "Real Time" mode, players see the items of their teammates.')
+             ],
         ],
         'default' => 0,
         'displaycondition' => [

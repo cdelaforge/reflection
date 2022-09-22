@@ -1146,7 +1146,7 @@ class LaserReflection extends Table {
                 ]);
             }
 
-            $this->forceTeammatesGiveUp($playerTeam['team']);
+            //$this->forceTeammatesGiveUp($playerTeam['team']);
         } else {
             if ($timeout) {
                 self::notifyAllPlayers("stop", clienttranslate('The time limit for solving the puzzle ran out and ${player_name} was forced to give up.'), [
