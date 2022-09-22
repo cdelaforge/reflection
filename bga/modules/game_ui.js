@@ -7,6 +7,7 @@ const gameUI = {
     if (!this.dojoGame) {
       this.dojoGame = dojoGame;
       this.playerId = dojoGame.player_id;
+      this.isSpectator = dojoGame.isSpectator;
     }
 
     if (!window.game) {
@@ -513,13 +514,13 @@ const gameUI = {
 
     timer.abort();
 
-    if (this.dojoGame.isSpectator && !this.trainingMode && !this.ended) {
+    if (this.isSpectator && !this.trainingMode && !this.ended) {
       dojo.style("lrf_spectator", "display", "flex");
       dojo.style("lrf_main", "display", "none");
     } else {
       dojo.style("lrf_spectator", "display", "none");
       dojo.style("lrf_main", "display", "flex");
-      dojo.style("lrf_end", "display", this.dojoGame.isSpectator ? "flex" : "none");
+      dojo.style("lrf_end", "display", this.isSpectator ? "flex" : "none");
       dojo.style("lrf_timer", "display", "none");
     }
   },
@@ -700,7 +701,7 @@ const gameUI = {
     console.info("## Display player's puzzles ##");
 
     try {
-      if (this.dojoGame.isSpectator && !this.trainingMode && !this.ended) {
+      if (this.isSpectator && !this.trainingMode && !this.ended) {
         dojo.style("lrf_spectator", "display", "flex");
         dojo.style("lrf_main", "display", "none");
       } else {
@@ -714,7 +715,7 @@ const gameUI = {
           this.grid = this.players[playerId].grid;
         }
 
-        if (!this.dojoGame.isSpectator || this.ended) {
+        if (!this.isSpectator || this.ended) {
           this.mode = "view";
         } else if (!this.modeRandom) {
           if (this.puzzleUsers) {
@@ -743,7 +744,7 @@ const gameUI = {
         this.grid = this.players[playerId].grid;
 
         if (!this.modeRandom) {
-          if (this.dojoGame.isSpectator && this.puzzleUsers && !this.ended) {
+          if (this.isSpectator && this.puzzleUsers && !this.ended) {
             const otherPlayer = this.puzzleUsers[playerId];
             this.puzzle = this.players[otherPlayer].puzzle;
           } else {

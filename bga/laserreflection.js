@@ -15,7 +15,7 @@
  *
  */
 
-const fileType = ""; // ".min" or ""
+const fileType = ".min"; // ".min" or ""
 
 define([
     "dojo", "dojo/_base/declare",
@@ -135,8 +135,11 @@ define([
 
                     gameUI.init(this);
                     gameUI.displayPlayerTeams();
-                    gameUI.buildCollectiveGiveupArea();
-                    gameUI.displayCollectiveGiveup();
+
+                    if (gameUI.teamsCount > 0) {
+                        gameUI.buildCollectiveGiveupArea();
+                        gameUI.displayCollectiveGiveup();
+                    }
 
                     // Setup game notifications to handle (see "setupNotifications" method below)
                     this.setupNotifications();
