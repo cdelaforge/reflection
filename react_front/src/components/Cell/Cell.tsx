@@ -4,6 +4,7 @@ import { CellBackground, CellContainer, CellContainerChild } from "./Cell.Styles
 import CellIcon from "./CellIcon";
 import { useDrop } from 'react-dnd';
 import { colors } from "../../helpers/Style";
+import PadLockIcon from "../../icons/PadLockIcon";
 
 interface CellProps {
   row: number;
@@ -16,7 +17,7 @@ interface TeamValue {
 }
 
 function Cell({ row, col }: CellProps) {
-  const { cellSize, grid, solution, team, setGridElement, moveGridElement, laserElements, mode } = useAppState();
+  const { cellSize, grid, solution, team, setGridElement, moveGridElement, laserElements, mode, lock, lockCell } = useAppState();
 
   const [, drop] = useDrop(
     () => ({
@@ -45,8 +46,17 @@ function Cell({ row, col }: CellProps) {
   }
 
   const clickCell = () => {
-    if (getPlayerVal() !== 7 && mode !== "empty" && mode !== "solution") {
+    if (!lock[row][col] && getPlayerVal() !== 7 && mode !== "empty" && mode !== "solution") {
       setGridElement(row, col);
+    }
+  };
+
+  const rightClick = (event: any) => {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (getPlayerVal() !== 7 && mode !== "solution") {
+      lockCell(row, col, !lock[row][col]);
     }
   };
 
@@ -116,14 +126,26 @@ function Cell({ row, col }: CellProps) {
     });
   }
 
+  const getPadLock = () => {
+    if (lock[row][col]) {
+      const key = `${row}_${col}_paddlock`;
+      return (
+        <CellContainerChild key={key}>
+          <PadLockIcon size={cellSize / 3} />
+        </CellContainerChild>
+      );
+    }
+  };
+
   const playerVal = getPlayerVal();
   const solutionVal = getSolutionVal();
 
   return (
-    <CellContainer size={cellSize} onClick={clickCell} ref={drop}>
+    <CellContainer size={cellSize} onContextMenu={rightClick} onClick={clickCell} ref={drop}>
       <CellContainerChild>
-        <CellBackground type="grid" size={cellSize} />
+        <CellBackground type={lock[row][col] ? "locked" : "grid"} size={cellSize} />
       </CellContainerChild>
+      {getPadLock()}
       {cellLaserElements}
       {getTeamCellIcons()}
       {getPlayerCellIcon(playerVal, solutionVal)}

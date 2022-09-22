@@ -10,7 +10,7 @@ export function LaserIcon({ size, type, position, dimension }: LaserIconProps & 
     if (dimension === LaserDimension.medium) {
       return 50;
     }
-    return 80;
+    return 75;
   }
   const getEndPos = () => {
     if (dimension === LaserDimension.big || position === LaserPosition.right || position === LaserPosition.bottom) {
@@ -19,7 +19,7 @@ export function LaserIcon({ size, type, position, dimension }: LaserIconProps & 
     if (dimension === LaserDimension.medium) {
       return 50;
     }
-    return 20;
+    return 25;
   }
 
   const getLaser = () => {

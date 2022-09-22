@@ -216,39 +216,43 @@ const gameUI = {
   },
 
   hideCollectiveGiveup: function () {
-    const playerTeam = this.getMyData().team;
+    if (this.teamsCount > 0) {
+      const playerTeam = this.getMyData().team;
 
-    gameUI.collectiveGiveupTeams[playerTeam] = 0;
-    Object.keys(gameUI.players).map(id => {
-      if (gameUI.players[id].team === playerTeam) {
-        gameUI.collectiveGiveupPlayers[gameUI.players[id].num] = 0;
-      }
-    });
-
-    this.displayCollectiveGiveup();
-  },
-
-  displayCollectiveGiveup: function () {
-    const team = this.getMyData().team;
-    const askedGiveup = this.collectiveGiveupTeams[team];
-    const players = [];
-
-    if (askedGiveup) {
-      dojo.style("giveup-decision", "display", "");
-
-      Object.keys(this.players).map((playerId) => {
-        const playerTeam = this.players[playerId].team;
-        const playerNum = this.players[playerId].num;
-        const playerGiveup = this.collectiveGiveupPlayers[playerNum];
-
-        if (playerTeam === team && playerGiveup) {
-          players.push(this.players[playerId].name);
+      gameUI.collectiveGiveupTeams[playerTeam] = 0;
+      Object.keys(gameUI.players).map(id => {
+        if (gameUI.players[id].team === playerTeam) {
+          gameUI.collectiveGiveupPlayers[gameUI.players[id].num] = 0;
         }
       });
 
-      document.getElementById('giveup-decision-players').innerHTML = players.join(', ');
-    } else {
-      dojo.style("giveup-decision", "display", "none");
+      this.displayCollectiveGiveup();
+    }
+  },
+
+  displayCollectiveGiveup: function () {
+    if (this.teamsCount > 0) {
+      const team = this.getMyData().team;
+      const askedGiveup = this.collectiveGiveupTeams[team];
+      const players = [];
+
+      if (askedGiveup) {
+        dojo.style("giveup-decision", "display", "");
+
+        Object.keys(this.players).map((playerId) => {
+          const playerTeam = this.players[playerId].team;
+          const playerNum = this.players[playerId].num;
+          const playerGiveup = this.collectiveGiveupPlayers[playerNum];
+
+          if (playerTeam === team && playerGiveup) {
+            players.push(this.players[playerId].name);
+          }
+        });
+
+        document.getElementById('giveup-decision-players').innerHTML = players.join(', ');
+      } else {
+        dojo.style("giveup-decision", "display", "none");
+      }
     }
   },
 

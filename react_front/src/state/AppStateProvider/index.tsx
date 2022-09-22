@@ -41,6 +41,9 @@ export interface IStateContext {
   moveGridElement: (source: Position, destination: Position) => void;
   solution?: number[][];
 
+  lock: boolean[][];
+  lockCell: (row: number, col: number, val: boolean) => void;
+
   /* enigme */
   toSolve: string[][];
   result: string[][];
@@ -85,6 +88,12 @@ const initGrid = (squaresCount: number, portals?: number[]) => {
   return grid;
 };
 
+const initLock = (squaresCount: number) => {
+  const iterator = new Array<boolean>(squaresCount).fill(false);
+  const line = new Array<boolean>(squaresCount).fill(false);
+  return iterator.map((_) => [...line]);
+};
+
 const initPuzzle = (squaresCount: number, mode?: string, elements?: number[], portals?: number[]) => {
   let toSolve = [
     new Array<string>(squaresCount).fill(''),
@@ -123,6 +132,7 @@ const initialData: IStateContext = {
   elementsCount: 15,
   stock: [1, 1, 2, 2, 2, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7],
   grid: initGrid(8),
+  lock: initLock(8),
   toSolve: [
     ["3a", "7r", "2a", "9s", "5s", "11s", "23r", "3s"],
     ["1r", "11s", "3s", "8s", "8s", "5a", "3r", "1r"],
@@ -132,6 +142,7 @@ const initialData: IStateContext = {
   result: [[]],
   setStockIndex: () => { },
   setGridElement: () => { },
+  lockCell: () => { },
   moveGridElement: () => { },
   laserElements: [],
   displayLaser: () => { },
@@ -147,6 +158,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   const [stock, setStock] = useState(initialData.stock);
   const [stockIndex, setStockIndex] = useState<number>();
   const [grid, setGrid] = useState(initialData.grid);
+  const [lock, setLock] = useState(initialData.lock);
   const [solution, setSolution] = useState<number[][]>();
   const [toSolve, setToSolve] = useState(initialData.toSolve);
   const [result, setResult] = useState<string[][]>([[]]);
@@ -178,6 +190,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
 
         const grid = p.grid || initGrid(p.gridSize, p.portals);
         setGrid(grid);
+        setLock(initLock(p.gridSize));
 
         if (p.solution) {
           setSolution(p.solution);
@@ -335,6 +348,15 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     }
   };
 
+  const lockCell = (row: number, col: number, val: boolean) => {
+    const lockClone = [...lock.map((row) => [...row])];
+    lockClone[row][col] = val;
+    setLock(lockClone);
+
+    // don't know why but the following is needed ...
+    setGrid([...grid.map((row) => [...row])]);
+  };
+
   const setGridElement = (row: number, col: number) => {
     const gridClone = [...grid.map((row) => [...row])];
     const currentElement = gridClone[row][col];
@@ -359,34 +381,43 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
 
     if (destination.row !== undefined && destination.col !== undefined) {
       const destVal = gridClone[destination.row][destination.col];
+      const isDestLocked = lock[destination.row][destination.col];
 
-      if (destVal !== 7) {
-        if (source.stockIndex !== undefined) {
-          // drag from the stock
-          const newVal = stock[source.stockIndex];
+      if (destVal === 7 || isDestLocked) {
+        return;
+      }
 
-          if (destVal > 0) {
-            const stockClone = [...stock];
-            stockClone[source.stockIndex] = destVal;
-            stockClone.sort(numberCompare);
-            setStock(stockClone);
-          } else {
-            removeFromStock(source.stockIndex);
-          }
+      if (source.stockIndex !== undefined) {
+        // drag from the stock
+        const newVal = stock[source.stockIndex];
 
-          gridClone[destination.row][destination.col] = newVal;
-        } else if (source.row !== undefined && source.col !== undefined) {
-          // drag inside the grid
-          if (source.row === destination.row && source.col === destination.col) {
-            // pas de changement
-            return;
-          }
-          if (destVal > 0) {
-            pushToStock(destVal);
-          }
-          gridClone[destination.row][destination.col] = gridClone[source.row][source.col];
-          gridClone[source.row][source.col] = 0;
+        if (destVal > 0) {
+          const stockClone = [...stock];
+          stockClone[source.stockIndex] = destVal;
+          stockClone.sort(numberCompare);
+          setStock(stockClone);
+        } else {
+          removeFromStock(source.stockIndex);
         }
+
+        gridClone[destination.row][destination.col] = newVal;
+      } else if (source.row !== undefined && source.col !== undefined) {
+        // drag inside the grid
+        if (source.row === destination.row && source.col === destination.col) {
+          // pas de changement
+          return;
+        }
+
+        const isSourceLocked = lock[source.row][source.col];
+        if (isSourceLocked) {
+          return;
+        }
+
+        if (destVal > 0) {
+          pushToStock(destVal);
+        }
+        gridClone[destination.row][destination.col] = gridClone[source.row][source.col];
+        gridClone[source.row][source.col] = 0;
       }
     }
 
@@ -411,6 +442,8 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     stockIndex,
     setStockIndex: (index?: number) => { if (running && !won) { setStockIndex(index); } },
     grid,
+    lock,
+    lockCell: (row: number, col: number, val: boolean) => { if (running && !won) { lockCell(row, col, val); } },
     solution,
     setGridElement: (row: number, col: number) => { if (running && !won) { setGridElement(row, col); setPlayerAction(true); } },
     moveGridElement: (source: Position, destination: Position) => { if (running && !won) { moveGridElement(source, destination); setPlayerAction(true); } },

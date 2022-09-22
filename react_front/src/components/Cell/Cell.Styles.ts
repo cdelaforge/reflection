@@ -14,12 +14,26 @@ export const CellContainerChild = styled('div')`
   left: 0px;
 `;
 
-export const CellBackground = styled('div') <{ type: "side" | "grid" | "corner" | "stock", size: number, selected?: boolean }>`
+const getCellBackground = (type: "side" | "grid" | "corner" | "stock" | "locked", selected?: boolean) => {
+  switch (type) {
+    case "grid":
+    case "stock":
+      return colors.purple;
+    case "corner":
+      return "transparent";
+    case "locked":
+      return colors.light_purple;
+    default:
+      return selected ? colors.blue : colors.red;
+  }
+};
+
+export const CellBackground = styled('div') <{ type: "side" | "grid" | "corner" | "stock" | "locked", size: number, selected?: boolean }>`
   width:  ${(props) => `${props.size}px`};
   height:  ${(props) => `${props.size}px`};
   box-sizing: border-box;
   border: ${(props) => props.selected ? "1px solid white" : (props.type === "corner" ? "1px solid transparent" : "1px solid black")};
-  background: ${(props) => (props.type === "grid" || props.type === "stock") ? colors.purple : (props.type === "corner" ? "transparent" : (props.selected ? colors.blue : colors.red))};
+  background: ${(props) => getCellBackground(props.type, props.selected)};
   cursor: pointer;
 `;
 
