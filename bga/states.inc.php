@@ -13,6 +13,7 @@ if (!defined('STATE_END_GAME')) { // ensure this block is only invoked once, sin
     define("STATE_SOLUTION_PRIVATE", 52);
     define("STATE_PLAY_PUZZLE_WAIT_TEAM", 53);
     define("STATE_PLAY_PUZZLE_RESOLVED_TEAM", 54);
+    define("STATE_PLAY_COPY_TEAM", 55);
     define("STATE_PLAY_PUZZLE_END", 7);
     define("STATE_END_ROUND", 8);
     define("STATE_END_ROUND_PRIVATE", 80);
@@ -191,7 +192,22 @@ $machinestates = array(
         "transitions" => [
             "continue" => STATE_PLAY_PUZZLE_PRIVATE,
             "solution" => STATE_SOLUTION_PRIVATE,
-            "teamWait" => STATE_PLAY_PUZZLE_RESOLVED_TEAM
+            "teamWait" => STATE_PLAY_PUZZLE_RESOLVED_TEAM,
+            "copy" => STATE_PLAY_COPY_TEAM,
+        ]
+    ],
+
+    STATE_PLAY_COPY_TEAM => [
+        "name" => "puzzleCopy",
+        "description" => clienttranslate('Waiting for other players'),
+        "descriptionmyturn" => clienttranslate('At least one of your teammates has solved the puzzle!'),
+        "type" => "private",
+        "possibleactions" => ["gridChange", "puzzleResolve", "giveUp", "timeout", "giveUpPropose", "giveUpRefuse"],
+        "transitions" => [
+            "continue" => STATE_PLAY_COPY_TEAM,
+            "solution" => STATE_SOLUTION_PRIVATE,
+            "teamWait" => STATE_PLAY_PUZZLE_RESOLVED_TEAM,
+            "copy" => STATE_PLAY_COPY_TEAM,
         ]
     ],
 
@@ -201,6 +217,9 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('Some of your teammates have not yet solved the puzzle.'),
         "type" => "private",
         "possibleactions" => ["timeout", "giveUpPropose", "giveUpRefuse"],
+        "transitions" => [
+            "continue" => STATE_PLAY_PUZZLE_RESOLVED_TEAM,
+        ]
     ],
 
     STATE_SOLUTION_PRIVATE => [

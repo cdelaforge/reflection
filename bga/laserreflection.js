@@ -332,6 +332,12 @@ define([
                             this.addActionButton('reset', _('Reset') + " ↺", 'onReset');
                             this.addActionButton('giveUp', _('Give up'), 'onGiveUp');
                             break;
+                        case "puzzleCopy":
+                            this.removeActionButtons();
+                            this.addActionButton('undo', _('Undo') + " ⎌", 'onUndo');
+                            this.addActionButton('reset', _('Reset') + " ↺", 'onReset');
+                            this.addActionButton('giveUp', _('Give up'), 'onGiveUp');
+                            break;
                         case "scoreDisplay":
                             this.removeActionButtons();
                             this.addActionButton('hideScore', _('OK'), 'onScoreDisplayEnd');
