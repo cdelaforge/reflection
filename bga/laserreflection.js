@@ -136,7 +136,7 @@ define([
                     gameUI.init(this);
                     gameUI.displayPlayerTeams();
 
-                    if (gameUI.teamsCount > 0) {
+                    if (!this.isSpectator && gameUI.teamsCount > 0) {
                         gameUI.buildCollectiveGiveupArea();
                         gameUI.displayCollectiveGiveup();
                     }
