@@ -7,14 +7,48 @@ import { AppArea } from "./App.styles";
 import { useAppState } from "./state/AppStateProvider";
 import { CustomDragLayer } from "./CustomDragLayer";
 
+const getTransform = (rotate: number, flip: number) => {
+  const result: string[] = [];
+
+  if (rotate) {
+    result.push(`rotate(${rotate}deg)`);
+  }
+
+  if (flip === 1) {
+    result.push("scaleX(-1)");
+  } else if (flip === 2) {
+    result.push("scaleY(-1)");
+  }
+
+  return result.join(' ');
+};
+
+const getReverseTransform = (rotate: number, flip: number) => {
+  const result: string[] = [];
+
+  if (flip === 1) {
+    result.push("scaleX(-1)");
+  } else if (flip === 2) {
+    result.push("scaleY(-1)");
+  }
+
+  if (rotate) {
+    result.push(`rotate(${-rotate}deg)`);
+  }
+
+  return result.join(' ');
+};
+
 function App() {
-  const { displayMode } = useAppState();
+  const { displayMode, rotate, flip } = useAppState();
+  const transformGrid = getTransform(rotate, flip);
+  const transformNumbers = getReverseTransform(rotate, flip);
 
   return (
     <DndProvider backend={HTML5Backend}>
       <AppArea mode={displayMode}>
-        <Stock></Stock>
-        <Grid></Grid>
+        <Stock transform={transformNumbers}></Stock>
+        <Grid transformGrid={transformGrid} transformNumbers={transformNumbers}></Grid>
       </AppArea>
       <CustomDragLayer />
     </DndProvider>

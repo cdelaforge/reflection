@@ -4,11 +4,13 @@ import { CellBackground, CellContainer, CellContainerChild } from "./Cell.Styles
 import CellIcon from "./CellIcon";
 import { useDrop } from 'react-dnd';
 import { colors } from "../../helpers/Style";
+import { TransformContainer } from "../Misc.Styles";
 import PadLockIcon from "../../icons/PadLockIcon";
 
 interface CellProps {
   row: number;
   col: number;
+  transform: string;
 }
 
 interface TeamValue {
@@ -16,7 +18,7 @@ interface TeamValue {
   val: number;
 }
 
-function Cell({ row, col }: CellProps) {
+function Cell({ row, col, transform }: CellProps) {
   const { cellSize, grid, solution, team, setGridElement, moveGridElement, laserElements, mode, lock, lockCell } = useAppState();
 
   const [, drop] = useDrop(
@@ -130,9 +132,11 @@ function Cell({ row, col }: CellProps) {
     if (lock[row][col]) {
       const key = `${row}_${col}_paddlock`;
       return (
-        <CellContainerChild key={key}>
-          <PadLockIcon size={cellSize / 3} />
-        </CellContainerChild>
+        <TransformContainer transform={transform} size={cellSize}>
+          <CellContainerChild key={key}>
+            <PadLockIcon size={cellSize / 3} />
+          </CellContainerChild >
+        </TransformContainer>
       );
     }
   };

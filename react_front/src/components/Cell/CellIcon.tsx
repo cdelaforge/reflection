@@ -14,10 +14,11 @@ interface CellIconProps {
   stockIndex?: number;
   display?: 'normal' | 'wrong' | 'solution' | 'team';
   color?: string;
+  transformed?: boolean;
 }
 
-function CellIcon({ val, row, col, stockIndex, display, color }: CellIconProps) {
-  const { cellSize, mode, running, won, lock } = useAppState();
+function CellIcon({ val, row, col, stockIndex, display, color, transformed }: CellIconProps) {
+  const { cellSize, mode, running, won, lock, rotate, flip } = useAppState();
 
   if (display === 'wrong') {
     color = colors.wrong;
@@ -42,8 +43,41 @@ function CellIcon({ val, row, col, stockIndex, display, color }: CellIconProps) 
     preview(getEmptyImage(), { captureDraggingState: true })
   }, [preview]);
 
+  const transformVal = (v: number) => {
+    switch (v) {
+      default:
+        return v;
+      case 1:
+        return 2;
+      case 2:
+        return 1;
+      case 3:
+        return 4;
+      case 4:
+        return 3;
+    }
+  }
+
+  const getTransformedVal = () => {
+    if (!transformed) {
+      return val;
+    }
+
+    let result: number = val;
+
+    if (rotate !== 0 && rotate !== 180) {
+      result = transformVal(result);
+    }
+
+    if (flip) {
+      result = transformVal(result);
+    }
+
+    return result;
+  }
+
   const getIconCode = () => {
-    switch (val) {
+    switch (getTransformedVal()) {
       default:
         return <></>;
       case 1:

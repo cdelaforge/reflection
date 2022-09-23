@@ -44,6 +44,10 @@ export interface IStateContext {
   lock: boolean[][];
   lockCell: (row: number, col: number, val: boolean) => void;
 
+  /* transformation */
+  rotate: number;
+  flip: number;
+
   /* enigme */
   toSolve: string[][];
   result: string[][];
@@ -148,6 +152,8 @@ const initialData: IStateContext = {
   displayLaser: () => { },
   running: true,
   won: false,
+  rotate: 90,
+  flip: 0,
   ...getGridDimensions(10),
 };
 
@@ -177,6 +183,8 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   const [areaHeight, setAreaHeight] = useState<number>();
   const [playerAction, setPlayerAction] = useState<boolean>(false);
   const [team, setTeam] = useState<Teammate[]>();
+  const [rotate, setRotate] = useState(initialData.rotate);
+  const [flip, setFlip] = useState(initialData.flip);
 
   useEffect(() => {
     const w: WindowWithGameMethods = window as any;
@@ -187,6 +195,8 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
         setPlayerAction(false);
         setMode(p.mode);
         setSquaresCount(p.gridSize);
+        setRotate(p.rotate || 0);
+        setFlip(p.flip || 0);
 
         const grid = p.grid || initGrid(p.gridSize, p.portals);
         setGrid(grid);
@@ -456,6 +466,8 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     running,
     won,
     team,
+    rotate,
+    flip,
     ...gridDimensions
   };
 

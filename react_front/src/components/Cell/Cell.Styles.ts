@@ -12,6 +12,8 @@ export const CellContainerChild = styled('div')`
   position: absolute;
   top: 0px;
   left: 0px;
+  width: 100%;
+  height: 100%;
 `;
 
 const getCellBackground = (type: "side" | "grid" | "corner" | "stock" | "locked", selected?: boolean) => {

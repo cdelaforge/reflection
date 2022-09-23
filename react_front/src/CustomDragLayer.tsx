@@ -2,6 +2,7 @@ import type { CSSProperties, FC } from 'react';
 import type { XYCoord } from 'react-dnd';
 import { useDragLayer } from 'react-dnd';
 import CellIcon from "./components/Cell/CellIcon";
+import { TransformContainer } from "./components/Misc.Styles";
 
 const layerStyles: CSSProperties = {
   position: 'fixed',
@@ -46,10 +47,13 @@ export const CustomDragLayer: FC<CustomDragLayerProps> = (props) => {
     }))
 
   function renderItem() {
-    //console.debug(item.index);
     switch (itemType) {
       case "item":
-        return <CellIcon val={item.index} />
+        return (
+          <TransformContainer transform="">
+            <CellIcon val={item.index} transformed={true} />
+          </TransformContainer>
+        )
       default:
         return null
     }

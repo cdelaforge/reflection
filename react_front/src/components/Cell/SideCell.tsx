@@ -1,10 +1,12 @@
 import { useAppState } from "../../state/AppStateProvider";
 import { CellBackground } from "./Cell.Styles";
+import { TransformContainer } from "../Misc.Styles";
 import CellNumber from "./CellNumber";
 
 interface SideCellProps {
   position: "top" | "right" | "bottom" | "left";
   index: number;
+  transform: string;
 }
 
 const posIndexHelper = {
@@ -30,7 +32,7 @@ const getToSolve = (toSolve: string[][], posIndex: number, index: number) => {
   }
 };
 
-function SideCell({ position, index }: SideCellProps) {
+function SideCell({ position, index, transform }: SideCellProps) {
   const { mode, cellSize, toSolve, result, displayLaserPosition, displayLaserIndex, displayLaser } = useAppState();
   const posIndex = posIndexHelper[position];
   const modeCreation = mode !== "play" && mode !== "standalone" && mode !== "solution";
@@ -41,7 +43,9 @@ function SideCell({ position, index }: SideCellProps) {
 
   return (
     <CellBackground type="side" size={cellSize} selected={selected} onClick={() => displayLaser(posIndex, index)}>
-      <CellNumber valStr={selected && mode !== "solution" ? valCurrent : valSolution} isCorrect={isCellCorrect} />
+      <TransformContainer transform={transform}>
+        <CellNumber valStr={selected && mode !== "solution" ? valCurrent : valSolution} isCorrect={isCellCorrect} />
+      </TransformContainer>
     </CellBackground>
   );
 }

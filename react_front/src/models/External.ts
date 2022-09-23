@@ -7,7 +7,9 @@ export interface GameSetup {
   grid?: number[][],
   solution?: number[][],
   puzzle?: string[][],
-  portals?: number[]
+  portals?: number[],
+  rotate?: number,
+  flip?: number
 }
 
 export interface WindowWithGameMethods {
