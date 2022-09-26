@@ -107,6 +107,9 @@ define([
                             case "giveup":
                                 gameUI.setCollectiveGiveup(p.val);
                                 break;
+                            case "transfo":
+                                gameUI.transfo = p.val;
+                                break;
                         }
                     });
 

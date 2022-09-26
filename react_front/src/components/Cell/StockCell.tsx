@@ -1,28 +1,25 @@
 import { useAppState } from "../../state/AppStateProvider";
-import { TransformContainer } from "../Misc.Styles";
 import { CellBackground } from "./Cell.Styles";
 import CellIcon from "./CellIcon";
 
 interface StockCellProps {
   index: number;
-  transform: string;
+  val: number;
 }
 
-function StockCell({ index, transform }: StockCellProps) {
-  const { cellSize, stock, stockIndex, setStockIndex } = useAppState();
+function StockCell({ index, val }: StockCellProps) {
+  const { cellSize, stockIndex, setStockIndex } = useAppState();
 
   const clickCell = () => {
-    if (stock[index]) {
+    if (val) {
       setStockIndex(index);
     }
   };
 
   return (
-    <TransformContainer transform={transform}>
-      <CellBackground type="stock" size={cellSize} selected={stockIndex === index} onClick={clickCell}>
-        <CellIcon val={stock[index]} stockIndex={index} />
-      </CellBackground>
-    </TransformContainer>
+    <CellBackground type="stock" size={cellSize} selected={stockIndex === index} onClick={clickCell}>
+      <CellIcon val={val} stockIndex={index} />
+    </CellBackground>
   );
 }
 

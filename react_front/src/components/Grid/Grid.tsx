@@ -4,11 +4,11 @@ import { TransformContainer } from "../Misc.Styles";
 import { Cell, SideCell, CornerCell } from "../";
 
 interface GridProps {
-  transformGrid: string;
-  transformNumbers: string;
+  transformation: string;
+  reverseTransformation: string;
 }
 
-function Grid({ transformGrid, transformNumbers }: GridProps) {
+function Grid({ transformation, reverseTransformation }: GridProps) {
   const { squaresCount, gridSize, cellSize, margin } = useAppState();
   const iterator = new Array<number>(squaresCount).fill(0);
 
@@ -21,7 +21,7 @@ function Grid({ transformGrid, transformNumbers }: GridProps) {
             position={position}
             index={col}
             key={`side_${position}_${col}`}
-            transform={transformNumbers}
+            transform={reverseTransformation}
           ></SideCell>
         ))}
         <CornerCell></CornerCell>
@@ -32,16 +32,16 @@ function Grid({ transformGrid, transformNumbers }: GridProps) {
   const getLine = (row: number) => {
     return (
       <Line key={`line_${row}`} height={cellSize}>
-        <SideCell position="left" index={row} transform={transformNumbers}></SideCell>
-        {iterator.map((_, col) => <Cell key={`${row}_${col}`} row={row} col={col} transform={transformNumbers}></Cell>)}
-        <SideCell position="right" index={row} transform={transformNumbers}></SideCell>
+        <SideCell position="left" index={row} transform={reverseTransformation}></SideCell>
+        {iterator.map((_, col) => <Cell key={`${row}_${col}`} row={row} col={col} transform={reverseTransformation}></Cell>)}
+        <SideCell position="right" index={row} transform={reverseTransformation}></SideCell>
       </Line>
     );
   };
 
   return (
     <GridArea width={gridSize} margin={margin}>
-      <TransformContainer transform={transformGrid}>
+      <TransformContainer transform={transformation}>
         {getHeader("top")}
         {iterator.map((_, row) => getLine(row))}
         {getHeader("bottom")}

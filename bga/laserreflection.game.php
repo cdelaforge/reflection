@@ -165,6 +165,9 @@ class LaserReflection extends Table {
             $this->setRestingPlayerId($restingPlayer['id']);
         }
 
+        $transformations = $this->getTransformations();
+        $this->setGameDbValue('transfos', json_encode($transformations));
+
         // Init game statistics
         self::initStat("table", "total_duration", 0);
         self::initStat("table", "avg_duration", 0);
@@ -213,6 +216,13 @@ class LaserReflection extends Table {
         $result['params'][] = ['key' => 'time_limit', 'val' => $this->getGameStateValue('time_limit')];
         $result['params'][] = ['key' => 'training_mode', 'val' => $this->isTrainingMode()];
         $result['params'][] = ['key' => 'teams', 'val' => $this->getTeamsCount()];
+
+        if ($this->isSpectator()) {
+            $result['params'][] = ['key' => 'transfo', 'val' => 0];
+        } else {
+            $transformations = json_decode($this->getGameDbValue('transfos'));
+            $result['params'][] = ['key' => 'transfo', 'val' => $transformations[$players[$current_player_id]['num'] - 1]];
+        }
 
         $collectiveGiveup = [
             'teams' => [
@@ -2063,6 +2073,23 @@ class LaserReflection extends Table {
                 'player_id' => $playerId
             ]);
         }
+    }
+
+    function getTransformations() {
+        $transfos = [0, 1, 2, 3, 10, 11, 12, 13];
+        $list = [];
+        $result = [];
+
+        for ($i=0; $i<8; $i++) {
+            $list[$transfos[$i]] = rand(0, 1000);
+        }
+
+        asort($list);
+        foreach ($list as $key => $val) {
+            $result[] = $key;
+        }
+
+        return $result;
     }
 
 //////////////////////////////////////////////////////////////////////////////

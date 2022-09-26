@@ -6,6 +6,7 @@ import { useAppState } from "../../state/AppStateProvider";
 import { MirrorSlashIcon, MirrorBackSlashIcon, MirrorVerticalIcon, MirrorHorizontalIcon, MirrorSquareIcon, BlackHoleIcon, PortalIcon } from "../../icons";
 import { CellIconContainer } from "./Cell.Styles";
 import { colors } from "../../helpers/Style";
+import { Transformations } from "../../helpers/Transformations";
 
 interface CellIconProps {
   val: number;
@@ -18,7 +19,8 @@ interface CellIconProps {
 }
 
 function CellIcon({ val, row, col, stockIndex, display, color, transformed }: CellIconProps) {
-  const { cellSize, mode, running, won, lock, rotate, flip } = useAppState();
+  const { cellSize, mode, running, won, lock, transformations } = useAppState();
+  const transfoHelper = new Transformations(transformations);
 
   if (display === 'wrong') {
     color = colors.wrong;
@@ -43,41 +45,12 @@ function CellIcon({ val, row, col, stockIndex, display, color, transformed }: Ce
     preview(getEmptyImage(), { captureDraggingState: true })
   }, [preview]);
 
-  const transformVal = (v: number) => {
-    switch (v) {
-      default:
-        return v;
-      case 1:
-        return 2;
-      case 2:
-        return 1;
-      case 3:
-        return 4;
-      case 4:
-        return 3;
-    }
-  }
-
-  const getTransformedVal = () => {
-    if (!transformed) {
-      return val;
-    }
-
-    let result: number = val;
-
-    if (rotate !== 0 && rotate !== 180) {
-      result = transformVal(result);
-    }
-
-    if (flip) {
-      result = transformVal(result);
-    }
-
-    return result;
+  const getDisplayedVal = () => {
+    return transformed ? transfoHelper.getDisplayedIcon(val) : val;
   }
 
   const getIconCode = () => {
-    switch (getTransformedVal()) {
+    switch (getDisplayedVal()) {
       default:
         return <></>;
       case 1:

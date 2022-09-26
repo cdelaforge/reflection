@@ -45,8 +45,7 @@ export interface IStateContext {
   lockCell: (row: number, col: number, val: boolean) => void;
 
   /* transformation */
-  rotate: number;
-  flip: number;
+  transformations: number;
 
   /* enigme */
   toSolve: string[][];
@@ -152,8 +151,7 @@ const initialData: IStateContext = {
   displayLaser: () => { },
   running: true,
   won: false,
-  rotate: 90,
-  flip: 0,
+  transformations: 1,
   ...getGridDimensions(10),
 };
 
@@ -183,8 +181,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   const [areaHeight, setAreaHeight] = useState<number>();
   const [playerAction, setPlayerAction] = useState<boolean>(false);
   const [team, setTeam] = useState<Teammate[]>();
-  const [rotate, setRotate] = useState(initialData.rotate);
-  const [flip, setFlip] = useState(initialData.flip);
+  const [transformations, setTransformations] = useState(initialData.transformations);
 
   useEffect(() => {
     const w: WindowWithGameMethods = window as any;
@@ -195,12 +192,13 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
         setPlayerAction(false);
         setMode(p.mode);
         setSquaresCount(p.gridSize);
-        setRotate(p.rotate || 0);
-        setFlip(p.flip || 0);
+        setTransformations(p.transformations || 0);
 
         const grid = p.grid || initGrid(p.gridSize, p.portals);
         setGrid(grid);
-        setLock(initLock(p.gridSize));
+        if (!p.keepLock) {
+          setLock(initLock(p.gridSize));
+        };
 
         if (p.solution) {
           setSolution(p.solution);
@@ -331,14 +329,10 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     }
   }, [grid, displayLaserPosition, displayLaserIndex, mode, solution]);
 
-  const numberCompare = (a: number, b: number) => {
-    return a === 0 ? 0 : (a < b ? -1 : 1);
-  }
-
   const pushToStock = (elt: number) => {
     const newStock = [...stock];
     newStock.push(elt);
-    newStock.sort(numberCompare);
+    //newStock.sort();
     setStock(newStock);
     setStockIndex(newStock.findIndex((s) => s === elt));
   };
@@ -351,10 +345,15 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     }
 
     const newStock = [...stock];
+    let elt = stock[index];
     newStock.splice(index, 1);
     setStock(newStock);
-    if (stockIndex !== undefined && stockIndex >= newStock.length) {
-      setStockIndex(stockIndex - 1);
+
+    let newIndex = newStock.findIndex((s) => s === elt);
+    if (newIndex >= 0) {
+      setStockIndex(newIndex);
+    } else {
+      setStockIndex(undefined);
     }
   };
 
@@ -404,7 +403,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
         if (destVal > 0) {
           const stockClone = [...stock];
           stockClone[source.stockIndex] = destVal;
-          stockClone.sort(numberCompare);
+          //stockClone.sort();
           setStock(stockClone);
         } else {
           removeFromStock(source.stockIndex);
@@ -466,8 +465,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     running,
     won,
     team,
-    rotate,
-    flip,
+    transformations,
     ...gridDimensions
   };
 

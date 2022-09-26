@@ -101,7 +101,7 @@ const gameUI = {
     if (this.history.length) {
       const grid = this.history.pop();
       this.setGrid(grid);
-      this.setup();
+      this.setup({ keepLock: true });
       this.saveGrid();
       this.shouldSendProgression = true;
     }
@@ -479,7 +479,7 @@ const gameUI = {
     this.placedElements = cpt;
   },
 
-  setup: function () {
+  setup: function (options) {
     if (!this.initialized) {
       setTimeout(function () { gameUI.setup(); }, 100);
       return;
@@ -491,7 +491,12 @@ const gameUI = {
       gridSize: this.gridSize,
       grid: this.grid,
       puzzle: this.puzzle,
-      portals: this.portals
+      portals: this.portals,
+      transformations: this.transfo || 0
+    }
+
+    if (options) {
+      Object.keys(options).forEach(key => data[key] = options[key]);
     }
 
     if (this.mode === "solution") {

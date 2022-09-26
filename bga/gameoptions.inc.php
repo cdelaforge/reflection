@@ -161,13 +161,13 @@ $game_options = [
     120 => [
         'name' => totranslate('Grid size'),
         'values' => [
-            4 => [ 'name' => totranslate('4 x 4'), 'tmdisplay' => totranslate('Grid size : 4 x 4') ],
-            5 => [ 'name' => totranslate('5 x 5'), 'tmdisplay' => totranslate('Grid size : 5 x 5') ],
-            6 => [ 'name' => totranslate('6 x 6'), 'tmdisplay' => totranslate('Grid size : 6 x 6') ],
-            7 => [ 'name' => totranslate('7 x 7'), 'tmdisplay' => totranslate('Grid size : 7 x 7') ],
-            8 => [ 'name' => totranslate('8 x 8'), 'tmdisplay' => totranslate('Grid size : 8 x 8') ],
-            9 => [ 'name' => totranslate('9 x 9'), 'tmdisplay' => totranslate('Grid size : 9 x 9') ],
-            10 => [ 'name' => totranslate('10 x 10'), 'tmdisplay' => totranslate('Grid size : 10 x 10') ],
+            4 => [ 'name' => totranslate('4×4'), 'tmdisplay' => totranslate('Grid 4×4') ],
+            5 => [ 'name' => totranslate('5×5'), 'tmdisplay' => totranslate('Grid 5×5') ],
+            6 => [ 'name' => totranslate('6×6'), 'tmdisplay' => totranslate('Grid 6×6') ],
+            7 => [ 'name' => totranslate('7×7'), 'tmdisplay' => totranslate('Grid 7×7') ],
+            8 => [ 'name' => totranslate('8×8'), 'tmdisplay' => totranslate('Grid 8×8') ],
+            9 => [ 'name' => totranslate('9×9'), 'tmdisplay' => totranslate('Grid 9×9') ],
+            10 => [ 'name' => totranslate('10×10'), 'tmdisplay' => totranslate('Grid 10×10') ],
         ],
         'default' => 8
     ],

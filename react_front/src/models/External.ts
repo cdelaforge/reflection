@@ -8,8 +8,8 @@ export interface GameSetup {
   solution?: number[][],
   puzzle?: string[][],
   portals?: number[],
-  rotate?: number,
-  flip?: number
+  transformations?: number,
+  keepLock?: boolean;
 }
 
 export interface WindowWithGameMethods {
