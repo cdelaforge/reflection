@@ -53,6 +53,7 @@ class LaserReflection extends Table {
             "multi_mode" => 103,
             "solo_mode" => 104,
             "teams" => 106,
+            "balanced_teams" => 107,
             "rounds_param" => 108,
             "compete_same" => 109,
             "time_limit" => 119,
@@ -809,41 +810,42 @@ class LaserReflection extends Table {
             ]
         ]);
 
-        $allPlayersSelectSameTeam = true;
-        $allPlayersSelectTeam = true;
-        $prevTeam = -1;
+        $teamsCount = [0, 0, 0, 0];
 
         $sql = "SELECT player_id id, player_no num, player_state state FROM player";
         $players = self::getObjectListFromDB($sql);
+        $playersCount = count($players);
 
         foreach ($players as $player_id => $player) {
             $playerTeam = $this->getPlayerTeam($player['num']);
             $playerState = $player['state'];
 
-            if ($playerTeam == 0) {
-                $allPlayersSelectTeam = false;
+            if ($playerTeam == 0 || $playerState == STATE_TEAM_SELECTION_PRIVATE) {
+                $teamsCount[0]++;
             } else {
-                if ($prevTeam != -1 && $prevTeam != $playerTeam) {
-                    $allPlayersSelectSameTeam = false;
-                }
-                if ($playerState == STATE_TEAM_SELECTION_PRIVATE) {
-                    $allPlayersSelectTeam = false;
-                }
-
-                $prevTeam = $playerTeam;
+                $teamsCount[$playerTeam]++;
             }
         }
 
-        if ($allPlayersSelectTeam && $allPlayersSelectSameTeam) {
-            self::notifyAllPlayers(
-                "teamSelection",
-                clienttranslate('All players have selected the same team, we must restart.'),
-                [ 'action' => 'devalidated' ]
-            );
-            $this->gamestate->nextPrivateStateForAllActivePlayers("previous");
-        } else if ($allPlayersSelectTeam) {
-            self::notifyAllPlayers("log", clienttranslate('All players have selected a team, we can start.'), []);
-            $this->gamestate->setAllPlayersNonMultiactive("next");
+        if ($teamsCount[0] == 0) {
+            if ($teamsCount[1] == $playersCount || $teamsCount[2] == $playersCount || $teamsCount[3] == $playersCount) {
+                self::notifyAllPlayers(
+                    "teamSelection",
+                    clienttranslate('All players have selected the same team, we must restart.'),
+                    [ 'action' => 'devalidated' ]
+                );
+                $this->gamestate->nextPrivateStateForAllActivePlayers("previous");
+            } else if (!$this->areTeamsBalanced($playersCount, $teamsCount)) {
+                self::notifyAllPlayers(
+                    "teamSelection",
+                    clienttranslate('The teams are not balanced, we must restart.'),
+                    [ 'action' => 'devalidated' ]
+                );
+                $this->gamestate->nextPrivateStateForAllActivePlayers("previous");
+            } else {
+                self::notifyAllPlayers("log", clienttranslate('All players have selected a team, we can start.'), []);
+                $this->gamestate->setAllPlayersNonMultiactive("next");
+            }
         } else {
             self::notifyAllPlayers("teamSelection", "", [
                 'player_id' => $playerId,
@@ -1286,6 +1288,24 @@ class LaserReflection extends Table {
             return ($countPlayers > 3) ? $teamsCount : 2;
         }
         return 0;
+    }
+
+    function areTeamsBalanced($playersCount, $teamsCount) {
+        if ($this->getGameStateValue('balanced_teams') != 1) {
+            // we allow unbalanced teams
+            return true;
+        }
+
+        if ($teamsCount[1] == 0) {
+            return abs($teamsCount[2] - $teamsCount[3]) < 2;
+        }
+        if ($teamsCount[2] == 0) {
+            return abs($teamsCount[1] - $teamsCount[3]) < 2;
+        }
+        if ($teamsCount[3] == 0) {
+            return abs($teamsCount[1] - $teamsCount[2]) < 2;
+        }
+        return abs($teamsCount[2] - $teamsCount[3]) < 2 && abs($teamsCount[1] - $teamsCount[3]) < 2 && abs($teamsCount[1] - $teamsCount[2]) < 2;
     }
 
     function getTeamsScoreMultiplier($teamsPlayers) {
@@ -2076,7 +2096,7 @@ class LaserReflection extends Table {
     }
 
     function getTransformations() {
-        $transfos = [0, 1, 2, 3, 10, 11, 12, 13];
+        $transfos = [0, 1, 2, 3, 10, 11, 12, 20];
         $list = [];
         $result = [];
 

@@ -67,6 +67,21 @@ $game_options = [
             ],
         ]
     ],
+    107 => [
+        'name' => totranslate('Ensure balanced teams'),
+        'values' => [
+            1 => [ 'name' => totranslate('Yes') ],
+            2 => [ 'name' => totranslate('No') ]
+        ],
+        'default' => 1,
+        'displaycondition' => [
+            [
+                'type' => 'otheroption',
+                'id' => 106,
+                'value' => [2,3],
+            ],
+        ]
+    ],
     108 => [
         'name' => totranslate('Rounds'),
         'values' => [
