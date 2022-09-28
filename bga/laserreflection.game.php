@@ -221,8 +221,11 @@ class LaserReflection extends Table {
         if ($this->isSpectator()) {
             $result['params'][] = ['key' => 'transfo', 'val' => 0];
         } else {
-            $transformations = json_decode($this->getGameDbValue('transfos'));
-            $result['params'][] = ['key' => 'transfo', 'val' => $transformations[$players[$current_player_id]['num'] - 1]];
+            $jsonTransfos = $this->getGameDbValue('transfos');
+            if ($jsonTransfos != null) {
+                $transformations = json_decode($jsonTransfos);
+                $result['params'][] = ['key' => 'transfo', 'val' => $transformations[$players[$current_player_id]['num'] - 1]];
+            }
         }
 
         $collectiveGiveup = [
@@ -1614,7 +1617,7 @@ class LaserReflection extends Table {
     function getGameDbValue($key) {
         $sql = "SELECT game_value val FROM gamestatus WHERE game_param='$key'";
         $data = self::getObjectFromDB($sql);
-        return $data['val'];
+        return ($data) ? $data['val'] : null;
     }
 
     function setGameDbValue($key, $val) {
