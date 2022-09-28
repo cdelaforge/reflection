@@ -90,7 +90,6 @@ define([
                             case "resting_player":
                                 if (p.val !== "0") {
                                     gameUI.puzzleUser = gameUI.players[p.val];
-                                    gameUI.puzzleUser.state = "resting";
                                 }
                                 break;
                             case "ended":
