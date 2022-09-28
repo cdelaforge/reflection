@@ -1,4 +1,6 @@
 const STORAGE_TTL = 1000 * 60 * 20; // 20 minutes
+const GIVEUP_DURATION_STR = "6666";
+const GIVEUP_DURATION = 6666;
 
 const gameUI = {
   teamData: [],
@@ -183,7 +185,7 @@ const gameUI = {
         result.state = "failed";
       } else if (playerData.state === "51" && result.progression === 100) {
         result.state = "success";
-      } else if (playerData.state === "80" && playerData.duration === "6666") {
+      } else if (playerData.state === "80" && playerData.duration === GIVEUP_DURATION_STR) {
         result.state = "failed";
       } else if (playerData.state === "80" && result.progression === 100) {
         result.state = "success";
@@ -660,7 +662,7 @@ const gameUI = {
       return "";
     }
 
-    if (duration === 6666) {
+    if (duration === GIVEUP_DURATION) {
       return "0:00";
     }
 
@@ -676,12 +678,6 @@ const gameUI = {
     dojo.style("lrf_timer", "display", "block");
 
     timer.start(callbackFunc);
-  },
-
-  buildRoundsPuzzleSelect: function () {
-    for (let i = 0; i < this.puzzles.length; i++) {
-      dojo.place("<option value='" + i + "'>" + _('Round') + " " + (i + 1) + "</option>", "roundSelect");
-    }
   },
 
   spyBoard: function (playerId) {
@@ -716,8 +712,14 @@ const gameUI = {
     }
   },
 
+  buildRoundsPuzzleSelect: function () {
+    for (let i = 0; i < this.puzzles.length; i++) {
+      dojo.place("<option value='" + i + "'>" + _('Round') + " " + (i + 1) + "</option>", "roundSelect");
+    }
+  },
+
   displayRoundPuzzle: function (round) {
-    console.info("## Display rounds' puzzles ##");
+    console.info("## Display puzzle of round " + round + " ##");
 
     const key = 'pd_' + round + '_';
     this.durations
@@ -726,7 +728,7 @@ const gameUI = {
         const playerNum = +d.pdk.substring(key.length);
         const player = Object.keys(this.players).map((id) => this.players[id]).find(p => p.num === playerNum);
         const divId = 'lrf_end_' + player.id;
-        const durationStr = d.duration === "6666" ? _('Give up') : this.getDurationStr(+d.duration);
+        const durationStr = d.duration === GIVEUP_DURATION_STR ? _('Give up') : this.getDurationStr(+d.duration);
 
         document.getElementById(divId).innerHTML = durationStr;
       });
@@ -759,44 +761,12 @@ const gameUI = {
       }
     }
     catch (error) {
-      console.error("Error in displayPuzzle", error)
+      console.error("Error in displayRoundPuzzle", error)
     }
   },
 
-  displayBoard: function (playerId) {
-    const round = document.getElementById('roundSelect').value;
-    const checked = document.getElementById('board_' + playerId).checked;
-
-    if (checked) {
-      const player = this.players[playerId];
-      const gridKey = 'pg_' + round + '_' + player.num;
-      const durationKey = 'pd_' + round + '_' + player.num;
-      const durationElt = this.durations.find(d => d.pdk === durationKey);
-
-      if (durationElt && durationElt.duration != "6666") {
-        this.mode = "view";
-        this.solution = null;
-        this.grid = this.boards.find(b => b.pgk === gridKey).grid;
-      } else {
-        this.mode = "solution";
-        this.solution = this.puzzles[round];
-        this.grid = this.boards.find(b => b.pgk === gridKey).grid;
-      }
-
-      Object.keys(this.players)
-        .filter(id => id != playerId)
-        .forEach(id => document.getElementById('board_' + id).checked = false);
-
-      if (this.dojoGame) {
-        this.setup();
-      }
-    } else {
-      this.displayRoundPuzzle(round);
-    }
-  },
-
-  displayPuzzle: function (playerId) {
-    console.info("## Display player's puzzles ##");
+  displayPlayerPuzzle: function (playerId) {
+    console.info("## Display puzzle of player " + playerId + " ##");
 
     try {
       dojo.style("lrf_spectator", "display", "none");
@@ -806,12 +776,117 @@ const gameUI = {
       dojo.style("lrf_end_players", "display", "flex");
       dojo.style("lrf_end_rounds", "display", "none");
 
+      const jsonPuzzle = JSON.stringify(this.players[playerId].grid);
+
+      Object.keys(this.players).forEach(id => {
+        const key = 'pg_' + this.players[playerId].num + '_' + this.players[id].num;
+        document.getElementById('board_' + id).checked = false;
+        const board = this.boards.find(b => b.pgk === key);
+        const jsonPlayerGrid = board && board.grid ? JSON.stringify(board.grid) : undefined;
+        const visibility = (jsonPlayerGrid == undefined || jsonPlayerGrid === jsonPuzzle) ? "hidden" : "visible";
+
+        document.getElementById('board_' + id).style.visibility = visibility;
+      });
+
+      const key = 'pd_' + this.players[playerId].num + '_';
+
+      Object.keys(this.players).forEach(id => {
+        const lineId = 'lrf_end_line_' + id;
+        const disp = id == playerId ? "none" : "";
+
+        dojo.style(lineId, "display", disp);
+      });
+
+      this.durations
+        .filter(d => d.pdk.startsWith(key))
+        .forEach(d => {
+          const playerNum = +d.pdk.substring(key.length);
+          const player = Object.keys(this.players).map((id) => this.players[id]).find(p => p.num === playerNum);
+          const divId = 'lrf_end_' + player.id;
+          const durationStr = d.duration === GIVEUP_DURATION_STR ? _('Give up') : this.getDurationStr(+d.duration);
+
+          document.getElementById(divId).innerHTML = durationStr;
+        });
+
+      this.mode = "view";
+      this.solution = null;
+      this.grid = this.players[playerId].grid;
+
       if (this.dojoGame) {
         this.setup();
       }
     }
     catch (error) {
-      console.error("Error in displayPuzzle", error)
+      console.error("Error in displayPlayerPuzzle", error)
+    }
+  },
+
+  displayBoard: function (playerId) {
+    Object.keys(this.players)
+      .filter(id => id != playerId)
+      .forEach(id => document.getElementById('board_' + id).checked = false);
+
+    if (this.modeRandom) {
+      this._displayBoardRound(playerId);
+    } else {
+      this._displayBoardPlayer(playerId);
+    }
+  },
+
+  _displayBoardRound: function (playerId) {
+    const round = document.getElementById('roundSelect').value;
+    const checked = document.getElementById('board_' + playerId).checked;
+
+    if (checked) {
+      const player = this.players[playerId];
+      const gridKey = 'pg_' + round + '_' + player.num;
+      const durationKey = 'pd_' + round + '_' + player.num;
+      const durationElt = this.durations.find(d => d.pdk === durationKey);
+
+      if (durationElt && durationElt.duration != GIVEUP_DURATION_STR) {
+        this.mode = "view";
+        this.solution = null;
+        this.grid = this.boards.find(b => b.pgk === gridKey).grid;
+      } else {
+        this.mode = "solution";
+        this.solution = this.puzzles[round];
+        this.grid = this.boards.find(b => b.pgk === gridKey).grid;
+      }
+
+      if (this.dojoGame) {
+        this.setup();
+      }
+    } else {
+      this.displayRoundPuzzle(round);
+    }
+  },
+
+  _displayBoardPlayer: function (playerId) {
+    const puzzlePlayerId = document.getElementById('playerSelect').value;
+    const checked = document.getElementById('board_' + playerId).checked;
+
+    if (checked) {
+      const player = this.players[playerId];
+      const puzzlePlayer = this.players[puzzlePlayerId];
+      const gridKey = 'pg_' + puzzlePlayer.num + '_' + player.num;
+      const durationKey = 'pd_' + puzzlePlayer.num + '_' + player.num;
+      const durationElt = this.durations.find(d => d.pdk === durationKey);
+
+      if (durationElt && durationElt.duration != GIVEUP_DURATION_STR) {
+        this.mode = "view";
+        this.solution = null;
+        this.grid = this.boards.find(b => b.pgk === gridKey).grid;
+      } else {
+        this.mode = "solution";
+        this.solution = puzzlePlayer.grid;
+        this.grid = this.boards.find(b => b.pgk === gridKey).grid;
+      }
+
+      if (this.dojoGame) {
+        this.setup();
+      }
+    } else {
+      this.displayPlayerPuzzle(puzzlePlayerId);
     }
   },
 

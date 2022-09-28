@@ -18,6 +18,10 @@
 
 require_once( APP_GAMEMODULE_PATH.'module/table/table.game.php' );
 
+if (!defined('GIVEUP_DURATION')) { // ensure this block is only invoked once, since it is included multiple times
+    define("GIVEUP_DURATION", 6666);
+ }
+
 class LaserReflection extends Table {
     public function __construct( ) {
         parent::__construct();
@@ -477,7 +481,7 @@ class LaserReflection extends Table {
 
             if ($duration == $prevDuration) {
                 $playerScore = $prevScore;
-            } else if ($duration >= 6666) {
+            } else if ($duration >= GIVEUP_DURATION) {
                 $playerScore = -floor($scorePart);
             } else {
                 $playerScore = floor(($teamsCpt - $teamIndex) * $scorePart);
@@ -566,8 +570,8 @@ class LaserReflection extends Table {
 
             if ($duration == $prevDuration) {
                 $playerScore = $prevScore;
-            } else if ($duration >= 6666) {
-                $duration = 6666;
+            } else if ($duration >= GIVEUP_DURATION) {
+                $duration = GIVEUP_DURATION;
                 $playerScore = -floor($scorePart);
             } else {
                 $playerScore = floor(($cpt - $i) * $scorePart);
@@ -667,7 +671,7 @@ class LaserReflection extends Table {
 
         $sql = "SELECT player_round_duration duration FROM player WHERE player_id=$playerId";
         $player = self::getObjectFromDB($sql);
-        $playerScore = $player["duration"] >= 6666 ? 0 : 1;
+        $playerScore = $player["duration"] >= GIVEUP_DURATION ? 0 : 1;
 
         // create a new puzzle
         $this->updatePuzzle();
@@ -722,7 +726,7 @@ class LaserReflection extends Table {
 
             if ($duration == $prevDuration) {
                 $playerScore = $prevScore;
-            } else if ($duration >= 6666) {
+            } else if ($duration >= GIVEUP_DURATION) {
                 $playerScore = -floor($scorePart);
             } else {
                 $playerScore = floor(($cpt - $i) * $scorePart);
@@ -955,15 +959,16 @@ class LaserReflection extends Table {
         $sql = "SELECT game_param k, game_value duration FROM gamestatus WHERE game_param LIKE 'pd_%' ORDER BY game_param";
         $list = self::getCollectionFromDb($sql);
 
-        $sql = "SELECT player_no num, player_name name FROM player";
+        $sql = "SELECT player_no num, player_name name FROM player order by player_no";
         $players = self::getObjectListFromDB($sql);
+        $cpt = count($players);
 
-        $rounds = $this->getRound() - 1;
+        $roundsPlayed = $this->getRound() - 1;
         $table = [];
 
         $table[0] = [''];
 
-        for ($round=0; $round<$rounds; $round++) {
+        for ($round=0; $round<$roundsPlayed; $round++) {
             $table[$round+1] = [[
                 'str' => '${round_name} ${round_cpt}',
                 'args' => [
@@ -982,17 +987,32 @@ class LaserReflection extends Table {
                 'type' => 'header'
             ];
 
-            for ($round=0; $round<$rounds; $round++) {
-                $key = 'pd_'.$round.'_'.$player["num"];
+            for ($round=0; $round<$roundsPlayed; $round++) {
+                if ($this->isModeRandom()) {
+                    $key = 'pd_'.$round.'_'.$player["num"];
+                } else if ($this->isModeResting()) {
+                    $puzzlePlayerNum = ($round + 1) % $cpt;
+                    $key = 'pd_'.$puzzlePlayerNum.'_'.$player["num"];
+                } else {
+                    $puzzlePlayerNum = $player['num'] + $round + 1;
+                    if ($puzzlePlayerNum > $cpt) {
+                        $puzzlePlayerNum = $puzzlePlayerNum % $cpt;
+                    }
+
+                    self::notifyPlayer($currentPlayerId, "log", $player['num']."/".$round."/".$puzzlePlayerNum, []);
+
+                    $key = 'pd_'.$puzzlePlayerNum.'_'.$player["num"];
+                }
+
                 try {
                     if (array_key_exists($key, $list)) {
                         $durationStr = $this->getDurationStr(intval($list[$key]['duration']));
                     } else {
-                        $durationStr = '-';
+                        $durationStr = '';
                     }
                 }
                 catch (Exception $e) {
-                    $durationStr = '-';
+                    $durationStr = '';
                 }
 
                 $table[$round+1][] = [
@@ -1131,7 +1151,7 @@ class LaserReflection extends Table {
 
         if ($grid != null) {
             $jsonGrid = json_encode($grid);
-            $this->savePlayerGridAndDuration($playerId, $jsonGrid, 6666);
+            $this->savePlayerGridAndDuration($playerId, $jsonGrid, GIVEUP_DURATION);
         }
 
         $everybodyAgree = true;
@@ -1161,7 +1181,7 @@ class LaserReflection extends Table {
             $teammates = $teamData['teammates'];
             $teammatesStr = implode(",", $teammates);
 
-            $sql = "UPDATE player SET player_start=0, player_round_duration=6666 WHERE player_id IN ($teammatesStr)";
+            $sql = "UPDATE player SET player_start=0, player_round_duration=".GIVEUP_DURATION." WHERE player_id IN ($teammatesStr)";
             self::DbQuery($sql);
 
             self::setGameStateValue('giveup_propose_'.$playerTeam['team'], 0);
@@ -1216,11 +1236,11 @@ class LaserReflection extends Table {
 
         if ($grid != null) {
             $jsonGrid = json_encode($grid);
-            $this->savePlayerGridAndDuration($playerId, $jsonGrid, 6666);
+            $this->savePlayerGridAndDuration($playerId, $jsonGrid, GIVEUP_DURATION);
 
-            $sql = "UPDATE player SET player_grid='".$jsonGrid."', player_start=0, player_round_duration=6666 WHERE player_id=$playerId";
+            $sql = "UPDATE player SET player_grid='".$jsonGrid."', player_start=0, player_round_duration=".GIVEUP_DURATION." WHERE player_id=$playerId";
         } else {
-            $sql = "UPDATE player SET player_start=0, player_round_duration=6666 WHERE player_id=$playerId";
+            $sql = "UPDATE player SET player_start=0, player_round_duration=".GIVEUP_DURATION." WHERE player_id=$playerId";
         }
         self::DbQuery($sql);
 
@@ -1483,7 +1503,7 @@ class LaserReflection extends Table {
                 if ($states[$i] == STATE_PLAY_PUZZLE_RESOLVED_TEAM) {
                     $this->gamestate->setPlayerNonMultiactive($id, 'next');
 
-                    $sql = "UPDATE player SET player_start=0, player_round_duration=6666 WHERE player_id=$id";
+                    $sql = "UPDATE player SET player_start=0, player_round_duration=".GIVEUP_DURATION." WHERE player_id=$id";
                     self::DbQuery($sql);
                 }
             }
@@ -1898,7 +1918,7 @@ class LaserReflection extends Table {
     }
 
     function getDurationStr($duration) {
-        if ($duration >= 6666) {
+        if ($duration >= GIVEUP_DURATION) {
             return "-";
           }
           $seconds = $duration % 60;
@@ -2228,7 +2248,13 @@ class LaserReflection extends Table {
         } else {
             $cpt = $this->getGameStateValue('count_players');
             $round = $this->getRound();
-            $otherPlayerNum = ($player_num + $round) % $cpt;
+            $otherPlayerNum = $player_num + $round;
+            if ($otherPlayerNum > $cpt) {
+                $otherPlayerNum = $otherPlayerNum % $cpt;
+            }
+
+            self::notifyAllPlayers("puzzleChange", $player_num."/".$otherPlayerNum."/".$round, []);
+
             $this->setGameDbValue('pg_'.$otherPlayerNum.'_'.$player_num, $jsonGrid);
             $this->setGameDbValue('pd_'.$otherPlayerNum.'_'.$player_num, $duration);
         }
@@ -2282,7 +2308,7 @@ class LaserReflection extends Table {
             }
         }
 
-        $sql = "UPDATE player SET player_start=0, player_round_duration=6666 WHERE player_zombie=1 AND player_round_duration=0";
+        $sql = "UPDATE player SET player_start=0, player_round_duration=".GIVEUP_DURATION." WHERE player_zombie=1 AND player_round_duration=0";
         self::DbQuery($sql);
 
         if ($state['type'] === "multipleactiveplayer") {

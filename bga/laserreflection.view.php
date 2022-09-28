@@ -57,7 +57,7 @@
                 "PLAYER_NAME" => $player['player_name'],
                 "PLAYER_ID" => $player['player_id'],
             );
-            $this->page->insert_block("player_puzzle", $data);
+            $this->page->insert_block("player_board", $data);
         }
 
         $this->page->begin_block("laserreflection_laserreflection", "player_duration");

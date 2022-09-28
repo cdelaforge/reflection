@@ -136,7 +136,7 @@ define([
                     } else if (gameUI.ended && gameUI.modeRandom) {
                         gameUI.displayRoundPuzzle(0);
                     } else {
-                        gameUI.displayPuzzle(document.getElementById("playerSelect").value);
+                        gameUI.displayPlayerPuzzle(document.getElementById("playerSelect").value);
                     }
 
                     gameUI.init(this);
@@ -276,9 +276,9 @@ define([
                         if (gameUI.modeRandom) {
                             gameUI.displayRoundPuzzle(0);
                         } else if (this.isSpectator) {
-                            gameUI.displayPuzzle(document.getElementById("playerSelect").value);
+                            gameUI.displayPlayerPuzzle(document.getElementById("playerSelect").value);
                         } else {
-                            gameUI.displayPuzzle(this.player_id);
+                            gameUI.displayPlayerPuzzle(this.player_id);
                         }
                         break;
                 }
@@ -622,13 +622,14 @@ define([
                     gameUI.players[player_id].grid = JSON.parse(notif.args.puzzles[player_id]);
                 }
                 gameUI.durations = notif.args.durations;
+                gameUI.boards = notif.args.boards.map(g => { return { pgk: g.pgk, grid: JSON.parse(g.grid) } });
             },
 
             notif_roundsPuzzle: function (notif) {
                 console.log("notif_roundsPuzzle", notif);
                 gameUI.puzzles = notif.args.puzzles.map(p => JSON.parse(p));
                 gameUI.durations = notif.args.durations;
-                gameUI.boards = notif.args.boards.map(g => JSON.parse(g));
+                gameUI.boards = notif.args.boards.map(g => { return { pgk: g.pgk, grid: JSON.parse(g.grid) } });
                 gameUI.buildRoundsPuzzleSelect();
             },
 

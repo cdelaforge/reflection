@@ -33,7 +33,7 @@
         <div id="lrf_end_players" class="lrf_end_line lrf_title">
             <div>{PUZZLES}</div>
             <div>
-                <select onchange="gameUI.displayPuzzle(this.value)" id="playerSelect">
+                <select onchange="gameUI.displayPlayerPuzzle(this.value)" id="playerSelect">
                     <!-- BEGIN player_puzzle -->
                     <option value="{PLAYER_ID}" {PLAYER_SELECTED}>{PLAYER_NAME}</option>
                     <!-- END player_puzzle -->
@@ -54,7 +54,7 @@
         </div>
         <hr/>
         <!-- BEGIN player_duration -->
-        <div class="lrf_end_line">
+        <div class="lrf_end_line" id="lrf_end_line_{PLAYER_ID}">
             <div style="color:#{PLAYER_COLOR}">{PLAYER_NAME}</div>
             <div id="lrf_end_{PLAYER_ID}"></div>
             <div><input type="checkbox" id="board_{PLAYER_ID}" onclick="gameUI.displayBoard({PLAYER_ID})"/></div>
