@@ -164,7 +164,9 @@ const gameUI = {
 
     result.running = result.startTime > 0;
 
-    if (result.running) {
+    if (gameUI.puzzleUser && gameUI.puzzleUser.id === playerId) {
+      result.state = "resting";
+    } else if (result.running) {
       if (playerData.state === "54") {
         result.state = "success";
       } else {
@@ -208,10 +210,10 @@ const gameUI = {
     }), 'left-side', 12);
 
     $('giveup_decision_yes').onclick = function () {
-      gameUI.callAction("giveUpPropose", null, true);
+      gameUI.giveUpPropose = true;
     };
     $('giveup_decision_no').onclick = function () {
-      gameUI.callAction("giveUpRefuse", null, true);
+      gameUI.giveUpRefuse = true;
     };
   },
 
@@ -346,14 +348,24 @@ const gameUI = {
       this.clearSavedGrid();
     }
 
-    if (this.timeout || this.giveUp) {
+    if (this.giveUpPropose) {
+      this.giveUpPropose = false;
+      this.shouldSendProgression = false;
+
+      this.callAction("giveUpPropose", { grid: JSON.stringify(gameUI.grid) }, true, "post");
+    } else if (this.giveUpRefuse) {
+      this.giveUpRefuse = true;
+      this.shouldSendProgression = false;
+
+      this.callAction("giveUpRefuse", null, true);
+    } else if (this.timeout || this.giveUp) {
       const action = this.timeout ? "timeout" : "giveUp";
       this.giveUp = false;
       this.timeout = false;
       this.shouldSendProgression = false;
       this.mode = 'solution';
 
-      this.callAction(action, null, true);
+      this.callAction(action, { grid: JSON.stringify(this.grid) }, true, "post");
     } else if ((this.liveLoop === 0 || this.liveLoop === 2) && this.mode === "play") {
       this.manageTimeLimit();
     }
@@ -421,14 +433,6 @@ const gameUI = {
 
     window.game.setAreaSize(areaWidth, areaHeight);
 
-    if (this.prevAreaWidth !== areaWidth) {
-      this.prevAreaWidth = areaWidth;
-      const self = this;
-      setTimeout(() => { self.setRootMargin(titleBar); }, 100);
-    } else {
-      this.setRootMargin(titleBar);
-    }
-
     try {
       dojo.query(".replay_last_move_button")[0].parentNode.parentNode.style.display = "none";
     }
@@ -451,14 +455,6 @@ const gameUI = {
           button.innerHTML = _('Give up') + " (" + remainingTime + " " + _('seconds') + ")";
         }
       }
-    }
-  },
-
-  setRootMargin: function (titleBar) {
-    const rootDiv = document.getElementById("root");
-    if (rootDiv.offsetWidth) {
-      const margin = Math.floor((titleBar.offsetWidth - rootDiv.offsetWidth) / 2);
-      rootDiv.style.marginLeft = margin + "px";
     }
   },
 
@@ -524,10 +520,10 @@ const gameUI = {
     timer.abort();
 
     if (this.isSpectator && !this.trainingMode && !this.ended) {
-      dojo.style("lrf_spectator", "display", "flex");
+      dojo.style("lrf_spectator_text", "display", "flex");
       dojo.style("lrf_main", "display", "none");
     } else {
-      dojo.style("lrf_spectator", "display", "none");
+      dojo.style("lrf_spectator_text", "display", "none");
       dojo.style("lrf_main", "display", "flex");
       dojo.style("lrf_end", "display", this.isSpectator ? "flex" : "none");
       dojo.style("lrf_timer", "display", "none");
@@ -621,6 +617,9 @@ const gameUI = {
           case "creating":
             dojo.style(divId, "display", "");
             break;
+          case "resting":
+            dojo.style(rstId, "display", "");
+            break;
           default:
             dojo.style(afkId, "display", "");
             break;
@@ -685,16 +684,74 @@ const gameUI = {
     }
   },
 
+  spyBoard: function (playerId) {
+    if (this.isSpectator) {
+      if (!this.trainingMode && !this.ended) {
+        dojo.style("lrf_spectator_text", "display", "flex");
+        dojo.style("lrf_main", "display", "none");
+        dojo.style("lrf_spectator", "display", "none");
+      } else {
+        dojo.style("lrf_spectator_text", "display", "none");
+        dojo.style("lrf_main", "display", "flex");
+        dojo.style("lrf_spectator", "display", "flex");
+
+        if (playerId) {
+          this.playerSpied = playerId;
+          this.grid = this.players[playerId].grid;
+        }
+
+        if (!this.modeRandom) {
+          if (this.puzzleUsers) {
+            const otherPlayer = this.puzzleUsers[playerId];
+            this.puzzle = this.players[otherPlayer].puzzle;
+          } else {
+            this.puzzle = undefined;
+          }
+        }
+
+        if (this.dojoGame) {
+          this.setup();
+        }
+      }
+    }
+  },
+
   displayRoundPuzzle: function (round) {
-    console.info("## Display rounds's puzzles ##");
+    console.info("## Display rounds' puzzles ##");
+
+    const key = 'pd_' + round + '_';
+    this.durations
+      .filter(d => d.pdk.startsWith(key))
+      .forEach(d => {
+        const playerNum = +d.pdk.substring(key.length);
+        const player = Object.keys(this.players).map((id) => this.players[id]).find(p => p.num === playerNum);
+        const divId = 'lrf_end_' + player.id;
+        const durationStr = d.duration === "6666" ? _('Give up') : this.getDurationStr(+d.duration);
+
+        document.getElementById(divId).innerHTML = durationStr;
+      });
+
+    const jsonPuzzle = JSON.stringify(this.puzzles[round]);
+
+    Object.keys(this.players).forEach(id => {
+      const key = 'pg_' + round + '_' + this.players[id].num;
+      document.getElementById('board_' + id).checked = false;
+      const board = this.boards.find(b => b.pgk === key);
+      const jsonPlayerGrid = board && board.grid ? JSON.stringify(board.grid) : undefined;
+      const visibility = (jsonPlayerGrid == undefined || jsonPlayerGrid === jsonPuzzle) ? "hidden" : "visible";
+
+      document.getElementById('board_' + id).style.visibility = visibility;
+    });
 
     try {
       dojo.style("lrf_main", "display", "flex");
       dojo.style("lrf_timer", "display", "none");
-      dojo.style("lrf_end", "display", "none");
-      dojo.style("lrf_end_rnd", "display", "flex");
+      dojo.style("lrf_end", "display", "flex");
+      dojo.style("lrf_end_players", "display", "none");
+      dojo.style("lrf_end_rounds", "display", "flex");
 
       this.mode = "view";
+      this.solution = null;
       this.grid = this.puzzles[round];
 
       if (this.dojoGame) {
@@ -706,37 +763,51 @@ const gameUI = {
     }
   },
 
+  displayBoard: function (playerId) {
+    const round = document.getElementById('roundSelect').value;
+    const checked = document.getElementById('board_' + playerId).checked;
+
+    if (checked) {
+      const player = this.players[playerId];
+      const gridKey = 'pg_' + round + '_' + player.num;
+      const durationKey = 'pd_' + round + '_' + player.num;
+      const durationElt = this.durations.find(d => d.pdk === durationKey);
+
+      if (durationElt && durationElt.duration != "6666") {
+        this.mode = "view";
+        this.solution = null;
+        this.grid = this.boards.find(b => b.pgk === gridKey).grid;
+      } else {
+        this.mode = "solution";
+        this.solution = this.puzzles[round];
+        this.grid = this.boards.find(b => b.pgk === gridKey).grid;
+      }
+
+      Object.keys(this.players)
+        .filter(id => id != playerId)
+        .forEach(id => document.getElementById('board_' + id).checked = false);
+
+      if (this.dojoGame) {
+        this.setup();
+      }
+    } else {
+      this.displayRoundPuzzle(round);
+    }
+  },
+
   displayPuzzle: function (playerId) {
     console.info("## Display player's puzzles ##");
 
     try {
-      if (this.isSpectator && !this.trainingMode && !this.ended) {
-        dojo.style("lrf_spectator", "display", "flex");
-        dojo.style("lrf_main", "display", "none");
-      } else {
-        dojo.style("lrf_spectator", "display", "none");
-        dojo.style("lrf_main", "display", "flex");
-        dojo.style("lrf_timer", "display", "none");
-        dojo.style("lrf_end", "display", "flex");
+      dojo.style("lrf_spectator", "display", "none");
+      dojo.style("lrf_main", "display", "flex");
+      dojo.style("lrf_timer", "display", "none");
+      dojo.style("lrf_end", "display", "flex");
+      dojo.style("lrf_end_players", "display", "flex");
+      dojo.style("lrf_end_rounds", "display", "none");
 
-        if (playerId) {
-          this.playerSpied = playerId;
-          this.grid = this.players[playerId].grid;
-        }
-
-        if (!this.isSpectator || this.ended) {
-          this.mode = "view";
-        } else if (!this.modeRandom) {
-          if (this.puzzleUsers) {
-            const otherPlayer = this.puzzleUsers[playerId];
-            this.puzzle = this.players[otherPlayer].puzzle;
-          } else {
-            this.puzzle = undefined;
-          }
-        }
-        if (this.dojoGame) {
-          this.setup();
-        }
+      if (this.dojoGame) {
+        this.setup();
       }
     }
     catch (error) {

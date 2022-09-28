@@ -38,7 +38,8 @@
         global $g_user;
 
         $this->tpl['SPECTATOR_TEXT'] = self::_("As a spectator, you can only see the players' boards if the game is in training mode.");
-        $this->tpl['PUZZLES'] = self::_("Players' boards");
+        $this->tpl['BOARDS'] = self::_("Players' boards");
+        $this->tpl['PUZZLES'] = self::_("Players' puzzles");
 
         $this->page->begin_block("laserreflection_laserreflection", "player_puzzle");
         foreach ($players as $player) {
@@ -50,6 +51,28 @@
             $this->page->insert_block("player_puzzle", $data);
         }
 
+        $this->page->begin_block("laserreflection_laserreflection", "player_board");
+        foreach ($players as $player) {
+            $data = array(
+                "PLAYER_NAME" => $player['player_name'],
+                "PLAYER_ID" => $player['player_id'],
+            );
+            $this->page->insert_block("player_puzzle", $data);
+        }
+
+        $this->page->begin_block("laserreflection_laserreflection", "player_duration");
+        foreach ($players as $player) {
+            $data = array(
+                "PLAYER_NAME" => $player['player_name'],
+                "PLAYER_ID" => $player['player_id'],
+                "PLAYER_COLOR" => $player['player_color'],
+            );
+            $this->page->insert_block("player_duration", $data);
+        }
+
+
+        $this->tpl['ROUND_DURATION'] = self::_("Duration");
+        $this->tpl['PLAYER_BOARD'] = self::_("Board");
         $this->tpl['ROUND_PUZZLES'] = self::_("Puzzles of each round");
         $this->tpl['TEAM_SELECTION'] = self::_("Team selection");
         $this->tpl['TEAM_1'] = self::_("Mages");

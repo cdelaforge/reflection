@@ -103,7 +103,12 @@
     public function giveUp() {
       self::setAjaxMode();
 
-      $this->game->action_giveup(false);
+      $grid = self::getArg("grid", AT_json, false, null);
+      if ($grid != null) {
+        $this->validateJsonGrid($grid);
+      }
+
+      $this->game->action_giveup($grid, false);
 
       self::ajaxResponse();
     }
@@ -111,7 +116,12 @@
     public function giveUpPropose() {
       self::setAjaxMode();
 
-      $this->game->action_giveupPropose(false);
+      $grid = self::getArg("grid", AT_json, false, null);
+      if ($grid != null) {
+        $this->validateJsonGrid($grid);
+      }
+
+      $this->game->action_giveupPropose($grid);
 
       self::ajaxResponse();
     }
@@ -127,7 +137,12 @@
     public function timeout() {
       self::setAjaxMode();
 
-      $this->game->action_giveup(true);
+      $grid = self::getArg("grid", AT_json, false, null);
+      if ($grid != null) {
+        $this->validateJsonGrid($grid);
+      }
+
+      $this->game->action_giveup($grid, true);
 
       self::ajaxResponse();
     }
@@ -136,9 +151,8 @@
       self::setAjaxMode();
 
       $grid = self::getArg( "grid", AT_json, true );
-      self::trace("puzzleResolve");
-      self::dump("grid", $grid);
       $this->validateJsonGrid($grid);
+
       $this->game->action_resolve($grid);
 
       self::ajaxResponse();
@@ -160,6 +174,19 @@
       self::setAjaxMode();
       $this->game->action_stopGame();
       self::ajaxResponse();
+    }
+
+    public function getRoundDurations() {
+      self::setAjaxMode();
+      $this->game->action_getRoundDurations();
+      self::ajaxResponse();
+    }
+
+    public function displayDurations() {
+      self::setAjaxMode();
+      $this->game->action_displayDurations();
+      self::ajaxResponse();
+
     }
 
     /* Data verifications functions */

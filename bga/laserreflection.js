@@ -15,7 +15,7 @@
  *
  */
 
-const fileType = ".min"; // ".min" or ""
+const fileType = ""; // ".min" or ""
 
 define([
     "dojo", "dojo/_base/declare",
@@ -90,6 +90,7 @@ define([
                             case "resting_player":
                                 if (p.val !== "0") {
                                     gameUI.puzzleUser = gameUI.players[p.val];
+                                    gameUI.puzzleUser.state = "resting";
                                 }
                                 break;
                             case "ended":
@@ -113,11 +114,14 @@ define([
                         }
                     });
 
+                    gameUI.durations = data.durations;
+                    if (data.boards) {
+                        gameUI.boards = data.boards.map(g => { return { pgk: g.pgk, grid: JSON.parse(g.grid) } });
+                    }
                     if (data.puzzles) {
                         gameUI.puzzles = data.puzzles.map(p => JSON.parse(p));
                         gameUI.buildRoundsPuzzleSelect();
                     }
-
                     if (data.round_puzzle) {
                         gameUI.puzzle = JSON.parse(data.round_puzzle);
                     }
@@ -197,6 +201,7 @@ define([
                             const savedGrid = gameUI.getSavedGrid();
                             const isPlaying = args.private_state && args.private_state.id === "51";
 
+                            gameUI.round = parseInt(privateData.round, 10);
                             if (privateData.portals) {
                                 gameUI.portals = JSON.parse(privateData.portals);
                             }
@@ -325,6 +330,9 @@ define([
                             break;
                         case "puzzlePlayWait":
                             this.removeActionButtons();
+                            if (!gameUI.realtime && gameUI.round > 1) {
+                                this.addActionButton('displayDurations', _('Results of previous rounds'), 'onDisplayDurations');
+                            }
                             this.addActionButton('start', _('Start'), 'onStartNow');
                             break;
                         case "puzzlePlay":
@@ -389,6 +397,11 @@ define([
                     this.callAction("puzzleStart", null, true);
                 }
             },
+            onDisplayDurations: function () {
+                if (!g_archive_mode) {
+                    this.callAction("displayDurations", null, true);
+                }
+            },
             onReset: function () {
                 if (!g_archive_mode) {
                     gameUI.reset();
@@ -407,10 +420,10 @@ define([
 
                         if (teammates.length === 1) {
                             this.confirmationDialog(_('Are you sure to give up? You will have a score penalty'), () => {
-                                gameUI.callAction("giveUpPropose", null, true);
+                                gameUI.giveUpPropose = true;
                             });
                         } else {
-                            this.callAction("giveUpPropose", null, true);
+                            gameUI.giveUpPropose = true;
                         }
                     } else if (gameUI.playersCount === 1) {
                         gameUI.giveUp = true;
@@ -609,11 +622,14 @@ define([
                 for (let player_id in notif.args.puzzles) {
                     gameUI.players[player_id].grid = JSON.parse(notif.args.puzzles[player_id]);
                 }
+                gameUI.durations = notif.args.durations;
             },
 
             notif_roundsPuzzle: function (notif) {
                 console.log("notif_roundsPuzzle", notif);
                 gameUI.puzzles = notif.args.puzzles.map(p => JSON.parse(p));
+                gameUI.durations = notif.args.durations;
+                gameUI.boards = notif.args.boards.map(g => JSON.parse(g));
                 gameUI.buildRoundsPuzzleSelect();
             },
 

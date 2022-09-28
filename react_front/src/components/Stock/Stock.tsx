@@ -19,6 +19,11 @@ interface StockCellData {
 
 function Stock() {
   const { mode, squaresCount, gridSize, cellSize, elementsCount, displayMode, margin, stock, transformations, stockIndex, setStockIndex } = useAppState();
+
+  if (mode === "view" || mode === "solution") {
+    return <></>;
+  }
+
   const transfoHelper = new Transformations(transformations);
   const data = stock.map((val, index) => ({ index, val, displayedVal: transfoHelper.getDisplayedIcon(val) })).sort(compareData);
   const lines = Math.ceil(elementsCount / (squaresCount + 2));
@@ -40,10 +45,6 @@ function Stock() {
 
   if (stockIndex === undefined && data[0]) {
     setStockIndex(data[0].index);
-  }
-
-  if (mode === "view") {
-    return <></>;
   }
 
   return <StockArea width={width} height={height} margin={margin}>{cells}</StockArea>;

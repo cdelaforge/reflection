@@ -263,6 +263,16 @@ class LaserReflection extends Table {
             }
         }
 
+        if ($gameEnded) {
+            $sql = "SELECT game_param pdk, game_value duration FROM gamestatus WHERE game_param LIKE 'pd_%' ORDER BY game_param";
+            $durations = self::getObjectListFromDB($sql);
+            $result['durations'] = $durations;
+
+            $sql = "SELECT game_param pgk, game_value grid FROM gamestatus WHERE game_param LIKE 'pg_%' ORDER BY game_param";
+            $boards = self::getObjectListFromDB($sql);
+            $result['boards'] = $boards;
+        }
+
         $startDate = new DateTime();
         $start = $startDate->getTimestamp();
         $result['server_time'] = $start;
@@ -323,6 +333,7 @@ class LaserReflection extends Table {
                     'puzzle' => $jsonPuzzle,
                     'elements' => $jsonElements,
                     'portals' => $jsonPortals,
+                    'round' => $round
                 ];
                 $result['_public'][$players[$i]['id']] = [
                     'id'=> $players[$i]["id"],
@@ -348,6 +359,7 @@ class LaserReflection extends Table {
                     'id' => $restingPlayerId,
                     'name' => $restingPlayerName,
                     'puzzle' => $jsonPuzzle,
+                    'round' => $round
                 ];
                 $result['_public'][$players[$i]['id']] = [
                     'id'=> $restingPlayerId,
@@ -361,6 +373,7 @@ class LaserReflection extends Table {
                     'id' => $players[$other_player_index]["id"],
                     'name' => $players[$other_player_index]["name"],
                     'puzzle' => $players[$other_player_index]["puzzle"],
+                    'round' => $round
                 ];
                 $result['_public'][$players[$i]['id']] = [
                     'id'=> $players[$other_player_index]["id"],
@@ -931,6 +944,71 @@ class LaserReflection extends Table {
         $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
     }
 
+    function action_displayDurations() {
+        self::checkAction("displayDurations");
+
+        $currentPlayerId = $this->getCurrentPlayerId();
+
+        $sql = "SELECT game_param k, game_value duration FROM gamestatus WHERE game_param LIKE 'pd_%' ORDER BY game_param";
+        $list = self::getCollectionFromDb($sql);
+
+        $sql = "SELECT player_no num, player_name name FROM player";
+        $players = self::getObjectListFromDB($sql);
+
+        $rounds = $this->getRound() - 1;
+        $table = [];
+
+        $table[0] = [''];
+
+        for ($round=0; $round<$rounds; $round++) {
+            $table[$round+1] = [[
+                'str' => '${round_name} ${round_cpt}',
+                'args' => [
+                    'round_name' => clienttranslate('Round'),
+                    'round_cpt' => ($round+1),
+                    'i18n' => ['round_name']
+                ]
+            ]];
+        }
+
+        $firstRow = [''];
+        foreach ($players as $playerId => $player) {
+            $table[0][] = [
+                'str' => '${player_name}',
+                'args' => ['player_name' => $player['name']],
+                'type' => 'header'
+            ];
+
+            for ($round=0; $round<$rounds; $round++) {
+                $key = 'pd_'.$round.'_'.$player["num"];
+                try {
+                    if (array_key_exists($key, $list)) {
+                        $durationStr = $this->getDurationStr(intval($list[$key]['duration']));
+                    } else {
+                        $durationStr = '-';
+                    }
+                }
+                catch (Exception $e) {
+                    $durationStr = '-';
+                }
+
+                $table[$round+1][] = [
+                    'str' => '${player_duration}',
+                    'args' => ['player_duration' =>  $durationStr]
+                ];
+            }
+        }
+
+        self::notifyPlayer($currentPlayerId, "tableWindow", "", [
+            "id" => 'roundsDurations',
+            "title" => clienttranslate("Resolution durations for each round"),
+            "table" => $table,
+            "closing" => clienttranslate("Close")
+        ]);
+
+        $this->gamestate->nextPrivateState($currentPlayerId, 'stay');
+    }
+
     function action_start() {
         self::checkAction("puzzleStart");
 
@@ -996,6 +1074,8 @@ class LaserReflection extends Table {
         $jsonGrid = json_encode($grid);
         $isRealtimeTeamMode = $this->isRealtimeTeamMode();
 
+        $this->savePlayerGridAndDuration($currentPlayerId, $jsonGrid, $duration);
+
         if ($isRealtimeTeamMode) {
             $sql = "UPDATE player SET player_grid='$jsonGrid', player_progression=100 WHERE player_id=$currentPlayerId";
         } else {
@@ -1040,11 +1120,16 @@ class LaserReflection extends Table {
         }
     }
 
-    function action_giveupPropose() {
+    function action_giveupPropose($grid) {
         self::checkAction("giveUpPropose");
 
         $playerId = $this->getCurrentPlayerId();
         $playerTeam = $this->getPlayerTeamNameAndIcon($playerId);
+
+        if ($grid != null) {
+            $jsonGrid = json_encode($grid);
+            $this->savePlayerGridAndDuration($playerId, $jsonGrid, 6666);
+        }
 
         $everybodyAgree = true;
 
@@ -1121,12 +1206,19 @@ class LaserReflection extends Table {
         $this->gamestate->nextPrivateState($playerId, 'continue');
     }
 
-    function action_giveup($timeout) {
+    function action_giveup($grid, $timeout) {
         self::checkAction("giveUp");
 
         $playerId = $this->getCurrentPlayerId();
 
-        $sql = "UPDATE player SET player_start=0, player_round_duration=6666 WHERE player_id=$playerId";
+        if ($grid != null) {
+            $jsonGrid = json_encode($grid);
+            $this->savePlayerGridAndDuration($playerId, $jsonGrid, 6666);
+
+            $sql = "UPDATE player SET player_grid='".$jsonGrid."', player_start=0, player_round_duration=6666 WHERE player_id=$playerId";
+        } else {
+            $sql = "UPDATE player SET player_start=0, player_round_duration=6666 WHERE player_id=$playerId";
+        }
         self::DbQuery($sql);
 
         $this->gamestate->nextPrivateState($playerId, 'solution');
@@ -1949,6 +2041,12 @@ class LaserReflection extends Table {
     function sendAllPuzzles() {
         $puzzles = [];
 
+        $sql = "SELECT game_param pdk, game_value duration FROM gamestatus WHERE game_param LIKE 'pd_%' ORDER BY game_param";
+        $durations = self::getObjectListFromDB($sql);
+
+        $sql = "SELECT game_param pgk, game_value grid FROM gamestatus WHERE game_param LIKE 'pg_%' ORDER BY game_param";
+        $boards = self::getObjectListFromDB($sql);
+
         if ($this->isModeRandom()) {
             $sql = "SELECT game_value grid FROM gamestatus WHERE game_param LIKE 'rg_%' ORDER BY game_param";
             $grids = self::getObjectListFromDB($sql);
@@ -1957,7 +2055,7 @@ class LaserReflection extends Table {
                 $puzzles[] = $elt['grid'];
             }
 
-            self::notifyAllPlayers("roundsPuzzle", '', [ 'puzzles' => $puzzles ]);
+            self::notifyAllPlayers("roundsPuzzle", '', [ 'puzzles' => $puzzles, 'durations' => $durations, 'boards' => $boards ]);
         } else {
             $sql = "SELECT player_id id, player_puzzle_grid grid FROM player";
             $players = self::getObjectListFromDB($sql);
@@ -1967,7 +2065,7 @@ class LaserReflection extends Table {
                 $puzzles[$playerId] = $player['grid'];
             }
 
-            self::notifyAllPlayers("playersPuzzle", '', [ 'puzzles' => $puzzles ]);
+            self::notifyAllPlayers("playersPuzzle", '', [ 'puzzles' => $puzzles, 'durations' => $durations, 'boards' => $boards ]);
         }
     }
 
@@ -2110,6 +2208,13 @@ class LaserReflection extends Table {
         }
 
         return $result;
+    }
+
+    function savePlayerGridAndDuration($playerId, $jsonGrid, $duration) {
+        $player_num = self::getPlayerNoById($playerId);
+        $round = $this->getRound() - 1;
+        $this->setGameDbValue('pg_'.$round.'_'.$player_num, $jsonGrid);
+        $this->setGameDbValue('pd_'.$round.'_'.$player_num, $duration);
     }
 
 //////////////////////////////////////////////////////////////////////////////

@@ -30,19 +30,45 @@
 <div id="lrf_main">
     <div id="root" style="visibility:hidden"></div>
     <div id="lrf_end" class="whiteblock" style="display:none">
-        <div>{PUZZLES}</div>
-        <div>
-            <select onchange="gameUI.displayPuzzle(this.value)" id="playerSelect">
-                <!-- BEGIN player_puzzle -->
-                <option value="{PLAYER_ID}" {PLAYER_SELECTED}>{PLAYER_NAME}</option>
-                <!-- END player_puzzle -->
-            </select>
+        <div id="lrf_end_players" class="lrf_end_line lrf_title">
+            <div>{PUZZLES}</div>
+            <div>
+                <select onchange="gameUI.displayPuzzle(this.value)" id="playerSelect">
+                    <!-- BEGIN player_puzzle -->
+                    <option value="{PLAYER_ID}" {PLAYER_SELECTED}>{PLAYER_NAME}</option>
+                    <!-- END player_puzzle -->
+                </select>
+            </div>
         </div>
+        <div id="lrf_end_rounds" class="lrf_end_line lrf_title">
+            <div>{ROUND_PUZZLES}</div>
+            <div>
+                <select onchange="gameUI.displayRoundPuzzle(this.value)" id="roundSelect"></select>
+            </div>
+        </div>
+        <div class="lrf_end_line"></div>
+        <div class="lrf_end_line">
+            <div></div>
+            <div>{ROUND_DURATION}</div>
+            <div>{PLAYER_BOARD}</div>
+        </div>
+        <hr/>
+        <!-- BEGIN player_duration -->
+        <div class="lrf_end_line">
+            <div style="color:#{PLAYER_COLOR}">{PLAYER_NAME}</div>
+            <div id="lrf_end_{PLAYER_ID}"></div>
+            <div><input type="checkbox" id="board_{PLAYER_ID}" onclick="gameUI.displayBoard({PLAYER_ID})"/></div>
+        </div>
+        <!-- END player_duration -->
     </div>
-    <div id="lrf_end_rnd" class="whiteblock" style="display:none">
-        <div>{ROUND_PUZZLES}</div>
+    <div id="lrf_spectator" class="whiteblock" style="display:none">
+        <div>{BOARDS}</div>
         <div>
-            <select onchange="gameUI.displayRoundPuzzle(this.value)" id="roundSelect"></select>
+            <select onchange="gameUI.displayBoard(this.value)" id="playerSelect">
+                <!-- BEGIN player_board -->
+                <option value="{PLAYER_ID}">{PLAYER_NAME}</option>
+                <!-- END player_board -->
+            </select>
         </div>
     </div>
 </div>
@@ -54,7 +80,7 @@
     <div id="lrf_team_3" class="lrf_team" onclick="gameUI.selectTeam(3)">{TEAM_3} 👽</div>
 </div>
 
-<div id="lrf_spectator" class="whiteblock" style="display:none">
+<div id="lrf_spectator_text" class="whiteblock" style="display:none">
     <div>{SPECTATOR_TEXT}</div>
 </div>
 

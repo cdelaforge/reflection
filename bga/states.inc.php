@@ -171,8 +171,12 @@ $machinestates = array(
         "description" => "",
         "descriptionmyturn" => clienttranslate('Get ready to solve your puzzle!'),
         "type" => "private",
-        "possibleactions" => ["gridChange", "puzzleStart"],
-        "transitions" => [ "continue" => STATE_PLAY_PUZZLE_PRIVATE, "teamWait" => STATE_PLAY_PUZZLE_WAIT_TEAM ]
+        "possibleactions" => ["puzzleStart", "displayDurations"],
+        "transitions" => [
+            "stay" => STATE_PLAY_PUZZLE_WAIT_PRIVATE,
+            "continue" => STATE_PLAY_PUZZLE_PRIVATE,
+            "teamWait" => STATE_PLAY_PUZZLE_WAIT_TEAM
+        ]
     ],
 
     STATE_PLAY_PUZZLE_WAIT_TEAM => [
