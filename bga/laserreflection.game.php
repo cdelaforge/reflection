@@ -221,8 +221,11 @@ class LaserReflection extends Table {
         if ($this->isSpectator()) {
             $result['params'][] = ['key' => 'transfo', 'val' => 0];
         } else {
-            $transformations = json_decode($this->getGameDbValue('transfos'));
-            $result['params'][] = ['key' => 'transfo', 'val' => $transformations[$players[$current_player_id]['num'] - 1]];
+            $jsonTransfos = $this->getGameDbValue('transfos');
+            if ($jsonTransfos != null) {
+                $transformations = json_decode($jsonTransfos);
+                $result['params'][] = ['key' => 'transfo', 'val' => $transformations[$players[$current_player_id]['num'] - 1]];
+            }
         }
 
         $collectiveGiveup = [
@@ -1706,7 +1709,7 @@ class LaserReflection extends Table {
     function getGameDbValue($key) {
         $sql = "SELECT game_value val FROM gamestatus WHERE game_param='$key'";
         $data = self::getObjectFromDB($sql);
-        return $data['val'];
+        return ($data) ? $data['val'] : null;
     }
 
     function setGameDbValue($key, $val) {
@@ -2212,9 +2215,23 @@ class LaserReflection extends Table {
 
     function savePlayerGridAndDuration($playerId, $jsonGrid, $duration) {
         $player_num = self::getPlayerNoById($playerId);
-        $round = $this->getRound() - 1;
-        $this->setGameDbValue('pg_'.$round.'_'.$player_num, $jsonGrid);
-        $this->setGameDbValue('pd_'.$round.'_'.$player_num, $duration);
+
+        if ($this->isModeRandom()) {
+            $round = $this->getRound() - 1;
+            $this->setGameDbValue('pg_'.$round.'_'.$player_num, $jsonGrid);
+            $this->setGameDbValue('pd_'.$round.'_'.$player_num, $duration);
+        } else if ($this->isModeResting()) {
+            $restingPlayerId = $this->getRestingPlayerId();
+            $restingPlayerNum =  self::getPlayerNoById($restingPlayerId);
+            $this->setGameDbValue('pg_'.$restingPlayerNum.'_'.$player_num, $jsonGrid);
+            $this->setGameDbValue('pd_'.$restingPlayerNum.'_'.$player_num, $duration);
+        } else {
+            $cpt = $this->getGameStateValue('count_players');
+            $round = $this->getRound();
+            $otherPlayerNum = ($player_num + $round) % $cpt;
+            $this->setGameDbValue('pg_'.$otherPlayerNum.'_'.$player_num, $jsonGrid);
+            $this->setGameDbValue('pd_'.$otherPlayerNum.'_'.$player_num, $duration);
+        }
     }
 
 //////////////////////////////////////////////////////////////////////////////
