@@ -606,7 +606,9 @@ const gameUI = {
         dojo.style(selId, "display", "none");
         dojo.style(okId, "display", "none");
 
-        switch (playerData.state) {
+        const playerState = (this.puzzleUser && this.puzzleUser.id === playerId) ? "resting" : playerData.state;
+
+        switch (playerState) {
           case "teamSelecting":
             dojo.style(selId, "display", "");
             break;
@@ -615,6 +617,9 @@ const gameUI = {
             break;
           case "failed":
             dojo.style(falId, "display", "");
+            break;
+          case "resting":
+            dojo.style(rstId, "display", "");
             break;
           case "playing":
           case "success":
