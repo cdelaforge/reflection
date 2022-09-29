@@ -28,7 +28,6 @@ export interface IStateContext {
   displayMode: string;
   gridSize: number;
   cellSize: number;
-  margin: number;
 
   /* stock state */
   stock: number[];
@@ -73,7 +72,7 @@ const getGridDimensions = (squaresCount: number, areaWidth?: number, areaHeight?
     ? { displayMode: "portrait", cellSize: Math.round((width * 0.96) / squaresCount) }
     : { displayMode: "landscape", cellSize: Math.round((height * 0.96) / squaresCount) }
 
-  return { ...result, gridSize: result.cellSize * squaresCount, margin: (Math.min(width, height) - result.cellSize * squaresCount) >> 1 };
+  return { ...result, gridSize: result.cellSize * squaresCount };
 };
 
 const checker = new Checker();
@@ -170,7 +169,6 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     displayMode: initialData.displayMode,
     gridSize: initialData.gridSize,
     cellSize: initialData.cellSize,
-    margin: initialData.margin
   });
   const [laserElements, setLaserElements] = useState(initialData.laserElements);
   const [displayLaserPosition, setDisplayLaserPosition] = useState<number>();

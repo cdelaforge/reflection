@@ -9,7 +9,7 @@ interface GridProps {
 }
 
 function Grid({ transformation, reverseTransformation }: GridProps) {
-  const { squaresCount, gridSize, cellSize, margin } = useAppState();
+  const { squaresCount, gridSize, cellSize } = useAppState();
   const iterator = new Array<number>(squaresCount).fill(0);
 
   const getHeader = (position: "top" | "bottom") => {
@@ -40,7 +40,7 @@ function Grid({ transformation, reverseTransformation }: GridProps) {
   };
 
   return (
-    <GridArea width={gridSize} margin={margin}>
+    <GridArea width={gridSize} margin={10}>
       <TransformContainer transform={transformation}>
         {getHeader("top")}
         {iterator.map((_, row) => getLine(row))}

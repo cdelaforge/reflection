@@ -28,7 +28,6 @@
 <div id="lrf_timer" style="display:none"></div>
 
 <div id="lrf_main">
-    <div id="root" style="visibility:hidden"></div>
     <div id="lrf_end" class="whiteblock" style="display:none">
         <div id="lrf_end_players" class="lrf_end_line lrf_title">
             <div>{PUZZLES}</div>
@@ -49,8 +48,8 @@
         <div class="lrf_end_line"></div>
         <div class="lrf_end_line">
             <div></div>
-            <div>{ROUND_DURATION}</div>
-            <div>{PLAYER_BOARD}</div>
+            <div>{ROUND_DURATION} <sup>&nbsp;</sup></div>
+            <div>{PLAYER_BOARD} <sup>(*)</sup></div>
         </div>
         <hr/>
         <!-- BEGIN player_duration -->
@@ -60,11 +59,13 @@
             <div><input type="checkbox" id="board_{PLAYER_ID}" onclick="gameUI.displayBoard({PLAYER_ID})"/></div>
         </div>
         <!-- END player_duration -->
+        <div id="lrf_end_asterisk"><sup>(*)</sup>&nbsp;{ASTERISK}</div>
     </div>
+    <div id="root" style="visibility:hidden"></div>
     <div id="lrf_spectator" class="whiteblock" style="display:none">
-        <div>{BOARDS}</div>
+        <div class="lrf_title">{BOARDS}</div>
         <div>
-            <select onchange="gameUI.displayBoard(this.value)" id="playerSelect">
+            <select onchange="gameUI.spyBoard(this.value)" id="playerSelect">
                 <!-- BEGIN player_board -->
                 <option value="{PLAYER_ID}">{PLAYER_NAME}</option>
                 <!-- END player_board -->

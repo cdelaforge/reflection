@@ -13,6 +13,5 @@ export const Line = styled('div') <{ height: number }>`
 export const GridArea = styled("div") <{ width: number, margin: number }>`
   width: ${(props) => `${props.width}px`};
   height: ${(props) => `${props.width}px`};
-  margin-top: ${(props) => `${props.margin}px`};
-  margin-left: ${(props) => `${props.margin}px`};
+  margin: ${(props) => `${props.margin}px`};
 `;

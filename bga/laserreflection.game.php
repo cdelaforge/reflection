@@ -1218,6 +1218,7 @@ class LaserReflection extends Table {
             $num = self::getPlayerNoById($id);
             self::setGameStateValue('giveup_agree_'.$num, 0);
         }
+        self::setGameStateValue('giveup_propose_'.$playerTeam['team'], 0);
 
         self::notifyAllPlayers('collectiveGiveup', '', [
             'action' => 'cancel',
@@ -2248,15 +2249,12 @@ class LaserReflection extends Table {
         } else {
             $cpt = $this->getGameStateValue('count_players');
             $round = $this->getRound();
-            $otherPlayerNum = $player_num + $round;
-            if ($otherPlayerNum > $cpt) {
-                $otherPlayerNum = $otherPlayerNum % $cpt;
+            $puzzlePlayerNum = $player_num + $round;
+            if ($puzzlePlayerNum > $cpt) {
+                $puzzlePlayerNum = $puzzlePlayerNum % $cpt;
             }
-
-            self::notifyAllPlayers("puzzleChange", $player_num."/".$otherPlayerNum."/".$round, []);
-
-            $this->setGameDbValue('pg_'.$otherPlayerNum.'_'.$player_num, $jsonGrid);
-            $this->setGameDbValue('pd_'.$otherPlayerNum.'_'.$player_num, $duration);
+            $this->setGameDbValue('pg_'.$puzzlePlayerNum.'_'.$player_num, $jsonGrid);
+            $this->setGameDbValue('pd_'.$puzzlePlayerNum.'_'.$player_num, $duration);
         }
     }
 

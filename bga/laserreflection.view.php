@@ -70,7 +70,7 @@
             $this->page->insert_block("player_duration", $data);
         }
 
-
+        $this->tpl['ASTERISK'] = self::_("if the content of the grid is different from the expected one");
         $this->tpl['ROUND_DURATION'] = self::_("Duration");
         $this->tpl['PLAYER_BOARD'] = self::_("Board");
         $this->tpl['ROUND_PUZZLES'] = self::_("Puzzles of each round");

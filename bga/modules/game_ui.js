@@ -183,12 +183,10 @@ const gameUI = {
         result.state = "creating";
       } else if (playerData.state === "52") {
         result.state = "failed";
-      } else if (playerData.state === "51" && result.progression === 100) {
+      } else if (['51', '54', '80'].some(s => playerData.state === s) && result.progression === 100) {
         result.state = "success";
       } else if (playerData.state === "80" && playerData.duration === GIVEUP_DURATION_STR) {
         result.state = "failed";
-      } else if (playerData.state === "80" && result.progression === 100) {
-        result.state = "success";
       } else {
         result.state = "unknown";
       }
@@ -233,7 +231,7 @@ const gameUI = {
   },
 
   displayCollectiveGiveup: function () {
-    if (this.teamsCount > 0) {
+    if (!this.ended && this.teamsCount > 0) {
       const team = this.getMyData().team;
       const askedGiveup = this.collectiveGiveupTeams[team];
       const players = [];
@@ -354,7 +352,7 @@ const gameUI = {
 
       this.callAction("giveUpPropose", { grid: JSON.stringify(gameUI.grid) }, true, "post");
     } else if (this.giveUpRefuse) {
-      this.giveUpRefuse = true;
+      this.giveUpRefuse = false;
       this.shouldSendProgression = false;
 
       this.callAction("giveUpRefuse", null, true);
@@ -525,7 +523,6 @@ const gameUI = {
     } else {
       dojo.style("lrf_spectator_text", "display", "none");
       dojo.style("lrf_main", "display", "flex");
-      dojo.style("lrf_end", "display", this.isSpectator ? "flex" : "none");
       dojo.style("lrf_timer", "display", "none");
     }
   },
@@ -680,35 +677,35 @@ const gameUI = {
     timer.start(callbackFunc);
   },
 
+  /** Should be only calls by spectator */
   spyBoard: function (playerId) {
-    if (this.isSpectator) {
-      if (!this.trainingMode && !this.ended) {
-        dojo.style("lrf_spectator_text", "display", "flex");
-        dojo.style("lrf_main", "display", "none");
-        dojo.style("lrf_spectator", "display", "none");
+    if (!this.trainingMode) {
+      dojo.style("lrf_spectator_text", "display", "flex");
+      dojo.style("lrf_main", "display", "none");
+      dojo.style("lrf_spectator", "display", "none");
+      return;
+    }
+
+    dojo.style("lrf_spectator_text", "display", "none");
+    dojo.style("lrf_main", "display", "flex");
+    dojo.style("lrf_spectator", "display", this.playersCount > 1 ? "flex" : "none");
+
+    if (playerId) {
+      this.playerSpied = playerId;
+      this.grid = this.players[playerId].grid;
+    }
+
+    if (!this.modeRandom) {
+      if (this.puzzleUsers) {
+        const otherPlayer = this.puzzleUsers[playerId];
+        this.puzzle = this.players[otherPlayer].puzzle;
       } else {
-        dojo.style("lrf_spectator_text", "display", "none");
-        dojo.style("lrf_main", "display", "flex");
-        dojo.style("lrf_spectator", "display", "flex");
-
-        if (playerId) {
-          this.playerSpied = playerId;
-          this.grid = this.players[playerId].grid;
-        }
-
-        if (!this.modeRandom) {
-          if (this.puzzleUsers) {
-            const otherPlayer = this.puzzleUsers[playerId];
-            this.puzzle = this.players[otherPlayer].puzzle;
-          } else {
-            this.puzzle = undefined;
-          }
-        }
-
-        if (this.dojoGame) {
-          this.setup();
-        }
+        this.puzzle = undefined;
       }
+    }
+
+    if (this.dojoGame) {
+      this.setup();
     }
   },
 
@@ -850,6 +847,7 @@ const gameUI = {
       } else {
         this.mode = "solution";
         this.solution = this.puzzles[round];
+        this.puzzle = undefined;
         this.grid = this.boards.find(b => b.pgk === gridKey).grid;
       }
 
@@ -879,6 +877,7 @@ const gameUI = {
       } else {
         this.mode = "solution";
         this.solution = puzzlePlayer.grid;
+        this.puzzle = undefined;
         this.grid = this.boards.find(b => b.pgk === gridKey).grid;
       }
 

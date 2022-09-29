@@ -18,7 +18,7 @@ interface StockCellData {
 }
 
 function Stock() {
-  const { mode, squaresCount, gridSize, cellSize, elementsCount, displayMode, margin, stock, transformations, stockIndex, setStockIndex } = useAppState();
+  const { mode, squaresCount, gridSize, cellSize, elementsCount, displayMode, stock, transformations, stockIndex, setStockIndex } = useAppState();
 
   if (mode === "view" || mode === "solution") {
     return <></>;
@@ -47,7 +47,7 @@ function Stock() {
     setStockIndex(data[0].index);
   }
 
-  return <StockArea width={width} height={height} margin={margin}>{cells}</StockArea>;
+  return <StockArea width={width} height={height} margin={10}>{cells}</StockArea>;
 }
 
 export default Stock;

@@ -15,7 +15,7 @@
  *
  */
 
-const fileType = ""; // ".min" or ""
+const fileType = ".min"; // ".min" or ""
 
 define([
     "dojo", "dojo/_base/declare",
@@ -59,7 +59,7 @@ define([
 
                     gameUI.players = {};
                     gameUI.playersCount = 0;
-                    gameUI.realtime = parseInt(data["tablespeed"], 10) < 3;
+                    gameUI.realtime = ['0', '1', '2', '9'].some(s => s == data["tablespeed"]);
 
                     Object.keys(data.players).map((playerId) => {
                         gameUI.playersCount++;
@@ -129,14 +129,12 @@ define([
                     gameUI.shouldRefreshProgression = true;
 
                     // Setting up player boards
-                    if (!this.isSpectator) {
+                    if (this.isSpectator) {
+                        gameUI.spyBoard(document.getElementById("playerSelect").value);
+                    } else {
                         const me = data.players[this.player_id];
                         gameUI.setGrid(me && me.grid ? JSON.parse(me.grid) : gameUI.getSavedGrid());
                         timer.init(me.color, 5);
-                    } else if (gameUI.ended && gameUI.modeRandom) {
-                        gameUI.displayRoundPuzzle(0);
-                    } else {
-                        gameUI.displayPlayerPuzzle(document.getElementById("playerSelect").value);
                     }
 
                     gameUI.init(this);
@@ -173,10 +171,14 @@ define([
 
                 switch (stateName) {
                     case 'teamSelection':
-                        gameUI.displayTeamSelection();
+                        if (!this.isSpectator) {
+                            gameUI.displayTeamSelection();
+                        }
                         break;
                     case 'teamSelected':
-                        gameUI.hideTeamSelection();
+                        if (!this.isSpectator) {
+                            gameUI.hideTeamSelection();
+                        }
                         break;
                     case 'puzzleCreationInit':
                         gameUI.mode = 'puzzleCreation';
@@ -329,7 +331,7 @@ define([
                             break;
                         case "puzzlePlayWait":
                             this.removeActionButtons();
-                            if (!gameUI.realtime && gameUI.round > 1) {
+                            if (gameUI.round > 1) {
                                 this.addActionButton('displayDurations', _('Results of previous rounds'), 'onDisplayDurations');
                             }
                             this.addActionButton('start', _('Start'), 'onStartNow');
@@ -644,6 +646,7 @@ define([
                     playerData.running = true;
                     playerData.state = "playing";
                     playerData.duration = "";
+                    playerData.progression = 0;
                 });
 
                 gameUI.shouldRefreshProgression = true;
