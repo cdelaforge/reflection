@@ -47,6 +47,30 @@ const gameUI = {
       }
     }
 
+    this.stateEmoticons = {
+      'teamSelecting': '🤨',
+      'teamSelected': '👍',
+      'failed': '😕',
+      'resting': '😎',
+      'creating': '🤨',
+      'created': '😎',
+      'playing': '🤨',
+      'success': '😎',
+      'default': '😴'
+    };
+
+    this.stateLabels = {
+      'teamSelecting': _("Team selection"),
+      'teamSelected': _("Team selected"),
+      'failed': _("Failed to solve the puzzle"),
+      'resting': _("It's my puzzle"),
+      'creating': _("In progress"),
+      'created': _("Puzzle created"),
+      'playing': _("In progress"),
+      'success': _("Success"),
+      'default': _("Not yet started")
+    };
+
     const securedLive = function () {
       try {
         gameUI.live();
@@ -181,6 +205,8 @@ const gameUI = {
         result.state = "teamSelected";
       } else if (playerData.state === "30") {
         result.state = "creating";
+      } else if (playerData.state === "31") {
+        result.state = "created";
       } else if (playerData.state === "52") {
         result.state = "failed";
       } else if (['51', '54', '80'].some(s => playerData.state === s) && result.progression === 100) {
@@ -394,7 +420,7 @@ const gameUI = {
       this.buildProgressionBars();
       this.displayBars();
       this.shouldRefreshProgression = false;
-    } else if (!this.ended) {
+    } else if (!this.ended && this.realtime) {
       const time = Math.round(new Date().getTime() / 1000);
 
       Object.keys(this.players).map((playerId) => {
@@ -406,7 +432,7 @@ const gameUI = {
             durationStr = gameUI.getDurationStr(gameUI.getDuration(playerData.startTime, time));
           }
 
-          gameUI.displayDuration(
+          gameUI._displayDuration(
             playerId,
             durationStr
           );
@@ -537,15 +563,13 @@ const gameUI = {
 
   displayProgression: function (playerId, progression, startTime, durationStr) {
     try {
-      const divId = "info_" + playerId;
-      const prgId = "progressbar_" + playerId;
-      const cptId = "counter_" + playerId;
-      const subId = "container_" + playerId;
-      const rstId = "resting_" + playerId;
-      const falId = "fail_" + playerId;
-      const afkId = "afkId_" + playerId;
-      const selId = "selectingId_" + playerId;
-      const okId = "selectedId_" + playerId;
+      const divId = "lrf_info_" + playerId;
+      const prgId = "lrf_progressbar_" + playerId;
+      const cptId = "lrf_counter_" + playerId;
+      const subId = "lrf_container_" + playerId;
+      const textId = "lrf_textbar_" + playerId;
+      const emoticonId = "lrf_emot_" + playerId;
+      const labelId = "lrf_label_" + playerId;
 
       if (!durationStr && startTime && !g_archive_mode) {
         durationStr = this.getDurationStr(this.getDuration(startTime));
@@ -557,16 +581,9 @@ const gameUI = {
         pid: prgId,
         cid: cptId,
         sid: subId,
-        rid: rstId,
-        fid: falId,
-        aid: afkId,
-        tid: selId,
-        oid: okId,
-        my_puzzle: _("It's my puzzle"),
-        failed: _("Failed to solve the puzzle"),
-        sleeping: _("Not yet started"),
-        selecting: _("Team selection"),
-        selected: _("Team selected"),
+        tid: textId,
+        eid: emoticonId,
+        lid: labelId,
         color: this.players[playerId].color,
         progression,
         dec: 100 - progression,
@@ -583,45 +600,23 @@ const gameUI = {
   displayBars: function () {
     Object.keys(this.players).map(playerId => {
       try {
-        const divId = "progressbar_" + playerId;
-        const rstId = "resting_" + playerId;
-        const falId = "fail_" + playerId;
-        const afkId = "afkId_" + playerId;
-        const selId = "selectingId_" + playerId;
-        const okId = "selectedId_" + playerId;
+        const divId = "lrf_progressbar_" + playerId;
+        const textId = "lrf_textbar_" + playerId;
+        const emoticonId = "lrf_emot_" + playerId;
+        const labelId = "lrf_label_" + playerId;
 
         const playerData = this.players[playerId];
-
-        dojo.style(divId, "display", "none");
-        dojo.style(falId, "display", "none");
-        dojo.style(rstId, "display", "none");
-        dojo.style(afkId, "display", "none");
-        dojo.style(selId, "display", "none");
-        dojo.style(okId, "display", "none");
-
         const playerState = (this.puzzleUser && this.puzzleUser.id === playerId) ? "resting" : playerData.state;
 
-        switch (playerState) {
-          case "teamSelecting":
-            dojo.style(selId, "display", "");
-            break;
-          case "teamSelected":
-            dojo.style(okId, "display", "");
-            break;
-          case "failed":
-            dojo.style(falId, "display", "");
-            break;
-          case "resting":
-            dojo.style(rstId, "display", "");
-            break;
-          case "playing":
-          case "success":
-          case "creating":
-            dojo.style(divId, "display", "");
-            break;
-          default:
-            dojo.style(afkId, "display", "");
-            break;
+        document.getElementById(emoticonId).innerHTML = this.stateEmoticons[playerState] || this.stateEmoticons["default"];
+        document.getElementById(labelId).innerHTML = this.stateLabels[playerState] || this.stateLabels["default"];
+
+        if (this.realtime && ['creating', 'created', 'playing', 'success'].some(state => state === playerState)) {
+          dojo.style(divId, "display", "");
+          dojo.style(textId, "display", "none");
+        } else {
+          dojo.style(divId, "display", "none");
+          dojo.style(textId, "display", "");
         }
       }
       catch (error) {
@@ -630,7 +625,7 @@ const gameUI = {
     });
   },
 
-  displayDuration: function (playerId, duration) {
+  _displayDuration: function (playerId, duration) {
     const cptId = "counter_" + playerId;
     const subId = "container_" + playerId;
 
@@ -638,7 +633,7 @@ const gameUI = {
       document.getElementById(cptId).innerHTML = duration;
       document.getElementById(subId).style.width = duration ? "78%" : "90%";
     } catch (error) {
-      console.error("Error in displayDuration", error);
+      console.error("Error in _displayDuration", error);
     }
   },
 

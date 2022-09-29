@@ -579,6 +579,11 @@ class LaserReflection extends Table {
                 $prevScore = $playerScore;
             }
 
+            if ($playerScore > 0) {
+                $durationStr = $this->getDurationStr($duration);
+                $this->sendPlayerResolveNotification($playerId, $durationStr);
+            }
+
             $playersScore[] = $playerScore;
             $playersTeam[] = $playerTeamNum;
             $playersIcon[] = $playerTeamData['icon'];
@@ -740,6 +745,11 @@ class LaserReflection extends Table {
                     'points' => -$playerScore
                 ]);
             } else {
+                if ($this->isAsync()) {
+                    $durationStr = $this->getDurationStr($duration);
+                    $this->sendPlayerResolveNotification($playerId, $durationStr);
+                }
+
                 self::notifyAllPlayers("log", clienttranslate('${player_name} scores ${points} points'), [
                     'player_name' => $playerName,
                     'points' => $playerScore
@@ -933,8 +943,9 @@ class LaserReflection extends Table {
         $sql = "UPDATE player SET player_grid='$jsonGrid', player_puzzle_grid='$jsonGrid', player_puzzle='$jsonPuzzle', player_progression=100, player_start=0 WHERE player_id=$playerId";
         self::DbQuery($sql);
 
-        self::notifyAllPlayers("log", clienttranslate('${player_name} submitted their puzzle'), [
-            'player_name' => self::getCurrentPlayerName()
+        self::notifyAllPlayers("puzzleCreated", clienttranslate('${player_name} submitted their puzzle'), [
+            'player_name' => self::getCurrentPlayerName(),
+            'player_id' => $playerId,
         ]);
 
         if ($this->isTrainingMode()) {
@@ -948,6 +959,7 @@ class LaserReflection extends Table {
         $this->notifyProgression($playerId, 100);
         $this->notifyPlayerGridChange($playerId, $jsonGrid);
 
+        $this->gamestate->nextPrivateState($playerId, 'next');
         $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
     }
 
@@ -1138,7 +1150,11 @@ class LaserReflection extends Table {
                 }
             }
         } else {
-            $this->sendPlayerResolveNotification($currentPlayerId, $durationStr);
+            if ($this->isAsync()) {
+                self::notifyAllPlayers("stop", '', [ 'player_id' => $currentPlayerId, 'duration' => $durationStr ]);
+            } else {
+                $this->sendPlayerResolveNotification($currentPlayerId, $durationStr);
+            }
             $this->gamestate->setPlayerNonMultiactive($currentPlayerId, 'next');
         }
     }
@@ -1516,10 +1532,13 @@ class LaserReflection extends Table {
     }
 
     function notifyProgression($playerId, $val) {
-        self::notifyAllPlayers("progression", "", [
-            'player_id' => $playerId,
-            'player_progression' => $val
-        ]);
+        if ($val == 0 || $val == 100 || !$this->isAsync()) {
+            // send progression only in realtime mode or on start and complete state
+            self::notifyAllPlayers("progression", "", [
+                'player_id' => $playerId,
+                'player_progression' => $val
+            ]);
+        }
     }
 
     function notifyPlayerGridChange($playerId, $jsonGrid) {
@@ -2201,7 +2220,7 @@ class LaserReflection extends Table {
                 'message' => [
                     'log' => clienttranslate('${player_name} solved their puzzle in ${duration}'),
                     'args'=> [
-                        'player_name' => self::getCurrentPlayerName(),
+                        'player_name' => self::getPlayerNameById($playerId),
                         'duration' => $durationStr
                     ]
                 ],
@@ -2210,7 +2229,7 @@ class LaserReflection extends Table {
             ]);
         } else {
             self::notifyAllPlayers("stop", clienttranslate('${player_name} solved their puzzle in ${duration}'), [
-                'player_name' => self::getCurrentPlayerName(),
+                'player_name' => self::getPlayerNameById($playerId),
                 'duration' => $durationStr,
                 'player_id' => $playerId
             ]);

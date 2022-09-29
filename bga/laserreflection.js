@@ -15,7 +15,7 @@
  *
  */
 
-const fileType = ".min"; // ".min" or ""
+const fileType = ""; // ".min" or ""
 
 define([
     "dojo", "dojo/_base/declare",
@@ -472,6 +472,7 @@ define([
             setupNotifications: function () {
                 console.log('notifications subscriptions setup');
 
+                dojo.subscribe('puzzleCreated', this, "notif_puzzleCreated");
                 dojo.subscribe('progression', this, "notif_progression");
                 dojo.subscribe('roundScores', this, "notif_roundScores");
                 dojo.subscribe('playersPuzzle', this, "notif_playersPuzzle");
@@ -490,6 +491,15 @@ define([
 
             subscribe: function (evt, funcName) {
                 dojo.subscribe(evt, this, funcName);
+            },
+
+            notif_puzzleCreated: function (notif) {
+                console.log("notif_progression", notif);
+                const playerId = notif.args.player_id;
+                const playerData = gameUI.players[playerId];
+
+                playerData.state = "created";
+                gameUI.shouldRefreshProgression = true;
             },
 
             notif_progression: function (notif) {

@@ -110,25 +110,9 @@ var jstpl_progressbar = '\
             </div>\
             <div id="${cid}" class="lrf_counter">${counter}</div>\
         </div>\
-        <div id="${rid}" class="lrf_resting" style="display:none">\
-            <label>😎</label>\
-            <span>${my_puzzle}</span>\
-        </div>\
-        <div id="${fid}" class="lrf_resting" style="display:none">\
-            <label>😕</label>\
-            <span>${failed}</span>\
-        </div>\
-        <div id="${aid}" class="lrf_resting" style="display:none">\
-            <label>😴</label>\
-            <span>${sleeping}</span>\
-        </div>\
         <div id="${tid}" class="lrf_resting" style="display:none">\
-            <label>🤨</label>\
-            <span>${selecting}</span>\
-        </div>\
-        <div id="${oid}" class="lrf_resting" style="display:none">\
-            <label>👍</label>\
-            <span>${selected}</span>\
+            <label id="${eid}"></label>\
+            <span id="${lid}"></span>\
         </div>\
     </div>';
 </script>

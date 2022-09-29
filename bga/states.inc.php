@@ -6,6 +6,7 @@ if (!defined('STATE_END_GAME')) { // ensure this block is only invoked once, sin
     define("STATE_MODE_INIT", 2);
     define("STATE_CREATE_PUZZLE_INIT", 3);
     define("STATE_CREATE_PUZZLE_PRIVATE", 30);
+    define("STATE_CREATE_PUZZLE_PRIVATE_END", 31);
     define("STATE_CREATE_PUZZLE_END", 4);
     define("STATE_PLAY_PUZZLE_INIT", 5);
     define("STATE_PLAY_PUZZLE_WAIT_PRIVATE", 50);
@@ -133,7 +134,7 @@ $machinestates = array(
         "type" => "multipleactiveplayer",
         "initialprivate" => STATE_CREATE_PUZZLE_PRIVATE,
         "action" => "stCreatePuzzleInit",
-        "transitions" => ["next" => STATE_CREATE_PUZZLE_END]
+        "transitions" => [ "next" => STATE_CREATE_PUZZLE_END ]
     ],
 
     STATE_CREATE_PUZZLE_PRIVATE => [
@@ -143,7 +144,14 @@ $machinestates = array(
         "type" => "private",
         "possibleactions" => ["gridChange", "creationEnd"],
         "action" => "stCreatePuzzlePrivate",
-        "transitions" => [ "continue" => STATE_CREATE_PUZZLE_PRIVATE ]
+        "transitions" => [ "continue" => STATE_CREATE_PUZZLE_PRIVATE, "next" => STATE_CREATE_PUZZLE_PRIVATE_END ]
+    ],
+
+    STATE_CREATE_PUZZLE_PRIVATE_END => [
+        "name" => "puzzleCreationEnd",
+        "description" => clienttranslate('Some players are creating their puzzle'),
+        "descriptionmyturn" => clienttranslate('${you} must place the elements on the grid to create a puzzle for the other players'),
+        "type" => "private",
     ],
 
     STATE_CREATE_PUZZLE_END => array(
