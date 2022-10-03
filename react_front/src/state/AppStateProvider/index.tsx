@@ -226,7 +226,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
 
           setElementsCount(elements.length);
           setStock(intersection);
-          setStockIndex(intersection.length === 0 ? undefined : 0);
+          setStockIndex(undefined);
         }
 
         return grid;
