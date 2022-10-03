@@ -429,12 +429,12 @@ class LaserReflection extends Table {
     }
 
     function stEndRound() {
-        if ($this->isRealtimeTeamMode()) {
+        if ($this->isModeSolo()) {
+            $this->stEndRound_Solo();
+        } else if ($this->isRealtimeTeamMode()) {
             $this->stEndRound_TeamRealtime();
         } else if ($this->getTeamsCount() > 0) {
             $this->stEndRound_TeamTurnBased();
-        } else if ($this->isModeSolo()) {
-            $this->stEndRound_Solo();
         } else {
             $this->stEndRound_Classic();
         }
@@ -1285,12 +1285,13 @@ class LaserReflection extends Table {
 
     function getTeamsCount() {
         $teamsCount = $this->getGameStateValue('teams');
+        $countPlayers = $this->getGameStateValue('count_players');
 
-        if ($teamsCount > 0 && $this->isModeRandom()) {
-            $countPlayers = $this->getGameStateValue('count_players');
-            return ($countPlayers > 3) ? $teamsCount : 2;
+        if ($teamsCount < 2 || $countPlayers < 3 || !$this->isModeRandom()) {
+            return 0;
         }
-        return 0;
+
+        return ($countPlayers > 3) ? $teamsCount : 2;
     }
 
     function areTeamsBalanced($playersCount, $teamsCount) {
