@@ -15,7 +15,7 @@
  *
  */
 
-const fileType = ""; // ".min" or ""
+const fileType = ".min"; // ".min" or ""
 
 define([
     "dojo", "dojo/_base/declare",
@@ -109,6 +109,9 @@ define([
                                 break;
                             case "transfo":
                                 gameUI.transfo = p.val;
+                                break;
+                            case "round":
+                                gameUI.round = parseInt(p.val, 10);
                                 break;
                         }
                     });
@@ -276,7 +279,7 @@ define([
                         gameUI.ended = true;
 
                         if (gameUI.modeRandom) {
-                            gameUI.displayRoundPuzzle(0);
+                            gameUI.displayRoundPuzzle(document.getElementById("roundSelect").value);
                         } else if (this.isSpectator) {
                             gameUI.displayPlayerPuzzle(document.getElementById("playerSelect").value);
                         } else {

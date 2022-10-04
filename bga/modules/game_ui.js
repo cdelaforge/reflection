@@ -1,6 +1,7 @@
 const STORAGE_TTL = 1000 * 60 * 20; // 20 minutes
 const GIVEUP_DURATION_STR = "6666";
 const GIVEUP_DURATION = 6666;
+const MAX_ROUNDS_DISPLAY = 10;
 
 const gameUI = {
   teamData: [],
@@ -606,12 +607,12 @@ const gameUI = {
         const labelId = "lrf_label_" + playerId;
 
         const playerData = this.players[playerId];
-        const playerState = (this.puzzleUser && this.puzzleUser.id === playerId) ? "resting" : playerData.state;
+        const playerState = (this.samePuzzle && this.puzzleUser && this.puzzleUser.id === playerId) ? "resting" : playerData.state;
 
         document.getElementById(emoticonId).innerHTML = this.stateEmoticons[playerState] || this.stateEmoticons["default"];
         document.getElementById(labelId).innerHTML = this.stateLabels[playerState] || this.stateLabels["default"];
 
-        if (this.realtime && ['creating', 'created', 'playing', 'success'].some(state => state === playerState)) {
+        if ((this.realtime || playerId == this.playerId) && ['creating', 'created', 'playing', 'success'].some(state => state === playerState)) {
           dojo.style(divId, "display", "");
           dojo.style(textId, "display", "none");
         } else {
@@ -626,8 +627,8 @@ const gameUI = {
   },
 
   _displayDuration: function (playerId, duration) {
-    const cptId = "counter_" + playerId;
-    const subId = "container_" + playerId;
+    const cptId = "lrf_counter_" + playerId;
+    const subId = "lrf_container_" + playerId;
 
     try {
       document.getElementById(cptId).innerHTML = duration;
@@ -660,7 +661,7 @@ const gameUI = {
 
     const seconds = duration % 60;
     const minutes = (duration - seconds) / 60;
-    return minutes.toString() + ":" + seconds.toString().padStart(2, "0");
+    return minutes.toString() + ":" + seconds.toString().padStart(2, '0');
   },
 
   displayTimer: function (callbackFunc) {
@@ -705,15 +706,26 @@ const gameUI = {
   },
 
   buildRoundsPuzzleSelect: function () {
+    this.resultRoundStart = this.puzzles.length === 10 && this.round > 10 ? this.round - MAX_ROUNDS_DISPLAY - 1 : 0;
     for (let i = 0; i < this.puzzles.length; i++) {
-      dojo.place("<option value='" + i + "'>" + _('Round') + " " + (i + 1) + "</option>", "roundSelect");
+      dojo.place("<option value='" + (i + this.resultRoundStart) + "'>" + _('Round') + " " + (i + this.resultRoundStart + 1) + "</option>", "roundSelect");
     }
   },
 
   displayRoundPuzzle: function (round) {
     console.info("## Display puzzle of round " + round + " ##");
 
-    const key = 'pd_' + round + '_';
+    Object.keys(this.players).forEach(id => {
+      const divId = 'lrf_end_' + id;
+      document.getElementById(divId).innerHTML = '?';
+    });
+
+    const roundStr = String(round).padStart(4, '0');
+    const key = 'pd_' + roundStr + '_';
+
+    this.grid = this.puzzles[round - this.resultRoundStart];
+
+
     this.durations
       .filter(d => d.pdk.startsWith(key))
       .forEach(d => {
@@ -725,10 +737,10 @@ const gameUI = {
         document.getElementById(divId).innerHTML = durationStr;
       });
 
-    const jsonPuzzle = JSON.stringify(this.puzzles[round]);
+    const jsonPuzzle = JSON.stringify(this.grid);
 
     Object.keys(this.players).forEach(id => {
-      const key = 'pg_' + round + '_' + this.players[id].num;
+      const key = 'pg_' + roundStr + '_' + this.players[id].num;
       document.getElementById('board_' + id).checked = false;
       const board = this.boards.find(b => b.pgk === key);
       const jsonPlayerGrid = board && board.grid ? JSON.stringify(board.grid) : undefined;
@@ -746,7 +758,6 @@ const gameUI = {
 
       this.mode = "view";
       this.solution = null;
-      this.grid = this.puzzles[round];
 
       if (this.dojoGame) {
         this.setup();
@@ -769,6 +780,11 @@ const gameUI = {
       dojo.style("lrf_end_rounds", "display", "none");
 
       const jsonPuzzle = JSON.stringify(this.players[playerId].grid);
+
+      Object.keys(this.players).forEach(id => {
+        const divId = 'lrf_end_' + id;
+        document.getElementById(divId).innerHTML = '?';
+      });
 
       Object.keys(this.players).forEach(id => {
         const key = 'pg_' + this.players[playerId].num + '_' + this.players[id].num;
@@ -827,24 +843,25 @@ const gameUI = {
 
   _displayBoardRound: function (playerId) {
     const round = document.getElementById('roundSelect').value;
+    const roundStr = String(round).padStart(4, '0');
     const checked = document.getElementById('board_' + playerId).checked;
 
     if (checked) {
       const player = this.players[playerId];
-      const gridKey = 'pg_' + round + '_' + player.num;
-      const durationKey = 'pd_' + round + '_' + player.num;
+      const gridKey = 'pg_' + roundStr + '_' + player.num;
+      const durationKey = 'pd_' + roundStr + '_' + player.num;
       const durationElt = this.durations.find(d => d.pdk === durationKey);
 
       if (durationElt && durationElt.duration != GIVEUP_DURATION_STR) {
         this.mode = "view";
         this.solution = null;
-        this.grid = this.boards.find(b => b.pgk === gridKey).grid;
       } else {
         this.mode = "solution";
-        this.solution = this.puzzles[round];
-        this.puzzle = undefined;
-        this.grid = this.boards.find(b => b.pgk === gridKey).grid;
+        this.solution = this.puzzles[round - this.resultRoundStart];
       }
+
+      this.puzzle = undefined;
+      this.grid = this.boards.find(b => b.pgk === gridKey).grid;
 
       if (this.dojoGame) {
         this.setup();

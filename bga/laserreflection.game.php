@@ -161,7 +161,7 @@ class LaserReflection extends Table {
             $puzzle = $this->getRandomGridAndPuzzle($items);
             $this->setGameDbValue('grid', $puzzle['grid']);
             $this->setGameDbValue('puzzle', $puzzle['puzzle']);
-            $this->setGameDbValue('rg_0', $puzzle['grid']);
+            $this->setGameDbValue('rg_0000', $puzzle['grid']);
         }
 
         if ($multi_mode == 0 && $compete_same == 1 && $count_players > 2) {
@@ -221,6 +221,7 @@ class LaserReflection extends Table {
         $result['params'][] = ['key' => 'time_limit', 'val' => $this->getGameStateValue('time_limit')];
         $result['params'][] = ['key' => 'training_mode', 'val' => $this->isTrainingMode()];
         $result['params'][] = ['key' => 'teams', 'val' => $this->getTeamsCount()];
+        $result['params'][] = ['key' => 'round', 'val' => $this->getRound()];
 
         if ($this->isSpectator()) {
             $result['params'][] = ['key' => 'transfo', 'val' => 0];
@@ -255,29 +256,21 @@ class LaserReflection extends Table {
             $result['params'][] = ['key' => 'resting_player', 'val' => $restingPlayerId];
         }
 
-        if ($this->isModeRandom()) {
-            if ($this->isGameEnded()) {
-                $sql = "SELECT game_value grid FROM gamestatus WHERE game_param LIKE 'rg_%' ORDER BY game_param";
-                $grids = self::getObjectListFromDB($sql);
+        if ($gameEnded) {
+            $gameResults = $this->getGameResults();
+            $result['durations'] = $gameResults['durations'];
+            $result['boards'] = $gameResults['boards'];
 
+            if ($this->isModeRandom()) {
+                $grids = $gameResults['grids'];
                 $puzzles = [];
                 foreach ($grids as $grid_id => $elt) {
                     $puzzles[] = $elt['grid'];
                 }
                 $result['puzzles'] = $puzzles;
-            } else {
-                $result['round_puzzle'] = $this->getGameDbValue('puzzle');
             }
-        }
-
-        if ($gameEnded) {
-            $sql = "SELECT game_param pdk, game_value duration FROM gamestatus WHERE game_param LIKE 'pd_%' ORDER BY game_param";
-            $durations = self::getObjectListFromDB($sql);
-            $result['durations'] = $durations;
-
-            $sql = "SELECT game_param pgk, game_value grid FROM gamestatus WHERE game_param LIKE 'pg_%' ORDER BY game_param";
-            $boards = self::getObjectListFromDB($sql);
-            $result['boards'] = $boards;
+        } else if ($this->isModeRandom()) {
+            $result['round_puzzle'] = $this->getGameDbValue('puzzle');
         }
 
         $startDate = new DateTime();
@@ -968,7 +961,10 @@ class LaserReflection extends Table {
 
         $currentPlayerId = $this->getCurrentPlayerId();
 
-        $sql = "SELECT game_param k, game_value duration FROM gamestatus WHERE game_param LIKE 'pd_%' ORDER BY game_param";
+        $sql = "SELECT game_param k, game_value duration FROM gamestatus WHERE game_param LIKE 'pd_%'";
+        if ($this->isModeSolo()) {
+            $sql = $sql . "ORDER BY game_param DESC LIMIT 10";
+        }
         $list = self::getCollectionFromDb($sql);
 
         $sql = "SELECT player_no num, player_name name FROM player order by player_no";
@@ -980,7 +976,9 @@ class LaserReflection extends Table {
 
         $table[0] = [''];
 
-        for ($round=0; $round<$roundsPlayed; $round++) {
+        $firstRound = $this->isModeSolo() ? max(0, $roundsPlayed-10) : 0;
+
+        for ($round=$firstRound; $round<$roundsPlayed; $round++) {
             $table[$round+1] = [[
                 'str' => '${round_name} ${round_cpt}',
                 'args' => [
@@ -999,9 +997,10 @@ class LaserReflection extends Table {
                 'type' => 'header'
             ];
 
-            for ($round=0; $round<$roundsPlayed; $round++) {
+            for ($round=$firstRound; $round<$roundsPlayed; $round++) {
                 if ($this->isModeRandom()) {
-                    $key = 'pd_'.$round.'_'.$player["num"];
+                    $roundStr = str_pad($round, 4, '0', STR_PAD_LEFT);
+                    $key = 'pd_'.$roundStr.'_'.$player["num"];
                 } else if ($this->isModeResting()) {
                     $puzzlePlayerNum = ($round + 1) % $cpt;
                     $key = 'pd_'.$puzzlePlayerNum.'_'.$player["num"];
@@ -1020,11 +1019,11 @@ class LaserReflection extends Table {
                     if (array_key_exists($key, $list)) {
                         $durationStr = $this->getDurationStr(intval($list[$key]['duration']));
                     } else {
-                        $durationStr = '';
+                        $durationStr = '-';
                     }
                 }
                 catch (Exception $e) {
-                    $durationStr = '';
+                    $durationStr = '-';
                 }
 
                 $table[$round+1][] = [
@@ -1765,7 +1764,7 @@ class LaserReflection extends Table {
         $items_count = $this->getGameStateValue('items_count');
         $black_hole = $this->getGameStateValue('black_hole') == 1;
         $light_warp = $this->getGameStateValue('light_warp') == 1;
-        $round = $this->getRound();
+        $round = str_pad($this->getRound(), 4, '0', STR_PAD_LEFT);
 
         if ($light_warp) {
             $this->getPortalsPositions();
@@ -2082,18 +2081,36 @@ class LaserReflection extends Table {
         }
     }
 
+    function getGameResults() {
+        $result = [];
+
+        if ($this->isModeSolo()) {
+            $durationsQuery = "SELECT * FROM (SELECT game_param pdk, game_value duration FROM gamestatus WHERE game_param LIKE 'pd_%' ORDER BY game_param DESC LIMIT 10) t ORDER BY pdk";
+            $boardsQuery = "SELECT * FROM (SELECT game_param pgk, game_value grid FROM gamestatus WHERE game_param LIKE 'pg_%' ORDER BY game_param DESC LIMIT 10) t ORDER BY pgk";
+            $gridsQuery = "SELECT grid FROM (SELECT game_param p, game_value grid FROM gamestatus WHERE game_param LIKE 'rg_%' ORDER BY game_param DESC LIMIT 11) t ORDER BY p LIMIT 10";
+        } else {
+            $durationsQuery = "SELECT game_param pdk, game_value duration FROM gamestatus WHERE game_param LIKE 'pd_%' ORDER BY game_param";
+            $boardsQuery = "SELECT game_param pgk, game_value grid FROM gamestatus WHERE game_param LIKE 'pg_%' ORDER BY game_param";
+            $gridsQuery = "SELECT game_value grid FROM gamestatus WHERE game_param LIKE 'rg_%' ORDER BY game_param";
+        }
+
+        $result['durations'] = self::getObjectListFromDB($durationsQuery);
+        $result['boards'] = self::getObjectListFromDB($boardsQuery);
+        if ($this->isModeRandom()) {
+            $result['grids'] = self::getObjectListFromDB($gridsQuery);
+        }
+
+        return $result;
+    }
+
     function sendAllPuzzles() {
+        $gameResults = $this->getGameResults();
+        $durations = $gameResults['durations'];
+        $boards = $gameResults['boards'];
         $puzzles = [];
 
-        $sql = "SELECT game_param pdk, game_value duration FROM gamestatus WHERE game_param LIKE 'pd_%' ORDER BY game_param";
-        $durations = self::getObjectListFromDB($sql);
-
-        $sql = "SELECT game_param pgk, game_value grid FROM gamestatus WHERE game_param LIKE 'pg_%' ORDER BY game_param";
-        $boards = self::getObjectListFromDB($sql);
-
         if ($this->isModeRandom()) {
-            $sql = "SELECT game_value grid FROM gamestatus WHERE game_param LIKE 'rg_%' ORDER BY game_param";
-            $grids = self::getObjectListFromDB($sql);
+            $grids = $gameResults['grids'];
 
             foreach ($grids as $grid_id => $elt) {
                 $puzzles[] = $elt['grid'];
@@ -2258,7 +2275,7 @@ class LaserReflection extends Table {
         $player_num = self::getPlayerNoById($playerId);
 
         if ($this->isModeRandom()) {
-            $round = $this->getRound() - 1;
+            $round = str_pad($this->getRound() - 1, 4, '0', STR_PAD_LEFT);
             $this->setGameDbValue('pg_'.$round.'_'.$player_num, $jsonGrid);
             $this->setGameDbValue('pd_'.$round.'_'.$player_num, $duration);
         } else if ($this->isModeResting()) {
