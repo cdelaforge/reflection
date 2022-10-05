@@ -25,11 +25,36 @@
  */
 
 $game_options = [
+    100 => [
+        'name' => totranslate('Solo mode'),
+        'values' => [
+            0 => [ 'name' => totranslate('The NeverEnding Story'), 'description' => totranslate('Play as much as you want') ],
+            3 => [ 'name' => totranslate('Stroll in the Shire'), 'description' => totranslate('Complete 3 rounds to win') ],
+            6 => [ 'name' => totranslate('Expedition through Moria'), 'description' => totranslate('Complete 6 rounds to win (10 items min. and 15 minutes max. per round)') ],
+            10 => [ 'name' => totranslate('Journey to Mordor'), 'description' => totranslate('Complete 10 rounds to win (15 items min. and 10 minutes max. per round)') ],
+        ],
+        'default' => 0,
+        'displaycondition' => [
+            [
+                'type' => 'maxplayers',
+                'value' => 1,
+            ],
+        ],
+
+    ],
     103 => [
         'name' => totranslate('Multiplayer mode'),
         'values' => [
-            0 => [ 'name' => totranslate('Puzzles created by players'), 'tmdisplay' => totranslate('Puzzles created by players') ],
-            10 => [ 'name' => totranslate('Randomly generated puzzles'), 'tmdisplay' => totranslate('Randomly generated puzzles') ],
+            0 => [
+                'name' => totranslate('Puzzles created by players'),
+                'description' => totranslate('Lower the number of players to "1" to select a solo game mode.'),
+                'tmdisplay' => totranslate('Puzzles created by players')
+            ],
+            10 => [
+                'name' => totranslate('Randomly generated puzzles'),
+                'description' => totranslate('Lower the number of players to "1" to select a solo game mode.'),
+                'tmdisplay' => totranslate('Randomly generated puzzles')
+            ],
         ],
         'default' => 0,
         'displaycondition' => [
@@ -78,7 +103,7 @@ $game_options = [
             [
                 'type' => 'otheroption',
                 'id' => 106,
-                'value' => [2,3],
+                'value' => [2, 3],
             ],
         ]
     ],
