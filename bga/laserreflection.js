@@ -59,12 +59,13 @@ define([
 
                     gameUI.players = {};
                     gameUI.playersCount = 0;
-                    gameUI.realtime = ['0', '1', '2', '9'].some(s => s == data["tablespeed"]);
 
                     Object.keys(data.players).map((playerId) => {
                         gameUI.playersCount++;
                         gameUI.savePlayerData(data.players[playerId], playerId);
                     });
+
+                    gameUI.realtime = gameUI.playersCount === 1 || ['0', '1', '2', '9'].some(s => s == data["tablespeed"]);
 
                     data.params.map((p) => {
                         switch (p.key) {
