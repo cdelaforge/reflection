@@ -1035,7 +1035,7 @@ class LaserReflection extends Table {
 
         self::notifyPlayer($currentPlayerId, "tableWindow", "", [
             "id" => 'roundsDurations',
-            "title" => clienttranslate("Resolution durations for each round"),
+            "title" => clienttranslate("Resolving times"),
             "table" => $table,
             "closing" => clienttranslate("Close")
         ]);

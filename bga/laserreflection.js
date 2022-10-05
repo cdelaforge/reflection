@@ -335,7 +335,7 @@ define([
                         case "puzzlePlayWait":
                             this.removeActionButtons();
                             if (gameUI.round > 1) {
-                                this.addActionButton('displayDurations', _('Results of previous rounds'), 'onDisplayDurations');
+                                this.addActionButton('displayDurations', _('Previous results'), 'onDisplayDurations');
                             }
                             this.addActionButton('start', _('Start'), 'onStartNow');
                             break;
