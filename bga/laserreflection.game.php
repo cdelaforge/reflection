@@ -720,7 +720,7 @@ class LaserReflection extends Table {
 
                 self::notifyAllPlayers("hearts", '💗 ${message}', [
                     'message' => [
-                        'log' => clienttranslate('This is the middle of your adventure, you win a heart!'),
+                        'log' => clienttranslate('This is the middle of your journey, you win a heart!'),
                         'args'=> []
                     ],
                     "player_id" => $playerId,
@@ -1401,6 +1401,19 @@ class LaserReflection extends Table {
 
     function action_stopGame() {
         $playerId = $this->getCurrentPlayerId();
+        $duration = $this->getUniqueValueFromDB("SELECT player_round_duration FROM player WHERE player_id=$playerId");
+
+        self::notifyAllPlayers("log", "duration".$duration, []);
+
+        if ($duration != GIVEUP_DURATION) {
+            $round = $this->getRound() - 1;
+            $this->setRound($round);
+
+            $roundStr = str_pad($round, 4, '0', STR_PAD_LEFT);
+            $key = 'rg_'.$roundStr;
+            $sql = "DELETE FROM gamestatus WHERE game_param='$key'";
+            self::DbQuery($sql);
+        }
 
         $this->setGameStateValue('ended', 1);
         $this->calcStats();
@@ -2189,7 +2202,7 @@ class LaserReflection extends Table {
         if ($this->isModeSolo() && $this->getSoloMode() == 0) {
             $durationsQuery = "SELECT * FROM (SELECT game_param pdk, game_value duration FROM gamestatus WHERE game_param LIKE 'pd_%' ORDER BY game_param DESC LIMIT 10) t ORDER BY pdk";
             $boardsQuery = "SELECT * FROM (SELECT game_param pgk, game_value grid FROM gamestatus WHERE game_param LIKE 'pg_%' ORDER BY game_param DESC LIMIT 10) t ORDER BY pgk";
-            $gridsQuery = "SELECT grid FROM (SELECT game_param p, game_value grid FROM gamestatus WHERE game_param LIKE 'rg_%' ORDER BY game_param DESC LIMIT 11) t ORDER BY p LIMIT 10";
+            $gridsQuery = "SELECT grid FROM (SELECT game_param p, game_value grid FROM gamestatus WHERE game_param LIKE 'rg_%' ORDER BY game_param DESC LIMIT 10) t ORDER BY p";
         } else {
             $durationsQuery = "SELECT game_param pdk, game_value duration FROM gamestatus WHERE game_param LIKE 'pd_%' ORDER BY game_param";
             $boardsQuery = "SELECT game_param pgk, game_value grid FROM gamestatus WHERE game_param LIKE 'pg_%' ORDER BY game_param";

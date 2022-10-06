@@ -15,7 +15,7 @@
  *
  */
 
-const fileType = ""; // ".min" or ""
+const fileType = ".min"; // ".min" or ""
 
 define([
     "dojo", "dojo/_base/declare",

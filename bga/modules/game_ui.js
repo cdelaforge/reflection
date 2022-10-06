@@ -707,7 +707,7 @@ const gameUI = {
 
   buildRoundsPuzzleSelect: function () {
     // if there is more than MAX_ROUNDS_DISPLAY rounds, we only display the last MAX_ROUNDS_DISPLAY rounds
-    this.resultRoundStart = this.puzzles.length === 10 && this.round > 10 ? this.round - MAX_ROUNDS_DISPLAY - 1 : 0;
+    this.resultRoundStart = this.puzzles.length === 10 && this.round > 10 ? this.round - MAX_ROUNDS_DISPLAY : 0;
     for (let i = 0; i < this.puzzles.length; i++) {
       dojo.place("<option value='" + (i + this.resultRoundStart) + "'>" + _('Round') + " " + (i + this.resultRoundStart + 1) + "</option>", "roundSelect");
     }
