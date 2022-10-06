@@ -28,10 +28,10 @@ $game_options = [
     100 => [
         'name' => totranslate('Solo mode'),
         'values' => [
-            0 => [ 'name' => totranslate('The NeverEnding Story'), 'description' => totranslate('Play as much as you want') ],
-            3 => [ 'name' => totranslate('Stroll in the Shire'), 'description' => totranslate('Complete 3 rounds to win') ],
-            6 => [ 'name' => totranslate('Expedition through Moria'), 'description' => totranslate('Complete 6 rounds to win (10 items min. and 15 minutes max. per round)') ],
-            10 => [ 'name' => totranslate('Journey to Mordor'), 'description' => totranslate('Complete 10 rounds to win (15 items min. and 10 minutes max. per round)') ],
+            0 => [ 'name' => totranslate('No challenge'), 'description' => totranslate('Play as much as you want') ],
+            3 => [ 'name' => totranslate('Challenge 1 - Easy'), 'description' => totranslate('Complete 3 rounds to win') ],
+            6 => [ 'name' => totranslate('Challenge 2 - Medium'), 'description' => totranslate('Complete 6 rounds to win (10 items min. and 15 minutes max. per round)') ],
+            10 => [ 'name' => totranslate('Challenge 3 - Hard'), 'description' => totranslate('Complete 10 rounds to win (15 items min. and 10 minutes max. per round)') ],
         ],
         'default' => 0,
         'displaycondition' => [

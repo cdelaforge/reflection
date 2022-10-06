@@ -15,7 +15,7 @@
  *
  */
 
-const fileType = ".min"; // ".min" or ""
+const fileType = ""; // ".min" or ""
 
 define([
     "dojo", "dojo/_base/declare",
@@ -42,6 +42,8 @@ define([
                         div.classList.add("lrf_team_2");
                     } else if (div.innerText.startsWith('👽')) {
                         div.classList.add("lrf_team_3");
+                    } else if (div.innerText.startsWith('💗') || div.innerText.startsWith('💔')) {
+                        div.classList.add("lrf_heart");
                     }
                 } catch (error) { }
             },
@@ -114,6 +116,12 @@ define([
                             case "round":
                                 gameUI.round = parseInt(p.val, 10);
                                 break;
+                            case "solo_mode":
+                                gameUI.soloMode = parseInt(p.val, 10);
+                                break;
+                            case "hearts":
+                                gameUI.hearts = parseInt(p.val, 10);
+                                break;
                         }
                     });
 
@@ -142,7 +150,7 @@ define([
                     }
 
                     gameUI.init(this);
-                    gameUI.displayPlayerTeams();
+                    gameUI.displayPlayerIcons();
 
                     if (!this.isSpectator && gameUI.teamsCount > 0) {
                         gameUI.buildCollectiveGiveupArea();
@@ -360,14 +368,14 @@ define([
                         case "scoreDisplay":
                             this.removeActionButtons();
                             this.addActionButton('hideScore', _('OK'), 'onScoreDisplayEnd');
-                            if (this.is_solo) {
+                            if (this.is_solo && gameUI.soloMode === 0) {
                                 this.addActionButton('stop', _('Stop'), 'onStop');
                             }
                             break;
                         case "puzzleSolution":
                             this.removeActionButtons();
                             this.addActionButton('solutionDisplayEnd', _('OK'), 'onSolutionDisplayEnd');
-                            if (this.is_solo) {
+                            if (this.is_solo && gameUI.soloMode === 0) {
                                 this.addActionButton('stop', _('Stop'), 'onStop');
                             }
                             break;
@@ -487,6 +495,7 @@ define([
                 dojo.subscribe('teamSelection', this, "notif_teamSelection");
                 dojo.subscribe('gridChange', this, "notif_gridChange");
                 dojo.subscribe('collectiveGiveup', this, "notif_collectiveGiveup");
+                dojo.subscribe('hearts', this, "notif_hearts");
 
                 if (this.isSpectator) {
                     dojo.subscribe('puzzleChange', this, "notif_puzzleChange");
@@ -698,6 +707,12 @@ define([
                     gameUI.players[id].state = "inactive";
                 });
                 gameUI.shouldRefreshProgression = true;
+            },
+
+            notif_hearts: function (notif) {
+                console.log("notif_hearts", notif);
+                gameUI.hearts = notif.args.hearts;
+                gameUI.displayPlayerHearts(notif.args.player_id, gameUI.hearts);
             }
         });
     });

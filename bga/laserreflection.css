@@ -330,6 +330,10 @@
     background-color: #cbe7d5 !important;
 }
 
+.lrf_heart>div:first-child {
+    background-color: #e7cbe3 !important;
+}
+
 #giveup-decision {
     font-size: 120%;
     font-weight: 700;

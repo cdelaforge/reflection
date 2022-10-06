@@ -54,8 +54,9 @@ class LaserReflection extends Table {
             "giveup_agree_4" => 73,
             "giveup_agree_5" => 74,
             "giveup_agree_6" => 75,
+            "hearts" => 80,
+            "solo_mode" => 100,
             "multi_mode" => 103,
-            "solo_mode" => 104,
             "teams" => 106,
             "balanced_teams" => 107,
             "rounds_param" => 108,
@@ -92,8 +93,17 @@ class LaserReflection extends Table {
         $default_colors = $gameinfos['player_colors'];
         $count_players = count($players);
 
+        // Init global values with their initial values
+        self::setGameStateInitialValue('solo', ($count_players == 1) ? 1 : 0);
+        self::setGameStateInitialValue('count_players', $count_players);
+        self::setGameStateInitialValue('ended', 0);
+        self::setGameStateInitialValue('round', 1);
+        self::setGameStateInitialValue('prev_resting', 0);
+        self::setGameStateInitialValue('resting', 0);
+        self::setGameStateInitialValue('hearts', 1);
+
         $grid_size = $this->getGameStateValue('grid_size');
-        $items_count = $this->getGameStateValue('items_count');
+        $items_count = $this->getItemsCount();
         $black_hole = $this->getGameStateValue('black_hole') == 1;
         $light_warp = $this->getGameStateValue('light_warp') == 1;
         $auto_start = $this->getGameStateValue('auto_start');
@@ -120,14 +130,7 @@ class LaserReflection extends Table {
 
         /************ Start the game initialization *****/
 
-        // Init global values with their initial values
 
-        self::setGameStateInitialValue('count_players', $count_players);
-        self::setGameStateInitialValue('solo', ($count_players == 1) ? 1 : 0);
-        self::setGameStateInitialValue('ended', 0);
-        self::setGameStateInitialValue('round', 1);
-        self::setGameStateInitialValue('prev_resting', 0);
-        self::setGameStateInitialValue('resting', 0);
 
         for ($i=1; $i<=3; $i++) {
             self::setGameStateInitialValue('giveup_propose_'.$i, 0);
@@ -218,10 +221,15 @@ class LaserReflection extends Table {
         $result['params'] = self::getObjectListFromDB($sql);
         $result['params'][] = ['key' => 'random', 'val' => $this->isModeRandom()];
         $result['params'][] = ['key' => 'ended', 'val' => $this->isGameEnded()];
-        $result['params'][] = ['key' => 'time_limit', 'val' => $this->getGameStateValue('time_limit')];
+        $result['params'][] = ['key' => 'time_limit', 'val' => $this->getTimeLimit()];
         $result['params'][] = ['key' => 'training_mode', 'val' => $this->isTrainingMode()];
         $result['params'][] = ['key' => 'teams', 'val' => $this->getTeamsCount()];
         $result['params'][] = ['key' => 'round', 'val' => $this->getRound()];
+
+        if ($this->isModeSolo()) {
+            $result['params'][] = ['key' => 'solo_mode', 'val' => $this->getSoloMode()];
+            $result['params'][] = ['key' => 'hearts', 'val' => $this->getGameStateValue('hearts')];
+        }
 
         if ($this->isSpectator()) {
             $result['params'][] = ['key' => 'transfo', 'val' => 0];
@@ -282,6 +290,15 @@ class LaserReflection extends Table {
 
     function stGameInit() {
         if ($this->isModeSolo()) {
+            self::notifyAllPlayers("log", '💗 ${message}', [
+                'message' => [
+                    'log' => clienttranslate('You start your journey with a heart, if you fail to solve a puzzle you lose it, if you fail again the game is lost. Good luck!'),
+                    'args'=> []
+                ],
+            ]);
+
+            //Vous commencez votre aventure avec un coeur, si vous échouez à résoudre une énigme vous le perdez, si vous échouez de nouveau la partie est perdue. Bonne chance !
+
             $this->gamestate->nextState("solo");
         } else if ($this->getTeamsCount() > 0) {
             $this->gamestate->nextState("team_selection");
@@ -667,21 +684,43 @@ class LaserReflection extends Table {
     function stEndRound_Solo() {
         $playerId = $this->getCurrentPlayerId();
 
-        $sql = "SELECT player_round_duration duration FROM player WHERE player_id=$playerId";
+        if ($this->getSoloMode() > 0 && $this->getGameStateValue('hearts') < 0) {
+            $sql = "UPDATE player SET player_score=0 WHERE player_id=$playerId";
+            self::DbQuery($sql);
+
+            $this->setGameStateValue('ended', 1);
+            $this->calcStats();
+            $this->sendAllPuzzles();
+            $this->gamestate->nextState("endGame");
+            return;
+        }
+
+        $sql = "SELECT player_round_duration duration, player_score score FROM player WHERE player_id=$playerId";
         $player = self::getObjectFromDB($sql);
         $playerScore = $player["duration"] >= GIVEUP_DURATION ? 0 : 1;
-
-        // create a new puzzle
-        $this->updatePuzzle();
-
-        $round = $this->getRound() + 1;
-        $this->setRound($round);
+        $playerTotalScore = $player['score'] + $playerScore;
 
         if ($playerScore > 0) {
             self::notifyAllPlayers("log", clienttranslate('${player_name} scores ${points} points'), [
                 'player_name' => self::getCurrentPlayerName(),
                 'points' => $playerScore
             ]);
+
+            $soloMode = $this->getSoloMode();
+
+            if ($soloMode == $playerTotalScore * 2) {
+                $hearts = $this->getGameStateValue('hearts') + 1;
+                $this->setGameStateValue('hearts', $hearts);
+
+                self::notifyAllPlayers("hearts", '💗 ${message}', [
+                    'message' => [
+                        'log' => clienttranslate('This is the middle of your adventure, you win a heart!'),
+                        'args'=> []
+                    ],
+                    "player_id" => $playerId,
+                    "hearts" => $hearts
+                ]);
+            }
 
             $roundScores = [];
             $roundScores[$playerId] = $playerScore;
@@ -690,13 +729,29 @@ class LaserReflection extends Table {
             $sql = "UPDATE player SET player_grid=NULL, player_round_score=$playerScore, player_score = player_score + $playerScore WHERE player_id=$playerId";
             self::DbQuery($sql);
 
-            $this->gamestate->setAllPlayersMultiactive();
-            $this->gamestate->initializePrivateStateForAllActivePlayers();
+            if ($soloMode == $playerTotalScore) {
+                // victory !
+                $this->setGameStateValue('ended', 1);
+                $this->calcStats();
+                $this->sendAllPuzzles();
+                $this->gamestate->nextState("endGame");
+            } else {
+                $this->gamestate->setAllPlayersMultiactive();
+                $this->gamestate->initializePrivateStateForAllActivePlayers();
+            }
         } else {
             $sql = "UPDATE player SET player_progression=0, player_start=0, player_round_duration=0, player_grid=NULL, player_round_score=$playerScore, player_score = player_score + $playerScore WHERE player_id=$playerId";
             self::DbQuery($sql);
 
             $this->gamestate->nextState("next");
+        }
+
+        if (!$this->isGameEnded()) {
+            $round = $this->getRound() + 1;
+            $this->setRound($round);
+
+            // create a new puzzle
+            $this->updatePuzzle();
         }
     }
 
@@ -1303,6 +1358,20 @@ class LaserReflection extends Table {
                 ]);
             }
         }
+
+        if ($this->getSoloMode() > 0) {
+            $hearts = $this->getGameStateValue('hearts') - 1;
+            $this->setGameStateValue('hearts', $hearts);
+
+            self::notifyAllPlayers("hearts", '💔 ${message}', [
+                'message' => [
+                    'log' => clienttranslate('You lose a heart'),
+                    'args'=> []
+                ],
+                "player_id" => $playerId,
+                "hearts" => $hearts
+            ]);
+        }
     }
 
     function action_hideScore() {
@@ -1387,6 +1456,41 @@ class LaserReflection extends Table {
 
     function isModeSolo() {
         return $this->getGameStateValue('solo') == 1;
+    }
+
+    function getSoloMode() {
+        if ($this->isModeSolo()) {
+            return $this->getGameStateValue('solo_mode');
+        }
+        return 0;
+    }
+
+    function getItemsCount() {
+        $cpt = $this->getGameStateValue('items_count');
+        $mode = $this->getSoloMode();
+
+        switch ($mode) {
+            case 6:
+                return max($cpt, 10);
+            case 10:
+                return max($cpt, 15);
+            default:
+                return $cpt;
+        }
+    }
+
+    function getTimeLimit() {
+        $limit = $this->getGameStateValue('time_limit');
+        $mode = $this->getSoloMode();
+
+        switch ($mode) {
+            case 6:
+                return min($limit, 15);
+            case 10:
+                return min($limit, 10);
+            default:
+                return $limit;
+        }
     }
 
     function isModeMultiRandom() {
@@ -1761,7 +1865,7 @@ class LaserReflection extends Table {
     }
 
     function updatePuzzle() {
-        $items_count = $this->getGameStateValue('items_count');
+        $items_count = $this->getItemsCount();
         $black_hole = $this->getGameStateValue('black_hole') == 1;
         $light_warp = $this->getGameStateValue('light_warp') == 1;
         $round = str_pad($this->getRound(), 4, '0', STR_PAD_LEFT);

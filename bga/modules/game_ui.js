@@ -970,9 +970,21 @@ const gameUI = {
     dojo.place("<span id='" + iconId + "'>" + icon + "&nbsp;</span>", $(divId).firstElementChild, 0);
   },
 
-  displayPlayerTeams: function () {
-    Object.keys(this.players).map((id) => {
-      this.displayPlayerTeam(id);
-    });
+  displayPlayerHearts: function (playerId, hearts) {
+    const divId = "player_board_" + playerId;
+    const iconId = "icon_" + playerId;
+    const icons = hearts + '&nbsp;💗';
+    dojo.destroy(iconId);
+    dojo.place("<span id='" + iconId + "'>&nbsp;&nbsp;&nbsp;" + icons + "&nbsp;</span>", $(divId).firstElementChild, 4);
+  },
+
+  displayPlayerIcons: function () {
+    if (this.soloMode) {
+      this.displayPlayerHearts(this.playerId, this.hearts);
+    } else if (gameUI.teamsCount) {
+      Object.keys(this.players).map((id) => {
+        this.displayPlayerTeam(id);
+      });
+    }
   }
 };
