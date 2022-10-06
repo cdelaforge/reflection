@@ -970,7 +970,8 @@ const gameUI = {
     dojo.place("<span id='" + iconId + "'>" + icon + "&nbsp;</span>", $(divId).firstElementChild, 0);
   },
 
-  displayPlayerHearts: function (playerId, hearts) {
+  displayPlayerHearts: function (hearts) {
+    const playerId = this.isSpectator ? this.playerSpied : this.playerId;
     const divId = "player_board_" + playerId;
     const iconId = "icon_" + playerId;
     const icons = hearts + '&nbsp;💗';
@@ -980,7 +981,7 @@ const gameUI = {
 
   displayPlayerIcons: function () {
     if (this.soloMode) {
-      this.displayPlayerHearts(this.playerId, this.hearts);
+      this.displayPlayerHearts(this.hearts);
     } else if (gameUI.teamsCount) {
       Object.keys(this.players).map((id) => {
         this.displayPlayerTeam(id);

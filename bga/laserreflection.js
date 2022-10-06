@@ -712,7 +712,7 @@ define([
             notif_hearts: function (notif) {
                 console.log("notif_hearts", notif);
                 gameUI.hearts = notif.args.hearts;
-                gameUI.displayPlayerHearts(notif.args.player_id, gameUI.hearts);
+                gameUI.displayPlayerHearts(gameUI.hearts);
             }
         });
     });
