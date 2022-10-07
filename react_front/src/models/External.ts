@@ -14,6 +14,7 @@ export interface GameSetup {
 
 export interface WindowWithGameMethods {
   game: {
+    setSmart: (s: boolean) => void;
     setRunning: (r: boolean) => void;
     setup: (p: GameSetup) => number[][];
     setAreaSize: (width: number, height: number) => void;

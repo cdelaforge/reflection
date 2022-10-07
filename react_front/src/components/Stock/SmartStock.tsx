@@ -1,11 +1,11 @@
 import { StockArea } from "./Stock.Styles";
 import { useAppState } from "../../state/AppStateProvider";
 import { Transformations } from "../../helpers/Transformations";
-import { StockCell } from "../";
+import SmartStockCell from "../Cell/SmartStockCell";
 import { compareData } from "../../models/Misc";
 
-function Stock() {
-  const { mode, squaresCount, gridSize, cellSize, elementsCount, displayMode, stock, transformations, stockIndex, setStockIndex } = useAppState();
+function SmartStock() {
+  const { mode, squaresCount, gridSize, cellSize, displayMode, stock, transformations, stockIndex, setStockIndex } = useAppState();
 
   if (mode === "view" || mode === "solution") {
     return <></>;
@@ -13,20 +13,16 @@ function Stock() {
 
   const transfoHelper = new Transformations(transformations);
   const data = stock.map((val, index) => ({ index, val, displayedVal: transfoHelper.getDisplayedIcon(val) })).sort(compareData);
-  const lines = Math.ceil(elementsCount / (squaresCount + 2));
-  const iterator = new Array<number>(elementsCount).fill(0);
-  const cells = iterator.map((_, i) => {
-    const index = data[i] ? data[i].index : i;
-    const val = data[i] ? data[i].displayedVal : 0;
+  const lines = Math.ceil(6 / (squaresCount + 2));
 
+  const itemTypes = [1, 2, 3, 4, 5, 6];
+  const cells = itemTypes.map((type, index) => {
+    const indexList = data.filter(d => d.displayedVal === type).map(d => d.index);
     return (
-      <StockCell
-        index={index}
-        key={`stock_${index}`}
-        val={val}
-      />
-    )
+      <SmartStockCell key={`smart_${index}`} val={type} indexList={indexList} />
+    );
   });
+
   const width = (displayMode === "landscape") ? cellSize * lines : gridSize;
   const height = (displayMode === "portrait") ? cellSize * lines : gridSize;
 
@@ -34,7 +30,7 @@ function Stock() {
     setStockIndex(data[0].index);
   }
 
-  return <StockArea width={width} height={height} margin={10}>{cells}</StockArea>;
+  return <StockArea width={width} height={height} margin={10} padding={0}>{cells}</StockArea>;
 }
 
-export default Stock;
+export default SmartStock;

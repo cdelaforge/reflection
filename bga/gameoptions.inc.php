@@ -324,4 +324,16 @@ $game_options = [
     ]
 ];
 
+$game_preferences = [
+    100 => array(
+        'name' => totranslate('Stack items in the stock'),
+        'needReload' => false,
+        'values' => [
+            1 => [ 'name' => totranslate( 'Yes' ) ],
+            2 => [ 'name' => totranslate( 'No' ) ]
+        ],
+        'default' => 1
+    ),
+];
+
 

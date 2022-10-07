@@ -37,6 +37,7 @@ export const CellBackground = styled('div') <{ type: "side" | "grid" | "corner" 
   border: ${(props) => props.selected ? "1px solid white" : (props.type === "corner" ? "1px solid transparent" : "1px solid black")};
   background: ${(props) => getCellBackground(props.type, props.selected)};
   cursor: pointer;
+  position: relative;
 `;
 
 export const CellNumberBack = styled('div') <{ size: number, backColor: string, isCorrect: boolean }>`

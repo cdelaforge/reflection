@@ -32,6 +32,7 @@ export interface IStateContext {
   /* stock state */
   stock: number[];
   stockIndex?: number;
+  smart: boolean;
   setStockIndex: (index?: number) => void;
 
   /* grid state */
@@ -132,6 +133,7 @@ const initialData: IStateContext = {
   mode: 'play',
   squaresCount: 8,
   elementsCount: 15,
+  smart: false,
   stock: [1, 1, 2, 2, 2, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7],
   grid: initGrid(8),
   lock: initLock(8),
@@ -180,11 +182,13 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   const [playerAction, setPlayerAction] = useState<boolean>(false);
   const [team, setTeam] = useState<Teammate[]>();
   const [transformations, setTransformations] = useState(initialData.transformations);
+  const [smart, setSmart] = useState(initialData.smart);
 
   useEffect(() => {
     const w: WindowWithGameMethods = window as any;
     w.game = {
       setRunning,
+      setSmart,
       setup: (p: GameSetup) => {
         setWon(false);
         setPlayerAction(false);
@@ -470,6 +474,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     won,
     team,
     transformations,
+    smart,
     ...gridDimensions
   };
 

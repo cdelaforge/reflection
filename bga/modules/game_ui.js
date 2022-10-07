@@ -83,6 +83,7 @@ const gameUI = {
 
     securedLive();
     setInterval(securedLive, 500);
+    window.game.setSmart(dojoGame.prefs[100].value == 1);
 
     this.liveLoop = 0;
     this.initialized = true;

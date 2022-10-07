@@ -48,10 +48,33 @@ define([
                 } catch (error) { }
             },
 
+            initPreferencesObserver: function () {
+                dojo.query('.preference_control').on('change', (e) => {
+                    const match = e.target.id.match(/^preference_[cf]ontrol_(\d+)$/);
+                    if (!match) {
+                        return;
+                    }
+                    const pref = match[1];
+                    const newValue = e.target.value;
+                    this.prefs[pref].value = newValue;
+                    this.onPreferenceChange(pref, newValue);
+                });
+            },
+
+            onPreferenceChange: function (prefId, prefValue) {
+                console.log("Preference changed", prefId, prefValue);
+                if (prefId === "100") {
+                    window.game.setSmart(prefValue === "1");
+                }
+                // your code here to handle the change
+            },
+
             setup: function (data) {
                 console.log("Starting game setup", data);
 
                 try {
+                    this.initPreferencesObserver();
+
                     gameUI.serverTimeDec = Math.round(new Date().getTime() / 1000) - data["server_time"];
                     gameUI.initLocalStorage(this.table_id, this.player_id);
 
