@@ -15,14 +15,13 @@
  *
  */
 
-const fileType = ".min"; // ".min" or ""
+const fileType = ""; // ".min" or ""
 
 define([
     "dojo", "dojo/_base/declare",
     "ebg/core/gamegui",
     "ebg/counter",
     g_gamethemeurl + "modules/game_ui" + fileType + ".js",
-    g_gamethemeurl + "modules/timer.js",
     g_gamethemeurl + "modules/main.js"
 ],
     function (dojo, declare) {
@@ -169,7 +168,6 @@ define([
                     } else {
                         const me = data.players[this.player_id];
                         gameUI.setGrid(me && me.grid ? JSON.parse(me.grid) : gameUI.getSavedGrid());
-                        timer.init(me.color, 5);
                     }
 
                     gameUI.init(this);
@@ -205,6 +203,11 @@ define([
                 const self = this;
 
                 switch (stateName) {
+                    case "design":
+                        gameUI.mode = 'puzzleCreation';
+                        gameUI.setup();
+                        gameUI.displayDesignArea();
+                        break;
                     case 'teamSelection':
                         if (!this.isSpectator) {
                             gameUI.displayTeamSelection();
@@ -213,6 +216,11 @@ define([
                     case 'teamSelected':
                         if (!this.isSpectator) {
                             gameUI.hideTeamSelection();
+                        }
+                        break;
+                    case "createFromSeed":
+                        if (!this.isSpectator) {
+                            gameUI.displaySeedArea();
                         }
                         break;
                     case 'puzzleCreationInit':
@@ -333,7 +341,7 @@ define([
             //
             onUpdateActionButtons: function (stateName, args) {
                 const isPlayerActive = this.isCurrentPlayerActive();
-                console.log('onUpdateActionButtons: ' + stateName);
+                console.log('onUpdateActionButtons: ' + stateName, isPlayerActive);
 
                 if (gameUI.running !== isPlayerActive) {
                     gameUI.running = isPlayerActive;
@@ -346,6 +354,13 @@ define([
 
                 if (isPlayerActive) {
                     switch (stateName) {
+                        case "design":
+                            this.addActionButton('reset', _('Reset') + " ↺", 'onResetDesign');
+                            this.addActionButton('stop', _('Stop'), 'onStop');
+                            break;
+                        case "createFromSeed":
+                            this.addActionButton('seedValidate', _('Done'), 'onSeedValidate');
+                            break;
                         case "teamSelection":
                             this.removeActionButtons();
                             const team = gameUI.getMyData().team;
@@ -406,6 +421,18 @@ define([
                 }
             },
 
+            onResetDesign: function () {
+                if (!g_archive_mode) {
+                    //gameUI.seedValidate(document.getElementById('lrf_seed_input').value);
+                }
+            },
+
+            onSeedValidate: function () {
+                if (!g_archive_mode) {
+                    gameUI.seedValidate(document.getElementById('lrf_seed_input').value);
+                }
+            },
+
             onTeamValidate: function () {
                 if (!g_archive_mode) {
                     this.callAction("teamValidate", null, true);
@@ -429,7 +456,6 @@ define([
             },
             onStartNow: function () {
                 if (!g_archive_mode) {
-                    timer.abort();
                     this.callAction("puzzleStart", null, true);
                 }
             },

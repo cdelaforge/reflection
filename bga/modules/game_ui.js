@@ -27,7 +27,9 @@ const gameUI = {
         gameUI.setGrid(grid);
         gameUI.saveGrid();
 
-        gameUI.shouldSendProgression = true;
+        if (!gameUI.soloMode || gameUI.soloMode < 100) {
+          gameUI.shouldSendProgression = true;
+        }
       }
     }
     window.game.onProgression = function (progression) {
@@ -543,7 +545,9 @@ const gameUI = {
   displayGrid: function () {
     console.info("## Display grid ##");
 
-    timer.abort();
+    window.game.resetLaser();
+
+    dojo.style("lrf_seed", "display", "none");
 
     if (this.isSpectator && !this.trainingMode && !this.ended) {
       dojo.style("lrf_spectator_text", "display", "flex");
@@ -551,14 +555,11 @@ const gameUI = {
     } else {
       dojo.style("lrf_spectator_text", "display", "none");
       dojo.style("lrf_main", "display", "flex");
-      dojo.style("lrf_timer", "display", "none");
     }
   },
 
   hideGrid: function () {
     console.info("## Hide grid ##");
-
-    timer.abort();
 
     dojo.style("lrf_main", "display", "none");
   },
@@ -665,15 +666,6 @@ const gameUI = {
     return minutes.toString() + ":" + seconds.toString().padStart(2, '0');
   },
 
-  displayTimer: function (callbackFunc) {
-    console.info("## Display timer ##");
-
-    dojo.style("lrf_main", "display", "none");
-    dojo.style("lrf_timer", "display", "block");
-
-    timer.start(callbackFunc);
-  },
-
   /** Should be only calls by spectator */
   spyBoard: function (playerId) {
     if (!this.trainingMode) {
@@ -685,7 +677,7 @@ const gameUI = {
 
     dojo.style("lrf_spectator_text", "display", "none");
     dojo.style("lrf_main", "display", "flex");
-    dojo.style("lrf_spectator", "display", this.playersCount > 1 ? "flex" : "none");
+    dojo.style_("lrf_spectator", "display", this.playersCount > 1 ? "flex" : "none");
 
     if (playerId) {
       this.playerSpied = playerId;
@@ -714,6 +706,75 @@ const gameUI = {
     }
   },
 
+  displaySeedArea: function () {
+    dojo.style("lrf_main", "display", "none");
+    dojo.style("lrf_seed", "display", "flex");
+  },
+
+  displayDesignArea: function () {
+    dojo.style("lrf_design", "display", "flex");
+  },
+
+  seedValidate: function (seedCode) {
+    const grid = window.game.getGrid(seedCode);
+    let ok = true;
+    const items = [];
+    const portals = [];
+
+    if (grid.length < 4) {
+      ok = false;
+    } else {
+      grid.forEach((row, rowIndex) => row.forEach((v, colIndex) => {
+        if (v < 0) {
+          ok = false;
+        } else if (v === 7) {
+          portals.push(rowIndex);
+          portals.push(colIndex);
+        } else if (v > 0) {
+          items.push(v);
+        }
+      }));
+
+      if (portals.length !== 0 && portals.length !== 4) {
+        ok = false;
+      } else if (grid.length === 4 && items.length > 14) {
+        ok = false;
+      } else if (items.length > 20) {
+        ok = false;
+      }
+    }
+
+    if (ok) {
+      this.elements = items;
+      this.elementsCount = items.length;
+      this.gridSize = grid.length;
+      this.portals = portals;
+      this.callAction("seedValidate", { grid: JSON.stringify(grid) }, true, "post");
+    } else {
+      this.dojoGame.showMessage(_("This is not a valid seed code"), "error");
+    }
+  },
+
+  _displaySeed: function () {
+    document.getElementById("lrf_end_seed_input").value = window.game.getSeed(this.grid);
+
+    const copyBut = document.getElementById("lrf_end_seed_copy");
+    if (!copyBut.title) {
+      copyBut.title = _("Copy to clipboard");
+      copyBut.onclick = function () {
+        const text = document.getElementById("lrf_end_seed_input").value
+        navigator.clipboard.writeText(text).then(() => {
+          dojo.style("lrf_end_seed_copy", "display", "none");
+          dojo.style("lrf_end_seed_copied", "display", "");
+          setTimeout(function () {
+            dojo.style("lrf_end_seed_copy", "display", "");
+            dojo.style("lrf_end_seed_copied", "display", "none");
+          }, 2000);
+        });
+      }
+    }
+  },
+
   displayRoundPuzzle: function (round) {
     console.info("## Display puzzle of round " + round + " ##");
 
@@ -726,7 +787,7 @@ const gameUI = {
     const key = 'pd_' + roundStr + '_';
 
     this.grid = this.puzzles[round - this.resultRoundStart];
-
+    this._displaySeed();
 
     this.durations
       .filter(d => d.pdk.startsWith(key))
@@ -753,7 +814,6 @@ const gameUI = {
 
     try {
       dojo.style("lrf_main", "display", "flex");
-      dojo.style("lrf_timer", "display", "none");
       dojo.style("lrf_end", "display", "flex");
       dojo.style("lrf_end_players", "display", "none");
       dojo.style("lrf_end_rounds", "display", "flex");
@@ -776,7 +836,6 @@ const gameUI = {
     try {
       dojo.style("lrf_spectator", "display", "none");
       dojo.style("lrf_main", "display", "flex");
-      dojo.style("lrf_timer", "display", "none");
       dojo.style("lrf_end", "display", "flex");
       dojo.style("lrf_end_players", "display", "flex");
       dojo.style("lrf_end_rounds", "display", "none");
@@ -821,6 +880,7 @@ const gameUI = {
       this.mode = "view";
       this.solution = null;
       this.grid = this.players[playerId].grid;
+      this._displaySeed();
 
       if (this.dojoGame) {
         this.setup();
@@ -981,7 +1041,7 @@ const gameUI = {
   },
 
   displayPlayerIcons: function () {
-    if (this.soloMode) {
+    if (this.soloMode && this.soloMode < 100) {
       this.displayPlayerHearts(this.hearts);
     } else if (gameUI.teamsCount) {
       Object.keys(this.players).map((id) => {

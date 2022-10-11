@@ -1,30 +1,5 @@
 {OVERALL_GAME_HEADER}
 
-<!--
---------
--- BGA framework: © Gregory Isabelli <gisabelli@boardgamearena.com> & Emmanuel Colin <ecolin@boardgamearena.com>
--- LaserReflection implementation : © Christophe Delaforge <christophe@delaforge.eu>
---
--- This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
--- See http://en.boardgamearena.com/#!doc/Studio for more information.
--------
-
-    laserreflection_laserreflection.tpl
-
-    This is the HTML template of your game.
-
-    Everything you are writing in this file will be displayed in the HTML page of your game user interface,
-    in the "main game zone" of the screen.
-
-    You can use in this template:
-    _ variables, with the format {MY_VARIABLE_ELEMENT}.
-    _ HTML block, with the BEGIN/END format
-
-    See your "view" PHP file to check how to set variables and control blocks
-
-    Please REMOVE this comment before publishing your game on BGA
--->
-
 <div id="lrf_timer" style="display:none"></div>
 
 <div id="lrf_main">
@@ -59,7 +34,21 @@
             <div><input type="checkbox" id="board_{PLAYER_ID}" onclick="gameUI.displayBoard({PLAYER_ID})"/></div>
         </div>
         <!-- END player_duration -->
-        <div id="lrf_end_asterisk"><sup>(*)</sup>&nbsp;{ASTERISK}</div>
+
+        <div id="lrf_end_bottom">
+            <div id="lrf_end_seed">
+                {SEED}
+                <input id="lrf_end_seed_input" type="text" disabled/>
+                <span id="lrf_end_seed_copy">{BTN_COPY}</span>
+                <span id="lrf_end_seed_copied" style="display:none">{BTN_COPIED}</span>
+            </div>
+            <div id="lrf_end_asterisk"><sup>(*)</sup>&nbsp;{ASTERISK}</div>
+        </div>
+    </div>
+    <div id="lrf_design" class="whiteblock" style="display:none">
+        <div class="lrf_design_title">{SEED}</div>
+        <input type="text" id="lrf_design_input" disabled/>
+        <span id="lrf_design_copy"></span>
     </div>
     <div id="root" style="visibility:hidden"></div>
     <div id="lrf_spectator" class="whiteblock" style="display:none">
@@ -79,6 +68,11 @@
     <div id="lrf_team_1" class="lrf_team" onclick="gameUI.selectTeam(1)">{TEAM_1} 🧙</div>
     <div id="lrf_team_2" class="lrf_team" onclick="gameUI.selectTeam(2)">{TEAM_2} 🧛</div>
     <div id="lrf_team_3" class="lrf_team" onclick="gameUI.selectTeam(3)">{TEAM_3} 👽</div>
+</div>
+
+<div id="lrf_seed" class="whiteblock" style="display:none">
+    <div class="lrf_seed_title">{SEED}</div>
+    <input type="text" id="lrf_seed_input"/>
 </div>
 
 <div id="lrf_spectator_text" class="whiteblock" style="display:none">

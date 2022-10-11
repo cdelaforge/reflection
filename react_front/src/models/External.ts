@@ -24,5 +24,9 @@ export interface WindowWithGameMethods {
     onPuzzleResolve?: (grid: number[][]) => void;
     onProgression?: (progression: number) => void;
     onStandaloneStart?: (grid: number[][], puzzle: string[][]) => void;
+    getSeed: (grid: number[][]) => string;
+    getGrid: (seed: string) => number[][];
+    resetLaser: () => void;
+    setPartialSolutionAllowed: (p: boolean) => void;
   }
 }

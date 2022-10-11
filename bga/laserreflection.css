@@ -65,10 +65,37 @@
     margin-top: 0px;
 }
 
-#lrf_end_asterisk {
+#lrf_end_bottom {
     position: absolute;
     bottom: 0;
     left: 1em;
+    white-space: nowrap;
+    flex-flow: column;
+    width: 450px;
+}
+
+#lrf_end_seed {
+    font-size: 90%;
+    white-space: nowrap;
+    padding-bottom: 0.5em;
+    display: flex;
+    flex-flow: row;
+    justify-content: space-between;
+}
+
+#lrf_end_seed_input {
+    flex-grow: 1;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+}
+
+#lrf_end_seed_copy,
+#lrf_end_seed_copied {
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+#lrf_end_asterisk {
     font-size: 70%;
     white-space: nowrap;
 }
@@ -206,61 +233,27 @@
     padding-left: 0.2em;
 }
 
-/* Timer */
-
-#lrf_timer {
-    position: absolute;
-    left: 50%;
-    width: 300px;
-    margin-left: -150px;
-}
-
-.lrf_base-timer {
-    position: relative;
-    width: 300px;
-    height: 300px;
-}
-
-.lrf_base-timer__svg {
-    transform: scaleX(-1);
-}
-
-.lrf_base-timer__circle {
-    fill: none;
-    stroke: none;
-}
-
-.lrf_base-timer__path-elapsed {
-    stroke-width: 7px;
-    stroke: black;
-}
-
-.lrf_base-timer__path-remaining {
-    stroke-width: 5px;
-    stroke-linecap: round;
-    transform: rotate(90deg);
-    transform-origin: center;
-    transition: 1s linear all;
-    fill-rule: nonzero;
-    stroke: currentColor;
-}
-
-.lrf_base-timer__label {
-    position: absolute;
-    width: 300px;
-    height: 300px;
-    top: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 160px;
-    font-family: DS-Digital;
-}
-
 /* Misc */
 
 #page-title {
     min-height: 50px;
+}
+
+/* seed area */
+
+#lrf_seed {
+    position: absolute;
+    left: 50%;
+    width: 400px;
+    margin-left: -200px;
+    flex-flow: column;
+}
+
+.lrf_seed_title {
+    font-weight: 700;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+    text-align: center;
 }
 
 /* team selection */

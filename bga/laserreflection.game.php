@@ -128,8 +128,6 @@ class LaserReflection extends Table {
 
         /************ Start the game initialization *****/
 
-
-
         for ($i=1; $i<=3; $i++) {
             self::setGameStateInitialValue('giveup_propose_'.$i, 0);
         }
@@ -288,15 +286,26 @@ class LaserReflection extends Table {
 
     function stGameInit() {
         if ($this->isModeSolo()) {
-            if ($this->getSoloMode() > 0) {
+            $mode = $this->getSoloMode();
+            if ($mode == 100) {
+                // design a puzzle
+                $this->activeNextPlayer();
+                $this->gamestate->nextState("design");
+            } else if ($mode == 101) {
+                // create a puzzle from a seed
+                $this->activeNextPlayer();
+                $this->gamestate->nextState("seed");
+            } else if ($mode > 0) {
                 self::notifyAllPlayers("log", '💗 ${message}', [
                     'message' => [
                         'log' => clienttranslate('You start your journey with a heart, if you fail to solve a puzzle you lose it, if you fail again the game is lost. Good luck!'),
                         'args'=> []
                     ],
                 ]);
+                $this->gamestate->nextState("solo");
+            } else {
+                $this->gamestate->nextState("solo");
             }
-            $this->gamestate->nextState("solo");
         } else if ($this->getTeamsCount() > 0) {
             $this->gamestate->nextState("team_selection");
         } else if ($this->isModeMultiRandom()) {
@@ -680,8 +689,9 @@ class LaserReflection extends Table {
 
     function stEndRound_Solo() {
         $playerId = $this->getCurrentPlayerId();
+        $soloMode = $this->getSoloMode();
 
-        if ($this->getSoloMode() > 0 && $this->getGameStateValue('hearts') < 0) {
+        if ($soloMode > 0 && $this->getGameStateValue('hearts') < 0) {
             $sql = "UPDATE player SET player_score=0 WHERE player_id=$playerId";
             self::DbQuery($sql);
 
@@ -698,7 +708,7 @@ class LaserReflection extends Table {
         $playerTotalScore = $player['score'] + $playerScore;
 
         $soloMode = $this->getSoloMode();
-        $gameEnded = $soloMode > 0 && $soloMode == $playerTotalScore;
+        $gameEnded = ($soloMode > 0 && $soloMode == $playerTotalScore) || $soloMode == 101;
 
         if (!$gameEnded) {
             // create a new puzzle
@@ -977,6 +987,49 @@ class LaserReflection extends Table {
         if ($progression == 100) {
             $this->gamestate->nextPrivateState($playerId, 'continue');
         }
+    }
+
+    function action_seedValidate($puzzleGrid) {
+        self::checkAction("seedValidate");
+
+        $playerId = $this->getCurrentPlayerId();
+        $gridSize = count($puzzleGrid);
+        $jsonGrid = json_encode($puzzleGrid);
+
+        $portals = [];
+        $items = [];
+
+        for ($row=0; $row<$gridSize; $row++) {
+            for ($col=0; $col<$gridSize; $col++) {
+                $val = $puzzleGrid[$row][$col];
+
+                if ($val == 7) {
+                    $portals[] = $row;
+                    $portals[] = $col;
+                } else if ($val > 0) {
+                    $items[] = $val;
+                }
+            }
+        }
+
+        if (count($portals) == 0) {
+            $portals = [-1, -1, -1, -1];
+        }
+        $this->setGameDbValue('portals', json_encode($portals));
+        self::setGameStateValue('portal_1_row', $portals[0]);
+        self::setGameStateValue('portal_1_col', $portals[1]);
+        self::setGameStateValue('portal_2_row', $portals[2]);
+        self::setGameStateValue('portal_2_col', $portals[3]);
+
+        $puzzle = $this->getGridPuzzle($puzzleGrid);
+
+        $this->setGameDbValue('grid_size', $gridSize);
+        $this->setGameDbValue('elements', json_encode($items));
+        $this->setGameDbValue('grid', $jsonGrid);
+        $this->setGameDbValue('puzzle', json_encode($puzzle));
+        $this->setGameDbValue('rg_0000', $jsonGrid);
+
+        $this->gamestate->nextState("next");
     }
 
     function action_creationEnd($puzzleGrid, $puzzle) {

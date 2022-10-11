@@ -78,6 +78,17 @@
       self::ajaxResponse();
     }
 
+    public function seedValidate() {
+      self::setAjaxMode();
+
+      $grid = self::getArg("grid", AT_json, true);
+      $this->validateJsonGrid($grid);
+
+      $this->game->action_seedValidate($grid);
+
+      self::ajaxResponse();
+    }
+
     public function creationEnd() {
       self::setAjaxMode();
 

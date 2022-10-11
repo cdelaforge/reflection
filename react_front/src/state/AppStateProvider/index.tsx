@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Checker } from "../../helpers/Checker";
+import { SeedHelper } from "../../helpers/Seed";
 import { WindowWithGameMethods, GameSetup } from "../../models/External";
 import { LaserProps } from "../../models/Laser";
 
@@ -183,12 +184,16 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   const [team, setTeam] = useState<Teammate[]>();
   const [transformations, setTransformations] = useState(initialData.transformations);
   const [smart, setSmart] = useState(initialData.smart);
+  const [partialSolutionAllowed, setPartialSolutionAllowed] = useState(false);
 
   useEffect(() => {
     const w: WindowWithGameMethods = window as any;
+    const seedHelper = new SeedHelper();
+
     w.game = {
       setRunning,
       setSmart,
+      setPartialSolutionAllowed,
       setup: (p: GameSetup) => {
         setWon(false);
         setPlayerAction(false);
@@ -246,6 +251,17 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
       setTeam: (teams: Teammate[]) => {
         setTeam([...teams]);
       },
+      getSeed: (grid: number[][]) => {
+        return seedHelper.Encode(grid);
+      },
+      getGrid: (seed: string) => {
+        return seedHelper.Decode(seed);
+      },
+      resetLaser: () => {
+        setLaserElements([]);
+        setDisplayLaserPosition(undefined);
+        setDisplayLaserIndex(undefined);
+      }
     }
   }, []);
 
@@ -280,7 +296,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     const newResult = checker.checkGrid(grid, toSolve);
     setResult(newResult);
 
-    if (checker.won) {
+    if (checker.won && (stock.length === 0 || partialSolutionAllowed)) {
       setWon(true);
 
       const w: WindowWithGameMethods = window as any;
@@ -289,7 +305,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
         w.game.onPuzzleResolve(gridClone);
       }
     }
-  }, [grid, toSolve]);
+  }, [grid, toSolve, stock, partialSolutionAllowed]);
 
   useEffect(() => {
     try {

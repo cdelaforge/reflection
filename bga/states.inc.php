@@ -15,12 +15,14 @@ if (!defined('STATE_END_GAME')) { // ensure this block is only invoked once, sin
     define("STATE_PLAY_PUZZLE_WAIT_TEAM", 53);
     define("STATE_PLAY_PUZZLE_RESOLVED_TEAM", 54);
     define("STATE_PLAY_COPY_TEAM", 55);
+    define("STATE_SEED_PUZZLE", 6);
     define("STATE_PLAY_PUZZLE_END", 7);
     define("STATE_END_ROUND", 8);
     define("STATE_END_ROUND_PRIVATE", 80);
     define("STATE_TEAM_SELECTION", 9);
     define("STATE_TEAM_SELECTION_PRIVATE", 90);
     define("STATE_TEAM_SELECTED", 91);
+    define("STATE_DESIGN_PUZZLE", 10);
     define("STATE_END_GAME", 99);
  }
 
@@ -96,6 +98,8 @@ $machinestates = array(
             "normal" => STATE_CREATE_PUZZLE_INIT,
             "random" => STATE_PLAY_PUZZLE_INIT,
             "team_selection" => STATE_TEAM_SELECTION,
+            "seed" => STATE_SEED_PUZZLE,
+            "design" => STATE_DESIGN_PUZZLE
         )
     ),
 
@@ -125,6 +129,24 @@ $machinestates = array(
         "type" => "private",
         "possibleactions" => ["teamCancel"],
         "transitions" => [ "continue" => STATE_TEAM_SELECTED, "previous" => STATE_TEAM_SELECTION_PRIVATE ]
+    ],
+
+    STATE_SEED_PUZZLE => [
+        "name" => "createFromSeed",
+        "description" => clienttranslate('You should provide the seed code of a puzzle'),
+        "descriptionmyturn" => clienttranslate('You should provide the seed code of a puzzle'),
+        "type" => "activeplayer",
+        "possibleactions" => ["seedValidate"],
+        "transitions" => [ "next" => STATE_PLAY_PUZZLE_INIT ]
+    ],
+
+    STATE_DESIGN_PUZZLE => [
+        "name" => "design",
+        "description" => clienttranslate('Create a puzzle to share with other players'),
+        "descriptionmyturn" => clienttranslate('Create a puzzle to share with other players'),
+        "type" => "activeplayer",
+        "possibleactions" => ["reset", "stopGame"],
+        "transitions" => [ "continue" => STATE_DESIGN_PUZZLE ]
     ],
 
     STATE_CREATE_PUZZLE_INIT => [
