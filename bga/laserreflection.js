@@ -200,10 +200,11 @@ define([
             //
             onEnteringState: function (stateName, args) {
                 console.log('Entering state: ' + stateName, args);
-                const self = this;
 
                 switch (stateName) {
                     case "design":
+                        gameUI.elements = JSON.parse(args.args["elements"]);
+                        gameUI.portals = JSON.parse(args.args["portals"]);
                         gameUI.mode = 'puzzleCreation';
                         gameUI.setup();
                         gameUI.displayDesignArea();
@@ -295,11 +296,6 @@ define([
                         break;
                     case "puzzlePlayWait":
                         gameUI.clearSavedTeamData();
-                        if (gameUI.autoStart && !this.isSpectator && !g_archive_mode) {
-                            gameUI.displayTimer(function () {
-                                self.callAction("puzzleStart", null, true);
-                            });
-                        }
                         break;
                     case "puzzlePlay":
                         gameUI.mode = 'play';
@@ -423,7 +419,10 @@ define([
 
             onResetDesign: function () {
                 if (!g_archive_mode) {
-                    //gameUI.seedValidate(document.getElementById('lrf_seed_input').value);
+                    gameUI.setGrid(undefined);
+                    gameUI.saveGrid();
+                    gameUI.history = [];
+                    this.callAction("resetDesign", null, true);
                 }
             },
 

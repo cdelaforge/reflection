@@ -143,6 +143,31 @@
     min-height: 46px;
 }
 
+/* Design area */
+
+#lrf_design {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 0.5em 0px 0.5em 0px;
+    font-weight: normal;
+    line-height: 24px;
+}
+
+#lrf_design_input {
+    max-width: 400px;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+    height: 24px;
+    flex-grow: 1;
+}
+
+#lrf_design_copy {
+    padding-top: 2px;
+    cursor: pointer;
+}
+
 /* Scoring table */
 
 .tableWindow>table {
@@ -237,6 +262,14 @@
 
 #page-title {
     min-height: 50px;
+}
+
+#maintitlebar_content>div:first-child {
+    min-height: 34px;
+}
+
+#gameaction_status_wrap {
+    min-height: 46px;
 }
 
 /* seed area */

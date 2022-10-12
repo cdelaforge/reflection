@@ -407,6 +407,13 @@ class LaserReflection extends Table {
         return $result;
     }
 
+    function argDesignPuzzle() {
+        return [
+            'elements' => $this->getGameDbValue('elements'),
+            'portals' => $this->getGameDbValue('portals'),
+        ];
+    }
+
     function argSolutionDisplay() {
         $playerId = $this->getCurrentPlayerId();
 
@@ -418,7 +425,6 @@ class LaserReflection extends Table {
         }
 
         $result = ['grid' => $jsonGrid];
-
         return $result;
     }
 
@@ -1030,6 +1036,23 @@ class LaserReflection extends Table {
         $this->setGameDbValue('rg_0000', $jsonGrid);
 
         $this->gamestate->nextState("next");
+    }
+
+    function action_resetDesign() {
+        self::checkAction("resetDesign");
+
+        $items_count = $this->getItemsCount();
+        $black_hole = $this->getGameStateValue('black_hole') == 1;
+        $light_warp = $this->getGameStateValue('light_warp') == 1;
+
+        if ($light_warp) {
+            $this->getPortalsPositions();
+        }
+
+        $items = $this->getRandomItems($black_hole, $items_count);
+        $this->setGameDbValue('elements', json_encode($items));
+
+        $this->gamestate->nextState("continue");
     }
 
     function action_creationEnd($puzzleGrid, $puzzle) {

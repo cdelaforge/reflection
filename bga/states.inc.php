@@ -85,7 +85,7 @@ $machinestates = array(
         "description" => "",
         "type" => "manager",
         "action" => "stGameSetup",
-        "transitions" => array( "" => STATE_MODE_INIT)
+        "transitions" => ["" => STATE_MODE_INIT]
     ),
 
     STATE_MODE_INIT => array(
@@ -93,14 +93,14 @@ $machinestates = array(
         "description" => "",
         "type" => "manager",
         "action" => "stGameInit",
-        "transitions" => array(
+        "transitions" => [
             "solo" => STATE_PLAY_PUZZLE_INIT,
             "normal" => STATE_CREATE_PUZZLE_INIT,
             "random" => STATE_PLAY_PUZZLE_INIT,
             "team_selection" => STATE_TEAM_SELECTION,
             "seed" => STATE_SEED_PUZZLE,
             "design" => STATE_DESIGN_PUZZLE
-        )
+        ]
     ),
 
     STATE_TEAM_SELECTION => [
@@ -145,8 +145,9 @@ $machinestates = array(
         "description" => clienttranslate('Create a puzzle to share with other players'),
         "descriptionmyturn" => clienttranslate('Create a puzzle to share with other players'),
         "type" => "activeplayer",
-        "possibleactions" => ["reset", "stopGame"],
-        "transitions" => [ "continue" => STATE_DESIGN_PUZZLE ]
+        "args" => "argDesignPuzzle",
+        "possibleactions" => ["resetDesign", "stopGame"],
+        "transitions" => [ "continue" => STATE_DESIGN_PUZZLE, "endGame" => STATE_END_GAME ]
     ],
 
     STATE_CREATE_PUZZLE_INIT => [

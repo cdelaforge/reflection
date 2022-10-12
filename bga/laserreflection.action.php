@@ -89,6 +89,14 @@
       self::ajaxResponse();
     }
 
+    public function resetDesign() {
+      self::setAjaxMode();
+
+      $this->game->action_resetDesign();
+
+      self::ajaxResponse();
+    }
+
     public function creationEnd() {
       self::setAjaxMode();
 

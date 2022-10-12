@@ -1,7 +1,5 @@
 {OVERALL_GAME_HEADER}
 
-<div id="lrf_timer" style="display:none"></div>
-
 <div id="lrf_main">
     <div id="lrf_end" class="whiteblock" style="display:none">
         <div id="lrf_end_players" class="lrf_end_line lrf_title">
@@ -39,16 +37,10 @@
             <div id="lrf_end_seed">
                 {SEED}
                 <input id="lrf_end_seed_input" type="text" disabled/>
-                <span id="lrf_end_seed_copy">{BTN_COPY}</span>
-                <span id="lrf_end_seed_copied" style="display:none">{BTN_COPIED}</span>
+                <span id="lrf_end_seed_copy"></span>
             </div>
             <div id="lrf_end_asterisk"><sup>(*)</sup>&nbsp;{ASTERISK}</div>
         </div>
-    </div>
-    <div id="lrf_design" class="whiteblock" style="display:none">
-        <div class="lrf_design_title">{SEED}</div>
-        <input type="text" id="lrf_design_input" disabled/>
-        <span id="lrf_design_copy"></span>
     </div>
     <div id="root" style="visibility:hidden"></div>
     <div id="lrf_spectator" class="whiteblock" style="display:none">
@@ -68,6 +60,12 @@
     <div id="lrf_team_1" class="lrf_team" onclick="gameUI.selectTeam(1)">{TEAM_1} 🧙</div>
     <div id="lrf_team_2" class="lrf_team" onclick="gameUI.selectTeam(2)">{TEAM_2} 🧛</div>
     <div id="lrf_team_3" class="lrf_team" onclick="gameUI.selectTeam(3)">{TEAM_3} 👽</div>
+</div>
+
+<div id="lrf_design" class="whiteblock" style="display:none">
+    <div class="lrf_design_title">{SEED}</div>
+    <input type="text" id="lrf_design_input" disabled/>
+    <span id="lrf_design_copy"></span>
 </div>
 
 <div id="lrf_seed" class="whiteblock" style="display:none">
