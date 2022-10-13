@@ -15,7 +15,7 @@
  *
  */
 
-const fileType = ""; // ".min" or ""
+const fileType = ".min"; // ".min" or ""
 
 define([
     "dojo", "dojo/_base/declare",
@@ -240,6 +240,13 @@ define([
                         const publicData = args.args["_public"];
                         const privateData = args.args["_private"];
 
+                        if (publicData.portals) {
+                            gameUI.portals = JSON.parse(publicData.portals);
+                        }
+                        if (publicData.elements) {
+                            gameUI.elements = JSON.parse(publicData.elements);
+                        }
+
                         if (this.isSpectator) {
                             gameUI.puzzleUsers = {};
                             Object.keys(publicData).map((id) => {
@@ -255,9 +262,7 @@ define([
                             const isPlaying = args.private_state && args.private_state.id === "51";
 
                             gameUI.round = parseInt(privateData.round, 10);
-                            if (privateData.portals) {
-                                gameUI.portals = JSON.parse(privateData.portals);
-                            }
+
 
                             if (savedGrid) {
                                 gameUI.setGrid(savedGrid);
@@ -292,10 +297,6 @@ define([
                             gameUI.puzzleUser = gameUI.players[privateData.id]; // player that did the puzzle
 
                             gameUI.mode = isPlaying || privateData.grid ? 'play' : 'empty';
-                        }
-
-                        if (publicData.elements) {
-                            gameUI.elements = JSON.parse(publicData.elements);
                         }
 
                         gameUI.setup();
@@ -662,6 +663,7 @@ define([
 
                 if (gameUI.modeRandom) {
                     gameUI.puzzle = JSON.parse(notif.args.round_puzzle);
+                    gameUI.gridSize = gameUI.puzzle[0].length;
 
                     Object.keys(gameUI.players).map(playerId => {
                         gameUI.players[playerId].grid = undefined;

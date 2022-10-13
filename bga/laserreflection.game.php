@@ -106,6 +106,7 @@ class LaserReflection extends Table {
         $light_warp = $this->getGameStateValue('light_warp') == 1;
         $partial_allowed = $this->getGameStateValue('partial_allowed');
         $multi_mode = $this->getGameStateValue('multi_mode');
+        $solo_mode = $this->getGameStateValue('solo_mode');
         $compete_same = $this->getGameStateValue('compete_same');
         $items = $this->getRandomItems($black_hole, $items_count);
         $jsonItems = json_encode($items);
@@ -156,7 +157,7 @@ class LaserReflection extends Table {
             $this->getPortalsPositions();
         }
 
-        if ($count_players == 1 || $multi_mode == 10) {
+        if (($count_players == 1 && $solo_mode < 100) || $multi_mode == 10) {
             $puzzle = $this->getRandomGridAndPuzzle($items);
             $this->setGameDbValue('grid', $puzzle['grid']);
             $this->setGameDbValue('puzzle', $puzzle['puzzle']);
@@ -350,13 +351,12 @@ class LaserReflection extends Table {
             $light_warp = $this->getGameStateValue('light_warp') == 1;
             $jsonPortals = $light_warp ? $this->getGameDbValue('portals') : null;
 
-            $result['_public'] = ['elements' => $jsonElements];
+            $result['_public'] = ['elements' => $jsonElements, 'portals' => $jsonPortals];
 
             for ($i=0; $i<$cpt; $i++) {
                 $result['_private'][$players[$i]['id']] = [
                     'grid' => $players[$i]["grid"],
                     'puzzle' => $jsonPuzzle,
-                    'portals' => $jsonPortals,
                     'round' => $round
                 ];
                 $result['_public'][$players[$i]['id']] = [
@@ -1027,11 +1027,7 @@ class LaserReflection extends Table {
         $this->setGameDbValue('puzzle', $jsonPuzzle);
         $this->setGameDbValue('rg_0000', $jsonGrid);
 
-        self::notifyAllPlayers("puzzleChange", "", [
-            'player_id' => $playerId,
-            'player_puzzle' => $jsonPuzzle,
-            'default' => false
-        ]);
+        self::notifyAllPlayers("puzzleChange", "", [ 'round_puzzle' => $jsonPuzzle ]);
 
         $this->gamestate->nextState("next");
     }
