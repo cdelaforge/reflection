@@ -38,6 +38,7 @@
         global $g_user;
 
         $this->tpl['SPECTATOR_TEXT'] = self::_("As a spectator, you can only see the players' boards if the game is in training mode.");
+        $this->tpl['SPECTATOR_DESIGN_TEXT'] = self::_("As a spectator, you cannot see a player designing a puzzle.");
         $this->tpl['BOARDS'] = self::_("Players' boards");
         $this->tpl['PUZZLES'] = self::_("Players' puzzles");
 

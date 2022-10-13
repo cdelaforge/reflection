@@ -184,7 +184,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   const [team, setTeam] = useState<Teammate[]>();
   const [transformations, setTransformations] = useState(initialData.transformations);
   const [smart, setSmart] = useState(initialData.smart);
-  const [partialSolutionAllowed, setPartialSolutionAllowed] = useState(false);
+  const [partialSolutionAllowed, setPartialSolutionAllowed] = useState(true);
 
   useEffect(() => {
     const w: WindowWithGameMethods = window as any;

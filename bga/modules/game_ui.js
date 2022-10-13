@@ -28,7 +28,9 @@ const gameUI = {
         gameUI.saveGrid();
 
         if (gameUI.soloMode === 100) {
-          document.getElementById("lrf_design_input").value = grid ? window.game.getSeed(grid) : "";
+          const seedCode = grid ? window.game.getSeed(grid) : "";
+          const validSeedCode = gameUI._isSeedValid(seedCode) ? seedCode : "";
+          document.getElementById("lrf_design_input").value = validSeedCode;
         } else {
           gameUI.shouldSendProgression = true;
         }
@@ -60,6 +62,7 @@ const gameUI = {
       'creating': '🤨',
       'created': '😎',
       'playing': '🤨',
+      'design': '🤨',
       'success': '😎',
       'default': '😴'
     };
@@ -72,6 +75,7 @@ const gameUI = {
       'creating': _("In progress"),
       'created': _("Puzzle created"),
       'playing': _("In progress"),
+      'design': _("In progress"),
       'success': _("Success"),
       'default': _("Not yet started")
     };
@@ -88,6 +92,7 @@ const gameUI = {
     securedLive();
     setInterval(securedLive, 500);
     window.game.setSmart(dojoGame.prefs[100].value == 1);
+    window.game.setPartialSolutionAllowed(this.partialSolutionAllowed);
 
     this.liveLoop = 0;
     this.initialized = true;
@@ -547,11 +552,16 @@ const gameUI = {
   displayGrid: function () {
     console.info("## Display grid ##");
 
-    window.game.resetLaser();
+    if (this.initialized) {
+      window.game.resetLaser();
+    }
 
     dojo.style("lrf_seed", "display", "none");
 
-    if (this.isSpectator && !this.trainingMode && !this.ended) {
+    if (this.soloMode === 100) {
+      dojo.style("lrf_spectator_design_text", "display", "flex");
+      dojo.style("lrf_main", "display", "none");
+    } else if (this.isSpectator && !this.trainingMode && !this.ended) {
       dojo.style("lrf_spectator_text", "display", "flex");
       dojo.style("lrf_main", "display", "none");
     } else {
@@ -679,7 +689,7 @@ const gameUI = {
 
     dojo.style("lrf_spectator_text", "display", "none");
     dojo.style("lrf_main", "display", "flex");
-    dojo.style_("lrf_spectator", "display", this.playersCount > 1 ? "flex" : "none");
+    dojo.style("lrf_spectator", "display", this.playersCount > 1 ? "flex" : "none");
 
     if (playerId) {
       this.playerSpied = playerId;
@@ -739,10 +749,22 @@ const gameUI = {
     dojo.style("lrf_design", "display", "flex");
     dojo.place("lrf_design", "page-title");
     this.buildCopyButton("lrf_design_copy", "lrf_design_input");
-    document.getElementById("lrf_design_input").value = this.grid ? window.game.getSeed(this.grid) : "";
+
+    if (this.initialized) {
+      try {
+        const seedCode = this.grid ? window.game.getSeed(this.grid) : "";
+        if (this._isSeedValid(seedCode)) {
+          document.getElementById("lrf_design_input").value = seedCode;
+        }
+      } catch (error) { }
+    }
   },
 
-  seedValidate: function (seedCode) {
+  hideDesignArea: function () {
+    dojo.style("lrf_design", "display", "none");
+  },
+
+  _isSeedValid: function (seedCode) {
     const grid = window.game.getGrid(seedCode);
     let ok = true;
     const items = [];
@@ -766,12 +788,18 @@ const gameUI = {
         ok = false;
       } else if (grid.length === 4 && items.length > 14) {
         ok = false;
-      } else if (items.length > 20) {
+      } else if (items.length > 20 || items.length < 3) {
         ok = false;
       }
     }
 
-    if (ok) {
+    return ok ? [grid, items, portals] : undefined;
+  },
+
+  seedValidate: function (seedCode) {
+    const [grid, items, portals] = this._isSeedValid(seedCode);
+
+    if (grid) {
       this.elements = items;
       this.elementsCount = items.length;
       this.gridSize = grid.length;
@@ -784,22 +812,7 @@ const gameUI = {
 
   _displaySeed: function () {
     document.getElementById("lrf_end_seed_input").value = this.grid ? window.game.getSeed(this.grid) : "";
-
-    const copyBut = document.getElementById("lrf_end_seed_copy");
-    if (!copyBut.title) {
-      copyBut.title = _("Copy to clipboard");
-      copyBut.onclick = function () {
-        const text = document.getElementById("lrf_end_seed_input").value
-        navigator.clipboard.writeText(text).then(() => {
-          dojo.style("lrf_end_seed_copy", "display", "none");
-          dojo.style("lrf_end_seed_copied", "display", "");
-          setTimeout(function () {
-            dojo.style("lrf_end_seed_copy", "display", "");
-            dojo.style("lrf_end_seed_copied", "display", "none");
-          }, 2000);
-        });
-      }
-    }
+    this.buildCopyButton("lrf_end_seed_copy", "lrf_end_seed_input");
   },
 
   displayRoundPuzzle: function (round) {
@@ -1062,7 +1075,7 @@ const gameUI = {
     const playerId = this.isSpectator ? this.playerSpied : this.playerId;
     const divId = "player_board_" + playerId;
     const iconId = "icon_" + playerId;
-    const icons = hearts + '&nbsp;💗';
+    const icons = (hearts >= 0) ? hearts + '&nbsp;💗' : '0&nbsp;💔';
     dojo.destroy(iconId);
     dojo.place("<span id='" + iconId + "'>&nbsp;&nbsp;&nbsp;" + icons + "&nbsp;</span>", $(divId).firstElementChild, 4);
   },

@@ -93,8 +93,8 @@ define([
 
                     data.params.map((p) => {
                         switch (p.key) {
-                            case "auto_start":
-                                gameUI.autoStart = parseInt(p.val, 10) === 1;
+                            case "partial":
+                                gameUI.partialSolutionAllowed = parseInt(p.val, 10) !== 2;
                                 break;
                             case "elements":
                                 gameUI.elements = JSON.parse(p.val);
@@ -203,11 +203,17 @@ define([
 
                 switch (stateName) {
                     case "design":
-                        gameUI.elements = JSON.parse(args.args["elements"]);
-                        gameUI.portals = JSON.parse(args.args["portals"]);
-                        gameUI.mode = 'puzzleCreation';
-                        gameUI.setup();
-                        gameUI.displayDesignArea();
+                        if (!this.isSpectator) {
+                            gameUI.players[this.player_id].state = "design";
+                            gameUI.elements = JSON.parse(args.args["elements"]);
+                            gameUI.portals = JSON.parse(args.args["portals"]);
+                            gameUI.mode = 'puzzleCreation';
+                            gameUI.setup();
+                            gameUI.displayDesignArea();
+                            gameUI.shouldRefreshProgression = true;
+                        } else {
+                            gameUI.displayGrid();
+                        }
                         break;
                     case 'teamSelection':
                         if (!this.isSpectator) {
@@ -230,8 +236,11 @@ define([
                         break;
                     case 'puzzlePlayInit':
                         gameUI.step = "play";
+
+                        const publicData = args.args["_public"];
+                        const privateData = args.args["_private"];
+
                         if (this.isSpectator) {
-                            const publicData = args.args["_public"];
                             gameUI.puzzleUsers = {};
                             Object.keys(publicData).map((id) => {
                                 gameUI.puzzleUsers[id] = parseInt(publicData[id].id, 10);
@@ -242,7 +251,6 @@ define([
                         } else {
                             gameUI.buildTeamData();
 
-                            const privateData = args.args["_private"];
                             const savedGrid = gameUI.getSavedGrid();
                             const isPlaying = args.private_state && args.private_state.id === "51";
 
@@ -283,11 +291,11 @@ define([
                             gameUI.puzzle = JSON.parse(privateData.puzzle);
                             gameUI.puzzleUser = gameUI.players[privateData.id]; // player that did the puzzle
 
-                            if (privateData.elements) {
-                                gameUI.elements = JSON.parse(privateData.elements);
-                            }
-
                             gameUI.mode = isPlaying || privateData.grid ? 'play' : 'empty';
+                        }
+
+                        if (publicData.elements) {
+                            gameUI.elements = JSON.parse(publicData.elements);
                         }
 
                         gameUI.setup();
@@ -314,7 +322,9 @@ define([
                     case "gameEnd":
                         gameUI.ended = true;
 
-                        if (gameUI.modeRandom) {
+                        if (gameUI.soloMode === 100) {
+                            gameUI.hideDesignArea();
+                        } else if (gameUI.modeRandom) {
                             gameUI.displayRoundPuzzle(document.getElementById("roundSelect").value);
                         } else if (this.isSpectator) {
                             gameUI.displayPlayerPuzzle(document.getElementById("playerSelect").value);

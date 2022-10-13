@@ -76,6 +76,9 @@
 <div id="lrf_spectator_text" class="whiteblock" style="display:none">
     <div>{SPECTATOR_TEXT}</div>
 </div>
+<div id="lrf_spectator_design_text" class="whiteblock" style="display:none">
+    <div>{SPECTATOR_DESIGN_TEXT}</div>
+</div>
 
 <script type="text/javascript">
 

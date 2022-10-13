@@ -66,7 +66,7 @@ class LaserReflection extends Table {
             "items_count" => 121,
             "black_hole" => 122,
             "light_warp" => 123,
-            "auto_start" => 190,
+            "partial_allowed" => 191,
             "training_mode" => 201,
         ]);
 	}
@@ -104,7 +104,7 @@ class LaserReflection extends Table {
         $items_count = $this->getItemsCount();
         $black_hole = $this->getGameStateValue('black_hole') == 1;
         $light_warp = $this->getGameStateValue('light_warp') == 1;
-        $auto_start = $this->getGameStateValue('auto_start');
+        $partial_allowed = $this->getGameStateValue('partial_allowed');
         $multi_mode = $this->getGameStateValue('multi_mode');
         $compete_same = $this->getGameStateValue('compete_same');
         $items = $this->getRandomItems($black_hole, $items_count);
@@ -112,7 +112,7 @@ class LaserReflection extends Table {
 
         $this->setGameDbValue('elements', $jsonItems);
         $this->setGameDbValue('grid_size', $grid_size);
-        $this->setGameDbValue('auto_start', $auto_start);
+        $this->setGameDbValue('partial', $partial_allowed);
 
         // Create players
         $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar) VALUES ";
@@ -213,7 +213,7 @@ class LaserReflection extends Table {
         }
         $result['players'] = $players;
 
-        $sql = "SELECT game_param 'key', game_value val FROM gamestatus WHERE game_param IN ('auto_start', 'elements', 'grid_size', 'portals')";
+        $sql = "SELECT game_param 'key', game_value val FROM gamestatus WHERE game_param IN ('partial', 'elements', 'grid_size', 'portals')";
         $result['params'] = self::getObjectListFromDB($sql);
         $result['params'][] = ['key' => 'random', 'val' => $this->isModeRandom()];
         $result['params'][] = ['key' => 'ended', 'val' => $this->isGameEnded()];
@@ -350,11 +350,12 @@ class LaserReflection extends Table {
             $light_warp = $this->getGameStateValue('light_warp') == 1;
             $jsonPortals = $light_warp ? $this->getGameDbValue('portals') : null;
 
+            $result['_public'] = ['elements' => $jsonElements];
+
             for ($i=0; $i<$cpt; $i++) {
                 $result['_private'][$players[$i]['id']] = [
                     'grid' => $players[$i]["grid"],
                     'puzzle' => $jsonPuzzle,
-                    'elements' => $jsonElements,
                     'portals' => $jsonPortals,
                     'round' => $round
                 ];
@@ -553,10 +554,7 @@ class LaserReflection extends Table {
 
         if ($round > $rounds) {
             // end of game !
-            $this->setGameStateValue('ended', 1);
-            $this->calcStats();
-            $this->sendAllPuzzles();
-            $this->gamestate->nextState("endGame");
+            $this->goToEnd();
         } else {
             // create a new puzzle
             $this->updatePuzzle();
@@ -672,10 +670,7 @@ class LaserReflection extends Table {
 
         if ($round > $rounds) {
             // end of game !
-            $this->setGameStateValue('ended', 1);
-            $this->calcStats();
-            $this->sendAllPuzzles();
-            $this->gamestate->nextState("endGame");
+            $this->goToEnd();
         } else {
             // create a new puzzle
             $this->updatePuzzle();
@@ -701,10 +696,7 @@ class LaserReflection extends Table {
             $sql = "UPDATE player SET player_score=0 WHERE player_id=$playerId";
             self::DbQuery($sql);
 
-            $this->setGameStateValue('ended', 1);
-            $this->calcStats();
-            $this->sendAllPuzzles();
-            $this->gamestate->nextState("endGame");
+            $this->goToEnd();
             return;
         }
 
@@ -753,10 +745,7 @@ class LaserReflection extends Table {
 
             if ($gameEnded) {
                 // victory !
-                $this->setGameStateValue('ended', 1);
-                $this->calcStats();
-                $this->sendAllPuzzles();
-                $this->gamestate->nextState("endGame");
+                $this->goToEnd();
             } else {
                 $this->gamestate->setAllPlayersMultiactive();
                 $this->gamestate->initializePrivateStateForAllActivePlayers();
@@ -765,7 +754,12 @@ class LaserReflection extends Table {
             $sql = "UPDATE player SET player_progression=0, player_start=0, player_round_duration=0, player_grid=NULL, player_round_score=$playerScore, player_score = player_score + $playerScore WHERE player_id=$playerId";
             self::DbQuery($sql);
 
-            $this->gamestate->nextState("next");
+            if ($gameEnded) {
+                // failed !
+                $this->goToEnd();
+            } else {
+                $this->gamestate->nextState("next");
+            }
         }
     }
 
@@ -828,10 +822,7 @@ class LaserReflection extends Table {
 
         if ($round > $rounds) {
             // end of game !
-            $this->setGameStateValue('ended', 1);
-            $this->calcStats();
-            $this->sendAllPuzzles();
-            $this->gamestate->nextState("endGame");
+            $this->goToEnd();
         } else {
             if ($this->isModeRandom()) {
                 // create a new puzzle
@@ -1028,12 +1019,19 @@ class LaserReflection extends Table {
         self::setGameStateValue('portal_2_col', $portals[3]);
 
         $puzzle = $this->getGridPuzzle($puzzleGrid);
+        $jsonPuzzle = json_encode($puzzle);
 
         $this->setGameDbValue('grid_size', $gridSize);
         $this->setGameDbValue('elements', json_encode($items));
         $this->setGameDbValue('grid', $jsonGrid);
-        $this->setGameDbValue('puzzle', json_encode($puzzle));
+        $this->setGameDbValue('puzzle', $jsonPuzzle);
         $this->setGameDbValue('rg_0000', $jsonGrid);
+
+        self::notifyAllPlayers("puzzleChange", "", [
+            'player_id' => $playerId,
+            'player_puzzle' => $jsonPuzzle,
+            'default' => false
+        ]);
 
         $this->gamestate->nextState("next");
     }
@@ -1433,7 +1431,8 @@ class LaserReflection extends Table {
             }
         }
 
-        if ($this->getSoloMode() > 0) {
+        $soloMode = $this->getSoloMode();
+        if ($soloMode > 0 && $soloMode < 100) {
             $hearts = $this->getGameStateValue('hearts') - 1;
             $this->setGameStateValue('hearts', $hearts);
 
@@ -1477,26 +1476,29 @@ class LaserReflection extends Table {
 
     function action_stopGame() {
         $playerId = $this->getCurrentPlayerId();
-        $duration = $this->getUniqueValueFromDB("SELECT player_round_duration FROM player WHERE player_id=$playerId");
 
-        self::notifyAllPlayers("log", "duration".$duration, []);
+        if ($this->isModeSolo()) {
+            $soloMode = $this->getSoloMode();
 
-        if ($duration != GIVEUP_DURATION) {
-            $round = $this->getRound() - 1;
-            $this->setRound($round);
+            if ($soloMode == 100) {
+                self::DbQuery("UPDATE player SET player_grid=NULL, player_round_score=1, player_score=1 WHERE player_id=$playerId");
+                self::notifyAllPlayers("roundScores", '', ['type' => 'players', 'roundScores' => [$playerId => 1]]);
+            } else if ($soloMode < 100) {
+                $duration = $this->getUniqueValueFromDB("SELECT player_round_duration FROM player WHERE player_id=$playerId");
 
-            $roundStr = str_pad($round, 4, '0', STR_PAD_LEFT);
-            $key = 'rg_'.$roundStr;
-            $sql = "DELETE FROM gamestatus WHERE game_param='$key'";
-            self::DbQuery($sql);
+                if ($duration != GIVEUP_DURATION) {
+                    $round = $this->getRound() - 1;
+                    $this->setRound($round);
+
+                    $roundStr = str_pad($round, 4, '0', STR_PAD_LEFT);
+                    $key = 'rg_'.$roundStr;
+                    $sql = "DELETE FROM gamestatus WHERE game_param='$key'";
+                    self::DbQuery($sql);
+                }
+            }
         }
 
-        $this->setGameStateValue('ended', 1);
-        $this->calcStats();
-
-        $this->sendAllPuzzles();
-
-        $this->gamestate->nextState("endGame");
+        $this->goToEnd();
         $this->gamestate->setPlayerNonMultiactive($playerId, 'next');
     }
 
@@ -2292,6 +2294,13 @@ class LaserReflection extends Table {
         }
 
         return $result;
+    }
+
+    function goToEnd() {
+        $this->setGameStateValue('ended', 1);
+        $this->calcStats();
+        $this->sendAllPuzzles();
+        $this->gamestate->nextState("endGame");
     }
 
     function sendAllPuzzles() {

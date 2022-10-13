@@ -280,6 +280,9 @@
     width: 400px;
     margin-left: -200px;
     flex-flow: column;
+    border: 1px solid #0A0A0A;
+    border-radius: 5px;
+    padding-bottom: 1em;
 }
 
 .lrf_seed_title {

@@ -32,8 +32,8 @@ $game_options = [
             3 => [ 'name' => totranslate('Challenge 1 - Easy'), 'description' => totranslate('Solve 3 puzzles to win') ],
             6 => [ 'name' => totranslate('Challenge 2 - Medium'), 'description' => totranslate('Solve 6 puzzles to win (10 items min. and 15 minutes max. per round)') ],
             10 => [ 'name' => totranslate('Challenge 3 - Hard'), 'description' => totranslate('Solve 10 puzzles to win (15 items min. and 10 minutes max. per round)') ],
-            100 => [ 'name' => totranslate('Design mode'), 'description' => totranslate('Create a puzzle to share with other players') ],
-            101 => [ 'name' => totranslate('Solve a puzzle suggested by another player'), 'description' => totranslate('You will need the seed code of a puzzle') ],
+            100 => [ 'name' => totranslate('Design a puzzle'), 'description' => totranslate('Create a puzzle to share with other players') ],
+            101 => [ 'name' => totranslate('Solve a puzzle designed by another player'), 'description' => totranslate('You will need the seed code of a puzzle') ],
         ],
         'default' => 0,
         'displaycondition' => [
@@ -302,6 +302,14 @@ $game_options = [
             2 => [ 'name' => totranslate('No') ]
         ],
         'default' => 2
+    ],
+    191 => [
+        'name' => totranslate("Allow solutions that don't use all the items"),
+        'values' => [
+            1 => [ 'name' => totranslate('Yes') ],
+            2 => [ 'name' => totranslate('No'), 'tmdisplay' => totranslate('All items must be used') ]
+        ],
+        'default' => 1
     ]
 ];
 
