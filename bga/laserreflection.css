@@ -32,11 +32,10 @@
     margin-right: 1em;
 }
 
-
 #lrf_end {
     width: 450px;
     position: relative;
-    padding-bottom: 2em;
+    padding-bottom: 4em;
     margin-bottom: 10px;
     margin-top: 10px;
 }
@@ -71,7 +70,7 @@
     left: 1em;
     white-space: nowrap;
     flex-flow: column;
-    width: 450px;
+    width: calc(100% - 2em);
 }
 
 #lrf_end_seed {
@@ -277,8 +276,8 @@
 #lrf_seed {
     position: absolute;
     left: 50%;
-    width: 400px;
-    margin-left: -200px;
+    width: 300px;
+    margin-left: -150px;
     flex-flow: column;
     border: 1px solid #0A0A0A;
     border-radius: 5px;
