@@ -66,6 +66,7 @@ class LaserReflection extends Table {
             "items_count" => 121,
             "black_hole" => 122,
             "light_warp" => 123,
+            "special_shapes" => 124,
             "partial_allowed" => 191,
             "training_mode" => 201,
         ]);
@@ -104,11 +105,12 @@ class LaserReflection extends Table {
         $items_count = $this->getItemsCount();
         $black_hole = $this->getGameStateValue('black_hole') == 1;
         $light_warp = $this->getGameStateValue('light_warp') == 1;
+        $special_shapes = $this->getGameStateValue('special_shapes');
         $partial_allowed = $this->getGameStateValue('partial_allowed');
         $multi_mode = $this->getGameStateValue('multi_mode');
         $solo_mode = $this->getGameStateValue('solo_mode');
         $compete_same = $this->getGameStateValue('compete_same');
-        $items = $this->getRandomItems($black_hole, $items_count);
+        $items = $this->getRandomItems($black_hole, $special_shapes, $items_count);
         $jsonItems = json_encode($items);
 
         $this->setGameDbValue('elements', $jsonItems);
@@ -409,9 +411,13 @@ class LaserReflection extends Table {
     }
 
     function argDesignPuzzle() {
+        $jsonTransfos = $this->getGameDbValue('transfos');
+        $transformations = json_decode($jsonTransfos);
+
         return [
             'elements' => $this->getGameDbValue('elements'),
             'portals' => $this->getGameDbValue('portals'),
+            'transfo' => $transformations[0]
         ];
     }
 
@@ -1038,13 +1044,17 @@ class LaserReflection extends Table {
         $items_count = $this->getItemsCount();
         $black_hole = $this->getGameStateValue('black_hole') == 1;
         $light_warp = $this->getGameStateValue('light_warp') == 1;
+        $special_shapes = $this->getGameStateValue('special_shapes');
 
         if ($light_warp) {
             $this->getPortalsPositions();
         }
 
-        $items = $this->getRandomItems($black_hole, $items_count);
+        $items = $this->getRandomItems($black_hole, $special_shapes, $items_count);
         $this->setGameDbValue('elements', json_encode($items));
+
+        $transformations = $this->getTransformations();
+        $this->setGameDbValue('transfos', json_encode($transformations));
 
         $this->gamestate->nextState("continue");
     }
@@ -1842,8 +1852,8 @@ class LaserReflection extends Table {
         return $this->getGameStateValue('rounds');
     }
 
-    function getRandomItems($black_hole, $items_count) {
-        $max = ($black_hole) ? 209 : 199;
+    function getRandomItems($black_hole, $special_shapes, $items_count) {
+        $max = 209;
         $quality = 0;
         $items = [];
 
@@ -1856,14 +1866,29 @@ class LaserReflection extends Table {
                 $quality = 2;
                 $items[$i++] = 1;
                 $items[$i++] = 2;
-                $items[$i++] = 3 + rand(0, 2);
+                $items[$i++] = 3 + random_int(0, 1);
                 if ($black_hole) {
                     $items[$i++] = 6;
                 }
             }
 
+            if ($items_count > 6) {
+                if ($special_shapes == 1) {
+                    $items[$i++] = 5; // square
+                } else if ($special_shapes == 2) {
+                    $items[$i++] = 8 + random_int(0, 1); // triangle
+                } else if ($special_shapes == 3) {
+                    $rnd = random_int(0, 2);
+                    if ($rnd == 0) {
+                        $items[$i++] = 5; // square
+                    } else {
+                        $items[$i++] = 7 + $rnd; // square
+                    }
+                }
+            }
+
             while ($i < $items_count) {
-                $r = rand(0, $max);
+                $r = random_int(0, $max);
                 if ($r < 60) {
                     $quality++;
                     $items[$i] = 1; // slash
@@ -1875,9 +1900,26 @@ class LaserReflection extends Table {
                 } else if ($r < 180) {
                     $items[$i] = 4; // horizontal
                 } else if ($r < 200) {
-                    $items[$i] = 5; // square
+                    if ($special_shapes == 0) {
+                        continue;
+                    } else if ($special_shapes == 1) {
+                        $items[$i] = 5; // square
+                    } else if ($special_shapes == 2) {
+                        $items[$i] = 8 + random_int(0, 1);
+                    } else {
+                        $rnd = random_int(0, 2);
+                        if ($rnd == 0) {
+                            $items[$i] = 5; // square
+                        } else {
+                            $items[$i] = 7 + $rnd; // square
+                        }
+                    }
                 } else {
-                    $items[$i] = 6; // black hole
+                    if ($black_hole) {
+                        $items[$i] = 6; // black hole
+                    } else {
+                        continue;
+                    }
                 }
                 $i++;
             }
@@ -1895,10 +1937,10 @@ class LaserReflection extends Table {
         $col2 = -1;
 
         while ($row1 == $row2 && $col1 == $col2) {
-            $row1 = rand(0, $grid_size - 1);
-            $col1 = rand(0, $grid_size - 1);
-            $row2 = rand(0, $grid_size - 1);
-            $col2 = rand(0, $grid_size - 1);
+            $row1 = random_int(0, $grid_size - 1);
+            $col1 = random_int(0, $grid_size - 1);
+            $row2 = random_int(0, $grid_size - 1);
+            $col2 = random_int(0, $grid_size - 1);
         }
 
         $portals[] = $row1;
@@ -1953,13 +1995,14 @@ class LaserReflection extends Table {
         $items_count = $this->getItemsCount();
         $black_hole = $this->getGameStateValue('black_hole') == 1;
         $light_warp = $this->getGameStateValue('light_warp') == 1;
+        $special_shapes = $this->getGameStateValue('special_shapes');
         $round = str_pad($this->getRound(), 4, '0', STR_PAD_LEFT);
 
         if ($light_warp) {
             $this->getPortalsPositions();
         }
 
-        $items = $this->getRandomItems($black_hole, $items_count);
+        $items = $this->getRandomItems($black_hole, $special_shapes, $items_count);
         $this->setGameDbValue('elements', json_encode($items));
 
         $puzzle = $this->getRandomGridAndPuzzle($items);
@@ -2018,8 +2061,8 @@ class LaserReflection extends Table {
         $index = 0;
 
         while ($index < $items_count) {
-            $row = rand(0, $grid_size - 1);
-            $col = rand(0, $grid_size - 1);
+            $row = random_int(0, $grid_size - 1);
+            $col = random_int(0, $grid_size - 1);
 
             if ($grid[$row][$col] == 0) {
                 $grid[$row][$col] = $items[$index];
@@ -2456,7 +2499,7 @@ class LaserReflection extends Table {
         $result = [];
 
         for ($i=0; $i<8; $i++) {
-            $list[$transfos[$i]] = rand(0, 1000);
+            $list[$transfos[$i]] = random_int(0, 1000);
         }
 
         asort($list);

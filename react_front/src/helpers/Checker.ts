@@ -43,6 +43,8 @@ const transDirectionMatrice = [
   [2, 3, 0, 1],     // miroir carré
   [-1, -1, -1, -1], // trou noir
   [0, 1, 2, 3],     // portail
+  [2, 3, 1, 0],     // triangle
+  [3, 2, 0, 1],     // triangle
 ]
 const incRow = [-1, 0, 1, 0];
 const incCol = [0, 1, 0, -1];
@@ -131,6 +133,30 @@ const laserPropsMatrice = [
       { type: LaserType.horizontal, dimension: LaserDimension.medium, position: LaserPosition.right },
       { type: LaserType.horizontal, dimension: LaserDimension.medium, position: LaserPosition.left }
     ],
+  ],
+  [
+    [{ type: LaserType.vertical, dimension: LaserDimension.short, position: LaserPosition.bottom }],
+    [{ type: LaserType.horizontal, dimension: LaserDimension.short, position: LaserPosition.left }],
+    [
+      { type: LaserType.vertical, dimension: LaserDimension.medium, position: LaserPosition.top },
+      { type: LaserType.horizontal, dimension: LaserDimension.medium, position: LaserPosition.right },
+    ],
+    [
+      { type: LaserType.horizontal, dimension: LaserDimension.medium, position: LaserPosition.right },
+      { type: LaserType.vertical, dimension: LaserDimension.medium, position: LaserPosition.top },
+    ],
+  ],
+  [
+    [
+      { type: LaserType.vertical, dimension: LaserDimension.medium, position: LaserPosition.bottom },
+      { type: LaserType.horizontal, dimension: LaserDimension.medium, position: LaserPosition.left },
+    ],
+    [
+      { type: LaserType.horizontal, dimension: LaserDimension.medium, position: LaserPosition.left },
+      { type: LaserType.vertical, dimension: LaserDimension.medium, position: LaserPosition.bottom },
+    ],
+    [{ type: LaserType.vertical, dimension: LaserDimension.short, position: LaserPosition.top }],
+    [{ type: LaserType.horizontal, dimension: LaserDimension.short, position: LaserPosition.right }],
   ],
 ];
 

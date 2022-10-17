@@ -31,7 +31,7 @@ function Stock() {
   const height = (displayMode === "portrait") ? cellSize * lines : gridSize;
 
   if (stockIndex === undefined && data[0]) {
-    setStockIndex(data[0].index);
+    setTimeout(() => setStockIndex(data[0].index), 1);
   }
 
   return <StockArea width={width} height={height} margin={10}>{cells}</StockArea>;

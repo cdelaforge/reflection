@@ -1,17 +1,17 @@
 const rotations = [0, -90, 90, 180];
 
 const rotationsMatrice = [
-  [0, 1, 2, 3, 4, 5, 6, 7],
-  [0, 2, 1, 4, 3, 5, 6, 7],
-  [0, 2, 1, 4, 3, 5, 6, 7],
-  [0, 1, 2, 3, 4, 5, 6, 7],
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+  [0, 2, 1, 4, 3, 5, 6, 7, 10, 11, 9, 8],
+  [0, 2, 1, 4, 3, 5, 6, 7, 11, 10, 8, 9],
+  [0, 1, 2, 3, 4, 5, 6, 7, 9, 8, 11, 10],
 ];
 
 const flipsMatrice = [
-  [0, 1, 2, 3, 4, 5, 6, 7],
-  [0, 2, 1, 3, 4, 5, 6, 7],
-  [0, 2, 1, 3, 4, 5, 6, 7],
-  [0, 1, 2, 3, 4, 5, 6, 7],
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+  [0, 2, 1, 3, 4, 5, 6, 7, 10, 11, 8, 9],
+  [0, 2, 1, 3, 4, 5, 6, 7, 12, 10, 9, 8],
+  [0, 1, 2, 3, 4, 5, 6, 7, 9, 8, 11, 10],
 ];
 
 export class Transformations {
@@ -60,6 +60,6 @@ export class Transformations {
   };
 
   public getDisplayedIcon(icon: number) {
-    return flipsMatrice[this.flip][rotationsMatrice[this.rotate][icon]];
+    return rotationsMatrice[this.rotate][flipsMatrice[this.flip][icon]];
   }
 }

@@ -1,4 +1,4 @@
-const ALPH = "ABCDEFGH__IJKLMNOP__QRSTUVWX__YZabcdef__ghijklmn__opqrstuv__wxyz0123__456789+-";
+const ALPH = "ABCDEFGHIJKTclu3#@.(LUdmv4§÷,)MVenw5&$¥{NWfox6*£~}OXgpy7+:/;PYhqz8-<\\|QZir09%>[©Rajs1?_¢]®Sbkt2!=€^¤";
 
 export class SeedHelper {
   private EncodeRow(row: number[]) {

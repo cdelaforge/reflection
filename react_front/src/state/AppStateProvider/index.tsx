@@ -31,6 +31,7 @@ export interface IStateContext {
   cellSize: number;
 
   /* stock state */
+  elements: number[];
   stock: number[];
   stockIndex?: number;
   smart: boolean;
@@ -132,17 +133,18 @@ const initPuzzle = (squaresCount: number, mode?: string, elements?: number[], po
 
 const initialData: IStateContext = {
   mode: 'play',
-  squaresCount: 8,
+  squaresCount: 4,
   elementsCount: 15,
-  smart: false,
-  stock: [1, 1, 2, 2, 2, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7],
+  smart: true,
+  elements: [],
+  stock: [1, 1, 2, 2, 2, 2, 3, 4, 4, 5, 6, 7, 7, 8, 9],
   grid: initGrid(8),
   lock: initLock(8),
   toSolve: [
-    ["3a", "7r", "2a", "9s", "5s", "11s", "23r", "3s"],
-    ["1r", "11s", "3s", "8s", "8s", "5a", "3r", "1r"],
-    ["6a", "9r", "7a", "3r", "3r", "18a", "5s", "1r"],
-    ["15r", "3a", "1a", "8s", "8s", "9s", "7r", "15r"],
+    ["3a", "7r", "2a", "9s"],
+    ["1r", "11s", "3s", "8s"],
+    ["6a", "9r", "7a", "3r"],
+    ["15r", "3a", "1a", "8s"],
   ],
   result: [[]],
   setStockIndex: () => { },
@@ -153,13 +155,21 @@ const initialData: IStateContext = {
   displayLaser: () => { },
   running: true,
   won: false,
-  transformations: 1,
+  transformations: 10,
   ...getGridDimensions(10),
+};
+
+const getElements = (grid: number[][], stock: number[]) => {
+  const map = new Set<number>();
+  grid.flat(2).filter(elt => elt > 0 && elt !== 7).forEach(elt => map.add(elt));
+  stock.filter(elt => elt !== 7).forEach(elt => map.add(elt));
+  return Array.from(map);
 };
 
 export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   const [mode, setMode] = useState(initialData.mode);
   const [squaresCount, setSquaresCount] = useState(initialData.squaresCount);
+  const [elements, setElements] = useState(getElements(initialData.grid, initialData.stock));
   const [elementsCount, setElementsCount] = useState(initialData.elementsCount);
   const [stock, setStock] = useState(initialData.stock);
   const [stockIndex, setStockIndex] = useState<number>();
@@ -237,6 +247,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
             }
           }
 
+          setElements(Array.from(new Set<number>(elements)));
           setElementsCount(elements.length);
           setStock(intersection);
           setStockIndex(undefined);
@@ -471,6 +482,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     mode,
     squaresCount,
     elementsCount,
+    elements,
     stock,
     stockIndex,
     setStockIndex: (index?: number) => { if (running && !won) { setStockIndex(index); } },

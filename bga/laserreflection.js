@@ -207,6 +207,7 @@ define([
                             gameUI.players[this.player_id].state = "design";
                             gameUI.elements = JSON.parse(args.args["elements"]);
                             gameUI.portals = JSON.parse(args.args["portals"]);
+                            gameUI.transfo = args.args["transfo"];
                             gameUI.mode = 'puzzleCreation';
                             gameUI.setup();
                             gameUI.displayDesignArea();

@@ -9,5 +9,13 @@ export const compareData = (d1: StockCellData, d2: StockCellData) => {
     return 0;
   }
 
+  // put black hole in last position
+  if (d1.displayedVal === 6) {
+    return 1;
+  }
+  if (d2.displayedVal === 6) {
+    return -1;
+  }
+
   return d1.displayedVal < d2.displayedVal ? -1 : 1;
 }

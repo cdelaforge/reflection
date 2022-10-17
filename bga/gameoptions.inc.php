@@ -303,6 +303,16 @@ $game_options = [
         ],
         'default' => 2
     ],
+    124 => [
+        'name' => totranslate('Special shapes'),
+        'values' => [
+            0 => [ 'name' => totranslate('No') ],
+            1 => [ 'name' => totranslate('Squares') ],
+            2 => [ 'name' => totranslate('Rectangles') ],
+            3 => [ 'name' => totranslate('Squares and rectangles') ],
+        ],
+        'default' => 1
+    ],
     191 => [
         'name' => totranslate("Allow solutions that don't use all the items"),
         'values' => [
