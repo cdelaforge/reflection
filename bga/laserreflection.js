@@ -395,7 +395,9 @@ define([
                             this.addActionButton('start', _('Start'), 'onStartNow');
                             break;
                         case "puzzlePlay":
-                            if (gameUI.modeRandom) {
+                            if (gameUI.mode === "play" && gameUI.progression === 100 && !gameUI.partialSolutionAllowed) {
+                                document.getElementById('pagemaintitletext').innerHTML = _("All items must be used");
+                            } else if (gameUI.modeRandom) {
                                 dojo.place("<span style='font-weight:bold;'>&nbsp;Robby&nbsp;🤖</span>", "pagemaintitletext");
                             } else {
                                 dojo.place("<span style='font-weight:bold;color:#" + gameUI.puzzleUser.color + ";'>&nbsp;" + gameUI.puzzleUser.name + "</span>", "pagemaintitletext");

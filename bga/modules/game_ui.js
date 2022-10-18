@@ -14,6 +14,7 @@ const gameUI = {
     }
 
     if (!window.game) {
+      // waiting for the React application
       setTimeout(function () { gameUI.init(dojoGame); }, 100);
       return;
     }
