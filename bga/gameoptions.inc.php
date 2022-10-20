@@ -333,6 +333,15 @@ $game_preferences = [
         ],
         'default' => 1
     ),
+    110 => array(
+        'name' => totranslate('Background'),
+        'needReload' => false,
+        'values' => [
+            0 => [ 'name' => 'BoardGameArena' ],
+            10 => [ 'name' => 'Space', 'cssPref' => 'space' ],
+            20 => [ 'name' => 'Bubbles', 'cssPref' => 'bubbles' ],
+            30 => [ 'name' => 'Gears', 'cssPref' => 'gears' ],
+        ],
+        'default' => 10
+    ),
 ];
-
-

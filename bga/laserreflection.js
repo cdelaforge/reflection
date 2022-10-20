@@ -50,13 +50,11 @@ define([
             initPreferencesObserver: function () {
                 dojo.query('.preference_control').on('change', (e) => {
                     const match = e.target.id.match(/^preference_[cf]ontrol_(\d+)$/);
-                    if (!match) {
-                        return;
+                    if (match) {
+                        const pref = match[1];
+                        this.prefs[pref].value = e.target.value;
+                        this.onPreferenceChange(pref, e.target.value);
                     }
-                    const pref = match[1];
-                    const newValue = e.target.value;
-                    this.prefs[pref].value = newValue;
-                    this.onPreferenceChange(pref, newValue);
                 });
             },
 
@@ -64,8 +62,19 @@ define([
                 console.log("Preference changed", prefId, prefValue);
                 if (prefId === "100") {
                     window.game.setSmart(prefValue === "1");
+                } else if (prefId === "110") {
+                    document.body.parentNode.classList.remove('space');
+                    document.body.parentNode.classList.remove('bubbles');
+                    document.body.parentNode.classList.remove('gears');
+
+                    if (prefValue === "10") {
+                        document.body.parentNode.classList.add('space');
+                    } else if (prefValue === "20") {
+                        document.body.parentNode.classList.add('bubbles');
+                    } else if (prefValue === "30") {
+                        document.body.parentNode.classList.add('gears');
+                    }
                 }
-                // your code here to handle the change
             },
 
             setup: function (data) {

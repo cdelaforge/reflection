@@ -368,3 +368,61 @@
     margin-top: 5px;
     text-align: center;
 }
+
+/* space background */
+
+.space .whiteblock {
+    background: white;
+    opacity: 0.8;
+}
+
+.space #overall-content {
+    background: url(img/space.jpg);
+    background-size: 100% auto;
+}
+
+.space #root {
+    opacity: 0.85;
+}
+
+.space .lrf_title {
+    color: #222222 !important;
+}
+
+/* bubbles background */
+
+.bubbles .whiteblock {
+    background: white;
+    opacity: 0.9;
+}
+
+.bubbles #overall-content {
+    background: url(img/bubbles.jpg);
+}
+
+.bubbles #root {
+    opacity: 0.97;
+}
+
+.bubbles .lrf_title {
+    color: #222222 !important;
+}
+
+/* gears background */
+
+.gears .whiteblock {
+    background: white;
+    opacity: 0.85;
+}
+
+.gears #overall-content {
+    background: url(img/gears.jpg);
+}
+
+.gears #root {
+    opacity: 0.97;
+}
+
+.gears .lrf_title {
+    color: #222222 !important;
+}
