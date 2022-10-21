@@ -3,9 +3,49 @@ import { useAppState } from "../../state/AppStateProvider";
 import { Transformations } from "../../helpers/Transformations";
 import SmartStockCell from "../Cell/SmartStockCell";
 import { compareData } from "../../models/Misc";
+import { useEffect } from "react";
+
+const direction: Record<string, number> = {
+  "ArrowDown": 1,
+  "ArrowRight": 1,
+  "ArrowUp": -1,
+  "ArrowLeft": -1,
+}
 
 function SmartStock() {
   const { mode, squaresCount, gridSize, cellSize, displayMode, stock, transformations, stockIndex, setStockIndex, elements } = useAppState();
+
+  const onKeydown = (evt: KeyboardEvent) => {
+    if (stockIndex !== undefined) {
+      const inc = direction[evt.key];
+
+      if (inc !== undefined) {
+        const item = data.find((d) => d.index === stockIndex);
+        let itemTypeIndex = itemTypes.findIndex((it) => it.val === item?.val);
+
+        while (itemTypeIndex >= 0) {
+          itemTypeIndex += inc;
+          const itemType = itemTypes[itemTypeIndex];
+          if (!itemType) {
+            break;
+          }
+          const d = data.find((d) => d.val === itemType?.val);
+          if (d) {
+            setStockIndex(d?.index);
+            break;
+          }
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("keydown", onKeydown);
+
+    return () => {
+      document.removeEventListener("keydown", onKeydown);
+    };
+  });
 
   if (mode === "view" || mode === "solution") {
     return <></>;

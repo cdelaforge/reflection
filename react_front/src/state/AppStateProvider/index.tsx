@@ -155,7 +155,7 @@ const initialData: IStateContext = {
   displayLaser: () => { },
   running: true,
   won: false,
-  transformations: 10,
+  transformations: 1,
   ...getGridDimensions(10),
 };
 
