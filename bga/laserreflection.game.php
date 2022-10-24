@@ -1857,13 +1857,13 @@ class LaserReflection extends Table {
         $quality = 0;
         $items = [];
 
-        while ($quality <= ($items_count/2)) {
+        while ($quality <= $items_count) {
             $i = 0;
             $quality = 0;
             $items = [];
 
             if ($items_count > 5) {
-                $quality = 2;
+                $quality = 4;
                 $items[$i++] = 1;
                 $items[$i++] = 2;
                 $items[$i++] = 3 + random_int(0, 1);
@@ -1876,13 +1876,15 @@ class LaserReflection extends Table {
                 if ($special_shapes == 1) {
                     $items[$i++] = 5; // square
                 } else if ($special_shapes == 2) {
+                    $quality++;
                     $items[$i++] = 8 + random_int(0, 1); // triangle
                 } else if ($special_shapes == 3) {
                     $rnd = random_int(0, 2);
                     if ($rnd == 0) {
                         $items[$i++] = 5; // square
                     } else {
-                        $items[$i++] = 7 + $rnd; // square
+                        $quality++;
+                        $items[$i++] = 7 + $rnd; // triangle
                     }
                 }
             }
@@ -1890,10 +1892,10 @@ class LaserReflection extends Table {
             while ($i < $items_count) {
                 $r = random_int(0, $max);
                 if ($r < 60) {
-                    $quality++;
+                    $quality += 2;
                     $items[$i] = 1; // slash
                 } else if ($r < 120) {
-                    $quality++;
+                    $quality += 2;
                     $items[$i] = 2; // backslash
                 } else if ($r < 150) {
                     $items[$i] = 3; // vertical
@@ -1911,7 +1913,8 @@ class LaserReflection extends Table {
                         if ($rnd == 0) {
                             $items[$i] = 5; // square
                         } else {
-                            $items[$i] = 7 + $rnd; // square
+                            $quality++;
+                            $items[$i] = 7 + $rnd; // triangle
                         }
                     }
                 } else {
@@ -2092,7 +2095,7 @@ class LaserReflection extends Table {
         $grid_size = count($grid);
         $incRow = [-1, 0, 1, 0];
         $incCol = [0, 1, 0, -1];
-        $transMatrice = [[0, 1, 2, 3], [1, 0, 3, 2], [3, 2, 1, 0], [0, 3, 2, 1], [2, 1, 0, 3], [2, 3, 0, 1], [-1, -1, -1, -1], [0, 1, 2, 3]];
+        $transMatrice = [[0, 1, 2, 3], [1, 0, 3, 2], [3, 2, 1, 0], [0, 3, 2, 1], [2, 1, 0, 3], [2, 3, 0, 1], [-1, -1, -1, -1], [0, 1, 2, 3], [2, 3, 1, 0], [3, 2, 0, 1]];
         $distance = 1;
         $exited = false;
 

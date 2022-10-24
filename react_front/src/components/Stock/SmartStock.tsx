@@ -16,7 +16,9 @@ function SmartStock() {
   const { mode, squaresCount, gridSize, cellSize, displayMode, stock, transformations, stockIndex, setStockIndex, elements } = useAppState();
 
   const onKeydown = (evt: KeyboardEvent) => {
-    if (stockIndex !== undefined) {
+    const isTargetInput = evt.target && ["input", "textarea"].some(t => t === (evt.target as any).type);
+
+    if (stockIndex !== undefined && !isTargetInput) {
       const inc = direction[evt.key];
 
       if (inc !== undefined) {
@@ -36,8 +38,8 @@ function SmartStock() {
           }
         }
 
-        // à ne faire que si on n'est pas dans un input, à vérifier
         evt.preventDefault();
+        evt.stopPropagation();
       }
     }
   };
