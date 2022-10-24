@@ -35,6 +35,9 @@ function SmartStock() {
             break;
           }
         }
+
+        // à ne faire que si on n'est pas dans un input, à vérifier
+        evt.preventDefault();
       }
     }
   };
