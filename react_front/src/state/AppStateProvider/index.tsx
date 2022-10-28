@@ -155,7 +155,7 @@ const initialData: IStateContext = {
   displayLaser: () => { },
   running: true,
   won: false,
-  transformations: 1,
+  transformations: 20,
   ...getGridDimensions(10),
 };
 
@@ -234,7 +234,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
           const elements = p.elements.sort();
 
           const elementsInGrid: number[] = [];
-          grid.map((row) => elementsInGrid.push(...row.filter((val) => val)));
+          grid.map((row) => elementsInGrid.push(...row.filter((val) => val > 0 && val !== 7)));
           elementsInGrid.sort();
 
           const intersection = [];

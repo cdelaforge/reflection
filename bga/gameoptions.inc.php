@@ -210,6 +210,8 @@ $game_options = [
             8 => [ 'name' => totranslate('8×8'), 'tmdisplay' => totranslate('Grid 8×8') ],
             9 => [ 'name' => totranslate('9×9'), 'tmdisplay' => totranslate('Grid 9×9') ],
             10 => [ 'name' => totranslate('10×10'), 'tmdisplay' => totranslate('Grid 10×10') ],
+            11 => [ 'name' => totranslate('11×11'), 'tmdisplay' => totranslate('Grid 11×11') ],
+            12 => [ 'name' => totranslate('12×12'), 'tmdisplay' => totranslate('Grid 12×12') ],
         ],
         'default' => 8
     ],
@@ -233,7 +235,17 @@ $game_options = [
             17 => [ 'name' => totranslate('17 items'), 'tmdisplay' => totranslate('17 items') ],
             18 => [ 'name' => totranslate('18 items'), 'tmdisplay' => totranslate('18 items') ],
             19 => [ 'name' => totranslate('19 items'), 'tmdisplay' => totranslate('19 items') ],
-            20 => [ 'name' => totranslate('20 items'), 'tmdisplay' => totranslate('20 items') ]
+            20 => [ 'name' => totranslate('20 items'), 'tmdisplay' => totranslate('20 items') ],
+            21 => [ 'name' => totranslate('21 items'), 'tmdisplay' => totranslate('21 items') ],
+            22 => [ 'name' => totranslate('22 items'), 'tmdisplay' => totranslate('22 items') ],
+            23 => [ 'name' => totranslate('23 items'), 'tmdisplay' => totranslate('23 items') ],
+            24 => [ 'name' => totranslate('24 items'), 'tmdisplay' => totranslate('24 items') ],
+            25 => [ 'name' => totranslate('25 items'), 'tmdisplay' => totranslate('25 items') ],
+            26 => [ 'name' => totranslate('26 items'), 'tmdisplay' => totranslate('26 items') ],
+            27 => [ 'name' => totranslate('27 items'), 'tmdisplay' => totranslate('27 items') ],
+            28 => [ 'name' => totranslate('28 items'), 'tmdisplay' => totranslate('28 items') ],
+            29 => [ 'name' => totranslate('29 items'), 'tmdisplay' => totranslate('29 items') ],
+            30 => [ 'name' => totranslate('30 items'), 'tmdisplay' => totranslate('30 items') ]
         ],
         'startcondition' => [
             15 => [
@@ -283,6 +295,134 @@ $game_options = [
                     'value' => 4,
                     'message' => totranslate('There are too many items for the selected grid size')
                 ]
+            ],
+            21 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 120,
+                    'value' => 4,
+                    'message' => totranslate('There are too many items for the selected grid size')
+                ],
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 120,
+                    'value' => 5,
+                    'message' => totranslate('There are too many items for the selected grid size')
+                ]
+            ],
+            22 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 120,
+                    'value' => 4,
+                    'message' => totranslate('There are too many items for the selected grid size')
+                ],
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 120,
+                    'value' => 5,
+                    'message' => totranslate('There are too many items for the selected grid size')
+                ]
+            ],
+            23 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 120,
+                    'value' => 4,
+                    'message' => totranslate('There are too many items for the selected grid size')
+                ]
+            ],
+            24 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 120,
+                    'value' => 4,
+                    'message' => totranslate('There are too many items for the selected grid size')
+                ],
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 120,
+                    'value' => 5,
+                    'message' => totranslate('There are too many items for the selected grid size')
+                ]
+            ],
+            25 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 120,
+                    'value' => 4,
+                    'message' => totranslate('There are too many items for the selected grid size')
+                ]
+            ],
+            26 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 120,
+                    'value' => 4,
+                    'message' => totranslate('There are too many items for the selected grid size')
+                ],
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 120,
+                    'value' => 5,
+                    'message' => totranslate('There are too many items for the selected grid size')
+                ]
+            ],
+            27 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 120,
+                    'value' => 4,
+                    'message' => totranslate('There are too many items for the selected grid size')
+                ],
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 120,
+                    'value' => 5,
+                    'message' => totranslate('There are too many items for the selected grid size')
+                ]
+            ],
+            28 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 120,
+                    'value' => 4,
+                    'message' => totranslate('There are too many items for the selected grid size')
+                ],
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 120,
+                    'value' => 5,
+                    'message' => totranslate('There are too many items for the selected grid size')
+                ]
+            ],
+            29 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 120,
+                    'value' => 4,
+                    'message' => totranslate('There are too many items for the selected grid size')
+                ],
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 120,
+                    'value' => 5,
+                    'message' => totranslate('There are too many items for the selected grid size')
+                ]
+            ],
+            30 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 120,
+                    'value' => 4,
+                    'message' => totranslate('There are too many items for the selected grid size')
+                ],
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 120,
+                    'value' => 5,
+                    'message' => totranslate('There are too many items for the selected grid size')
+                ]
             ]
         ],
         'default' => 10
@@ -308,8 +448,8 @@ $game_options = [
         'values' => [
             0 => [ 'name' => totranslate('No') ],
             1 => [ 'name' => totranslate('Squares') ],
-            2 => [ 'name' => totranslate('Rectangles') ],
-            3 => [ 'name' => totranslate('Squares and rectangles') ],
+            2 => [ 'name' => totranslate('Triangles') ],
+            3 => [ 'name' => totranslate('Squares and triangles') ],
         ],
         'default' => 1
     ],

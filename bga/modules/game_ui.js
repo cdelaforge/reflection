@@ -793,7 +793,9 @@ const gameUI = {
         ok = false;
       } else if (grid.length === 4 && items.length > 14) {
         ok = false;
-      } else if (items.length > 20 || items.length < 3) {
+      } else if (grid.length === 5 && items.length > 20) {
+        ok = false;
+      } else if (items.length > 30 || items.length < 3) {
         ok = false;
       }
     }

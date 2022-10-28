@@ -2033,7 +2033,7 @@ class LaserReflection extends Table {
                 for ($col=0; $col<$grid_size; $col++) {
                     $val = $grid[$row][$col];
 
-                    if ($val > 0 && $val < 7) {
+                    if ($val > 0 && $val != 7) {
                         $grid[$row][$col] = 0;
                         $puzzle = $this->getGridPuzzle($grid);
                         $grid[$row][$col] = $val;
