@@ -42,7 +42,6 @@ $game_options = [
                 'value' => 1,
             ],
         ],
-
     ],
     103 => [
         'name' => totranslate('Multiplayer mode'),
@@ -213,7 +212,19 @@ $game_options = [
             11 => [ 'name' => totranslate('11×11'), 'tmdisplay' => totranslate('Grid 11×11') ],
             12 => [ 'name' => totranslate('12×12'), 'tmdisplay' => totranslate('Grid 12×12') ],
         ],
-        'default' => 8
+        'default' => 8,
+        'displayconditionoperand' => 'or',
+        'displaycondition' => [
+            [
+                'type' => 'otheroptionisnot',
+                'id' => 100,
+                'value' => 101,
+            ],
+            [
+                'type' => 'minplayers',
+                'value' => [2, 3, 4, 5, 6]
+            ],
+        ]
     ],
     121 => [
         'name' => totranslate('Items'),
@@ -425,7 +436,19 @@ $game_options = [
                 ]
             ]
         ],
-        'default' => 10
+        'default' => 10,
+        'displayconditionoperand' => 'or',
+        'displaycondition' => [
+            [
+                'type' => 'otheroptionisnot',
+                'id' => 100,
+                'value' => 101,
+            ],
+            [
+                'type' => 'minplayers',
+                'value' => [2, 3, 4, 5, 6]
+            ],
+        ]
     ],
     122 => [
         'name' => totranslate('Black holes'),
@@ -433,7 +456,19 @@ $game_options = [
             1 => [ 'name' => totranslate('Yes'), 'tmdisplay' => totranslate('Black holes') ],
             2 => [ 'name' => totranslate('No') ]
         ],
-        'default' => 1
+        'default' => 1,
+        'displayconditionoperand' => 'or',
+        'displaycondition' => [
+            [
+                'type' => 'otheroptionisnot',
+                'id' => 100,
+                'value' => 101,
+            ],
+            [
+                'type' => 'minplayers',
+                'value' => [2, 3, 4, 5, 6]
+            ],
+        ]
     ],
     123 => [
         'name' => totranslate('Light warps'),
@@ -441,7 +476,19 @@ $game_options = [
             1 => [ 'name' => totranslate('Yes'), 'tmdisplay' => totranslate('Light warps') ],
             2 => [ 'name' => totranslate('No') ]
         ],
-        'default' => 2
+        'default' => 2,
+        'displayconditionoperand' => 'or',
+        'displaycondition' => [
+            [
+                'type' => 'otheroptionisnot',
+                'id' => 100,
+                'value' => 101,
+            ],
+            [
+                'type' => 'minplayers',
+                'value' => [2, 3, 4, 5, 6]
+            ],
+        ]
     ],
     124 => [
         'name' => totranslate('Special shapes'),
@@ -451,7 +498,19 @@ $game_options = [
             2 => [ 'name' => totranslate('Triangles') ],
             3 => [ 'name' => totranslate('Squares and triangles') ],
         ],
-        'default' => 1
+        'default' => 1,
+        'displayconditionoperand' => 'or',
+        'displaycondition' => [
+            [
+                'type' => 'otheroptionisnot',
+                'id' => 100,
+                'value' => 101,
+            ],
+            [
+                'type' => 'minplayers',
+                'value' => [2, 3, 4, 5, 6]
+            ],
+        ]
     ],
     191 => [
         'name' => totranslate("Allow solutions that don't use all the items"),

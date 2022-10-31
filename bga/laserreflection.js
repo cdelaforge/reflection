@@ -260,7 +260,9 @@ define([
                         if (this.isSpectator) {
                             gameUI.puzzleUsers = {};
                             Object.keys(publicData).map((id) => {
-                                gameUI.puzzleUsers[id] = parseInt(publicData[id].id, 10);
+                                if (publicData[id] && publicData[id].id) {
+                                    gameUI.puzzleUsers[id] = parseInt(publicData[id].id, 10);
+                                }
                             });
                             gameUI.refreshPuzzle();
 
@@ -272,7 +274,6 @@ define([
                             const isPlaying = args.private_state && args.private_state.id === "51";
 
                             gameUI.round = parseInt(privateData.round, 10);
-
 
                             if (savedGrid) {
                                 gameUI.setGrid(savedGrid);

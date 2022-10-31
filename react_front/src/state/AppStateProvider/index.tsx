@@ -85,10 +85,13 @@ const initGrid = (squaresCount: number, portals?: number[]) => {
   const line = new Array<number>(squaresCount).fill(0);
   const grid = iterator.map((_) => [...line]);
 
-  if (portals && portals.length === 4) {
-    grid[portals[0]][portals[1]] = 7;
-    grid[portals[2]][portals[3]] = 7;
+  try {
+    if (portals && portals.length === 4) {
+      grid[portals[0]][portals[1]] = 7;
+      grid[portals[2]][portals[3]] = 7;
+    }
   }
+  catch (error) { }
 
   return grid;
 };

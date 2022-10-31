@@ -511,6 +511,16 @@ const gameUI = {
     this.placedElements = cpt;
   },
 
+  _checkPortals: function (portals) {
+    if (!portals || portals.length !== 4) {
+      return undefined;
+    }
+    if (portals[0] < 0 || portals[1] < 0 || portals[2] < 0 || portals[3] < 0) {
+      return undefined;
+    }
+    return portals;
+  },
+
   setup: function (options) {
     if (!this.initialized) {
       setTimeout(function () { gameUI.setup(); }, 100);
@@ -527,7 +537,7 @@ const gameUI = {
       gridSize: this.gridSize,
       grid: this.grid,
       puzzle: this.puzzle,
-      portals: this.portals,
+      portals: this._checkPortals(this.portals),
       transformations: this.transfo || 0
     }
 
