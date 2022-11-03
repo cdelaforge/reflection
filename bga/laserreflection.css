@@ -1,8 +1,3 @@
-@font-face {
-    font-family: 'DS-Digital';
-    src: url('https://fonts.cdnfonts.com/s/15049/DS-DIGI.woff') format('woff');
-}
-
 /* main */
 
 #lrf_main {
@@ -386,43 +381,5 @@
 }
 
 .space .lrf_title {
-    color: #222222 !important;
-}
-
-/* bubbles background */
-
-.bubbles .whiteblock {
-    background: white;
-    opacity: 0.9;
-}
-
-.bubbles #overall-content {
-    background: url(img/bubbles.jpg);
-}
-
-.bubbles #root {
-    opacity: 0.97;
-}
-
-.bubbles .lrf_title {
-    color: #222222 !important;
-}
-
-/* gears background */
-
-.gears .whiteblock {
-    background: white;
-    opacity: 0.85;
-}
-
-.gears #overall-content {
-    background: url(img/gears.jpg);
-}
-
-.gears #root {
-    opacity: 0.97;
-}
-
-.gears .lrf_title {
     color: #222222 !important;
 }

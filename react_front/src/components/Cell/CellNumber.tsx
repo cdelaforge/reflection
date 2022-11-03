@@ -1,6 +1,7 @@
 import { useAppState } from "../../state/AppStateProvider";
 import { CellNumberBack } from "./Cell.Styles";
 import { colors } from "../../helpers/Style";
+import NumberIcon from "../../icons/NumberIcon";
 
 enum ReflectionType { "r", "s", "a" };
 
@@ -33,7 +34,9 @@ function CellNumber({ valStr, isCorrect }: CellNumberProps) {
   const val = parseInt(valStr, 10) || 0;
   const backColor = backColors.get(type) || "green";
 
-  return <CellNumberBack size={cellSize - 2} backColor={backColor} isCorrect={isCorrect}>{val}</CellNumberBack>
+  return <CellNumberBack size={cellSize - 2} backColor={backColor} isCorrect={isCorrect}>
+    <NumberIcon size={cellSize - 2} val={val} />
+  </CellNumberBack>
 }
 
 export default CellNumber;

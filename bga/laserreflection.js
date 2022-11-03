@@ -63,16 +63,10 @@ define([
                 if (prefId === "100") {
                     window.game.setSmart(prefValue === "1");
                 } else if (prefId === "110") {
-                    document.body.parentNode.classList.remove('space');
-                    document.body.parentNode.classList.remove('bubbles');
-                    document.body.parentNode.classList.remove('gears');
-
                     if (prefValue === "10") {
                         document.body.parentNode.classList.add('space');
-                    } else if (prefValue === "20") {
-                        document.body.parentNode.classList.add('bubbles');
-                    } else if (prefValue === "30") {
-                        document.body.parentNode.classList.add('gears');
+                    } else {
+                        document.body.parentNode.classList.remove('space');
                     }
                 }
             },

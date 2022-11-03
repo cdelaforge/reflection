@@ -7,8 +7,3 @@ body {
   -ms-user-select: none;
   user-select: none;
 }
-
-@font-face {
-  font-family: 'DS-Digital';
-  src: url('https://fonts.cdnfonts.com/s/15049/DS-DIGI.woff') format('woff');
-}

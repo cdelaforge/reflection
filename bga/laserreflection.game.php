@@ -110,7 +110,7 @@ class LaserReflection extends Table {
         $multi_mode = $this->getGameStateValue('multi_mode');
         $solo_mode = $this->getGameStateValue('solo_mode');
         $compete_same = $this->getGameStateValue('compete_same');
-        $items = $this->getRandomItems($black_hole, $special_shapes, $items_count);
+        $items = ($solo_mode == 101 && $count_players == 1) ? [] : $this->getRandomItems($black_hole, $special_shapes, $items_count);
         $jsonItems = json_encode($items);
 
         $this->setGameDbValue('elements', $jsonItems);
@@ -159,7 +159,7 @@ class LaserReflection extends Table {
             $this->getPortalsPositions();
         }
 
-        if (($count_players == 1 && $solo_mode < 100) || $multi_mode == 10) {
+        if (($count_players == 1 && $solo_mode < 100) || ($multi_mode == 10 && count_players > 1)) {
             $puzzle = $this->getRandomGridAndPuzzle($items);
             $this->setGameDbValue('grid', $puzzle['grid']);
             $this->setGameDbValue('puzzle', $puzzle['puzzle']);

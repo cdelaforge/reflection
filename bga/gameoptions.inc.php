@@ -161,11 +161,13 @@ $game_options = [
                 'name' => totranslate('2 minutes'),
                 'description' => totranslate('After this time, the player will be forced to give up'),
                 'tmdisplay' => totranslate('2 minutes max. per round'),
+                'nobeginner' => true
             ],
             5 => [
                 'name' => totranslate('5 minutes'),
                 'description' => totranslate('After this time, the player will be forced to give up'),
                 'tmdisplay' => totranslate('5 minutes max. per round'),
+                'nobeginner' => true
             ],
             10 => [
                 'name' => totranslate('10 minutes'),
@@ -239,24 +241,24 @@ $game_options = [
             10 => [ 'name' => totranslate('10 items'), 'tmdisplay' => totranslate('10 items') ],
             11 => [ 'name' => totranslate('11 items'), 'tmdisplay' => totranslate('11 items') ],
             12 => [ 'name' => totranslate('12 items'), 'tmdisplay' => totranslate('12 items') ],
-            13 => [ 'name' => totranslate('13 items'), 'tmdisplay' => totranslate('13 items') ],
-            14 => [ 'name' => totranslate('14 items'), 'tmdisplay' => totranslate('14 items') ],
-            15 => [ 'name' => totranslate('15 items'), 'tmdisplay' => totranslate('15 items') ],
-            16 => [ 'name' => totranslate('16 items'), 'tmdisplay' => totranslate('16 items') ],
-            17 => [ 'name' => totranslate('17 items'), 'tmdisplay' => totranslate('17 items') ],
-            18 => [ 'name' => totranslate('18 items'), 'tmdisplay' => totranslate('18 items') ],
-            19 => [ 'name' => totranslate('19 items'), 'tmdisplay' => totranslate('19 items') ],
-            20 => [ 'name' => totranslate('20 items'), 'tmdisplay' => totranslate('20 items') ],
-            21 => [ 'name' => totranslate('21 items'), 'tmdisplay' => totranslate('21 items') ],
-            22 => [ 'name' => totranslate('22 items'), 'tmdisplay' => totranslate('22 items') ],
-            23 => [ 'name' => totranslate('23 items'), 'tmdisplay' => totranslate('23 items') ],
-            24 => [ 'name' => totranslate('24 items'), 'tmdisplay' => totranslate('24 items') ],
-            25 => [ 'name' => totranslate('25 items'), 'tmdisplay' => totranslate('25 items') ],
-            26 => [ 'name' => totranslate('26 items'), 'tmdisplay' => totranslate('26 items') ],
-            27 => [ 'name' => totranslate('27 items'), 'tmdisplay' => totranslate('27 items') ],
-            28 => [ 'name' => totranslate('28 items'), 'tmdisplay' => totranslate('28 items') ],
-            29 => [ 'name' => totranslate('29 items'), 'tmdisplay' => totranslate('29 items') ],
-            30 => [ 'name' => totranslate('30 items'), 'tmdisplay' => totranslate('30 items') ]
+            13 => [ 'name' => totranslate('13 items'), 'tmdisplay' => totranslate('13 items'), 'nobeginner' => true ],
+            14 => [ 'name' => totranslate('14 items'), 'tmdisplay' => totranslate('14 items'), 'nobeginner' => true ],
+            15 => [ 'name' => totranslate('15 items'), 'tmdisplay' => totranslate('15 items'), 'nobeginner' => true ],
+            16 => [ 'name' => totranslate('16 items'), 'tmdisplay' => totranslate('16 items'), 'nobeginner' => true ],
+            17 => [ 'name' => totranslate('17 items'), 'tmdisplay' => totranslate('17 items'), 'nobeginner' => true ],
+            18 => [ 'name' => totranslate('18 items'), 'tmdisplay' => totranslate('18 items'), 'nobeginner' => true ],
+            19 => [ 'name' => totranslate('19 items'), 'tmdisplay' => totranslate('19 items'), 'nobeginner' => true ],
+            20 => [ 'name' => totranslate('20 items'), 'tmdisplay' => totranslate('20 items'), 'nobeginner' => true ],
+            21 => [ 'name' => totranslate('21 items'), 'tmdisplay' => totranslate('21 items'), 'nobeginner' => true ],
+            22 => [ 'name' => totranslate('22 items'), 'tmdisplay' => totranslate('22 items'), 'nobeginner' => true ],
+            23 => [ 'name' => totranslate('23 items'), 'tmdisplay' => totranslate('23 items'), 'nobeginner' => true ],
+            24 => [ 'name' => totranslate('24 items'), 'tmdisplay' => totranslate('24 items'), 'nobeginner' => true ],
+            25 => [ 'name' => totranslate('25 items'), 'tmdisplay' => totranslate('25 items'), 'nobeginner' => true ],
+            26 => [ 'name' => totranslate('26 items'), 'tmdisplay' => totranslate('26 items'), 'nobeginner' => true ],
+            27 => [ 'name' => totranslate('27 items'), 'tmdisplay' => totranslate('27 items'), 'nobeginner' => true ],
+            28 => [ 'name' => totranslate('28 items'), 'tmdisplay' => totranslate('28 items'), 'nobeginner' => true ],
+            29 => [ 'name' => totranslate('29 items'), 'tmdisplay' => totranslate('29 items'), 'nobeginner' => true ],
+            30 => [ 'name' => totranslate('30 items'), 'tmdisplay' => totranslate('30 items'), 'nobeginner' => true ]
         ],
         'startcondition' => [
             15 => [
@@ -473,7 +475,7 @@ $game_options = [
     123 => [
         'name' => totranslate('Light warps'),
         'values' => [
-            1 => [ 'name' => totranslate('Yes'), 'tmdisplay' => totranslate('Light warps') ],
+            1 => [ 'name' => totranslate('Yes'), 'tmdisplay' => totranslate('Light warps'), 'nobeginner' => true ],
             2 => [ 'name' => totranslate('No') ]
         ],
         'default' => 2,
@@ -495,8 +497,8 @@ $game_options = [
         'values' => [
             0 => [ 'name' => totranslate('No') ],
             1 => [ 'name' => totranslate('Squares') ],
-            2 => [ 'name' => totranslate('Triangles') ],
-            3 => [ 'name' => totranslate('Squares and triangles') ],
+            2 => [ 'name' => totranslate('Triangles'), 'nobeginner' => true ],
+            3 => [ 'name' => totranslate('Squares and triangles'), 'nobeginner' => true ],
         ],
         'default' => 1,
         'displayconditionoperand' => 'or',
@@ -537,9 +539,7 @@ $game_preferences = [
         'needReload' => false,
         'values' => [
             0 => [ 'name' => 'BoardGameArena' ],
-            10 => [ 'name' => 'Space', 'cssPref' => 'space' ],
-            20 => [ 'name' => 'Bubbles', 'cssPref' => 'bubbles' ],
-            30 => [ 'name' => 'Gears', 'cssPref' => 'gears' ],
+            10 => [ 'name' => 'Space', 'cssPref' => 'space' ]
         ],
         'default' => 10
     ),

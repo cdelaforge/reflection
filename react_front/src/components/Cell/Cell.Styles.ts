@@ -41,16 +41,10 @@ export const CellBackground = styled('div') <{ type: "side" | "grid" | "corner" 
 `;
 
 export const CellNumberBack = styled('div') <{ size: number, backColor: string, isCorrect: boolean }>`
-  font-family:DS-Digital;
-  font-size: ${(props) => `${props.size * 0.8}px`};
-  font-weight: bold;
-  color: black;
   box-sizing: border-box;
   background: ${(props) => `${props.backColor}`};
-  text-align: center;
   width:  ${(props) => `${props.size}px`};
   height:  ${(props) => `${props.size}px`};
-  line-height: ${(props) => `${props.size}px`};
   border-radius: ${(props) => props.isCorrect ? "0px" : `${props.size / 2}px`};
 `;
 

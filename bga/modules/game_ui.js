@@ -780,37 +780,45 @@ const gameUI = {
   },
 
   _isSeedValid: function (seedCode) {
-    const grid = window.game.getGrid(seedCode);
     let ok = true;
     const items = [];
     const portals = [];
+    let grid;
 
-    if (grid.length < 4) {
-      ok = false;
-    } else {
-      grid.forEach((row, rowIndex) => row.forEach((v, colIndex) => {
-        if (v < 0) {
+    try {
+      grid = window.game.getGrid(seedCode);
+
+      if (grid.length < 4) {
+        ok = false;
+      } else {
+        grid.forEach((row, rowIndex) => row.forEach((v, colIndex) => {
+          if (v < 0) {
+            ok = false;
+          } else if (v === 7) {
+            portals.push(rowIndex);
+            portals.push(colIndex);
+          } else if (v > 0) {
+            items.push(v);
+          }
+        }));
+
+        if (portals.length !== 0 && portals.length !== 4) {
           ok = false;
-        } else if (v === 7) {
-          portals.push(rowIndex);
-          portals.push(colIndex);
-        } else if (v > 0) {
-          items.push(v);
+        } else if (grid.length === 4 && items.length > 14) {
+          ok = false;
+        } else if (grid.length === 5 && items.length > 20) {
+          ok = false;
+        } else if (items.length > 30 || items.length < 3) {
+          ok = false;
         }
-      }));
-
-      if (portals.length !== 0 && portals.length !== 4) {
-        ok = false;
-      } else if (grid.length === 4 && items.length > 14) {
-        ok = false;
-      } else if (grid.length === 5 && items.length > 20) {
-        ok = false;
-      } else if (items.length > 30 || items.length < 3) {
-        ok = false;
       }
     }
+    catch (error) {
+      console.warn("Invalid seed code", seedCode);
+      ok = false;
+    }
 
-    return ok ? [grid, items, portals] : undefined;
+    return ok ? [grid, items, portals] : [undefined, undefined, undefined];
   },
 
   seedValidate: function (seedCode) {
