@@ -125,6 +125,7 @@
 
 .lrf_end_line>div>input {
     height: 24px;
+    margin-left: 1px !important;
 }
 
 .lrf_end_line>div>sup,
@@ -382,4 +383,12 @@
 
 .space .lrf_title {
     color: #222222 !important;
+}
+
+@media (pointer: coarse) {
+
+    /* mobile device */
+    .space #root {
+        opacity: 1;
+    }
 }

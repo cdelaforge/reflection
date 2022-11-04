@@ -843,6 +843,8 @@ const gameUI = {
   displayRoundPuzzle: function (round) {
     console.info("## Display puzzle of round " + round + " ##");
 
+    dojo.style("lrf_spectator", "display", "none");
+
     Object.keys(this.players).forEach(id => {
       const divId = 'lrf_end_' + id;
       document.getElementById(divId).innerHTML = '?';

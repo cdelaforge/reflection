@@ -159,7 +159,7 @@ class LaserReflection extends Table {
             $this->getPortalsPositions();
         }
 
-        if (($count_players == 1 && $solo_mode < 100) || ($multi_mode == 10 && count_players > 1)) {
+        if (($count_players == 1 && $solo_mode < 100) || ($multi_mode == 10 && $count_players > 1)) {
             $puzzle = $this->getRandomGridAndPuzzle($items);
             $this->setGameDbValue('grid', $puzzle['grid']);
             $this->setGameDbValue('puzzle', $puzzle['puzzle']);
