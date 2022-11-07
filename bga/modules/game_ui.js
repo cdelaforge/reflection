@@ -939,7 +939,7 @@ const gameUI = {
           const playerNum = +d.pdk.substring(key.length);
           const player = Object.keys(this.players).map((id) => this.players[id]).find(p => p.num === playerNum);
           const divId = 'lrf_end_' + player.id;
-          const durationStr = d.duration === GIVEUP_DURATION_STR ? _('Give up') : this.getDurationStr(+d.duration);
+          const durationStr = d.duration === GIVEUP_DURATION_STR ? _('Fail') : this.getDurationStr(+d.duration);
 
           document.getElementById(divId).innerHTML = durationStr;
         });
