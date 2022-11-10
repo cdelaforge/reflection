@@ -34,7 +34,13 @@ function SmartStockCell({ indexList, val }: SmartStockCellProps) {
 
   if (indexList.length) {
     return (
-      <CellBackground type="stock" size={cellSize} selected={indexList.some(i => stockIndex === i)} onClick={clickCell}>
+      <CellBackground
+        type="stock"
+        size={cellSize}
+        selected={indexList.some(i => stockIndex === i)}
+        onClick={clickCell}
+        id={`lrf_stock_${val}`}
+      >
         <CellIcon val={val} stockIndex={indexList[0]} />
         <Counter size={cellSize / 4} displayMode={displayMode}>{indexList.length}</Counter>
       </CellBackground>

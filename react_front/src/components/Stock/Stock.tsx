@@ -18,12 +18,15 @@ function Stock() {
   const cells = iterator.map((_, i) => {
     const index = data[i] ? data[i].index : i;
     const val = data[i] ? data[i].displayedVal : 0;
+    const prevVal = data[i - 1] ? data[i - 1].displayedVal : -1;
+    const id = (val > 0 && val !== prevVal) ? `lrf_stock_${val}` : undefined;
 
     return (
       <StockCell
         index={index}
         key={`stock_${index}`}
         val={val}
+        id={id}
       />
     )
   });
@@ -34,7 +37,7 @@ function Stock() {
     setTimeout(() => setStockIndex(data[0].index), 1);
   }
 
-  return <StockArea width={width} height={height} margin={10}>{cells}</StockArea>;
+  return <StockArea width={width} height={height} margin={10} id="lrf_stock">{cells}</StockArea>;
 }
 
 export default Stock;

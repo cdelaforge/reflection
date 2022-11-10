@@ -40,7 +40,7 @@ function Grid({ transformation, reverseTransformation }: GridProps) {
   };
 
   return (
-    <GridArea width={gridSize} margin={10}>
+    <GridArea width={gridSize} margin={10} id="lrf_grid">
       <TransformContainer transform={transformation}>
         {getHeader("top")}
         {iterator.map((_, row) => getLine(row))}

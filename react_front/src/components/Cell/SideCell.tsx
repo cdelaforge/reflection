@@ -42,7 +42,13 @@ function SideCell({ position, index, transform }: SideCellProps) {
   const selected = displayLaserPosition === posIndex && displayLaserIndex === index;
 
   return (
-    <CellBackground type="side" size={cellSize} selected={selected} onClick={() => displayLaser(posIndex, index)}>
+    <CellBackground
+      type="side"
+      size={cellSize}
+      selected={selected}
+      onClick={() => displayLaser(posIndex, index)}
+      id={`lrf_sidecell_${position}_${index}`}
+    >
       <TransformContainer transform={transform}>
         <CellNumber valStr={selected && mode !== "solution" ? valCurrent : valSolution} isCorrect={isCellCorrect} />
       </TransformContainer>

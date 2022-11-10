@@ -74,7 +74,7 @@ function SmartStock() {
     setTimeout(() => setStockIndex(data[0].index), 1);
   }
 
-  return <StockArea width={width} height={height} margin={10} padding={0}>{cells}</StockArea>;
+  return <StockArea width={width} height={height} margin={10} padding={0} id="lrf_stock">{cells}</StockArea>;
 }
 
 export default SmartStock;

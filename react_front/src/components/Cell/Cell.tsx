@@ -145,7 +145,7 @@ function Cell({ row, col, transform }: CellProps) {
   const solutionVal = getSolutionVal();
 
   return (
-    <CellContainer size={cellSize} onContextMenu={rightClick} onClick={clickCell} ref={drop}>
+    <CellContainer size={cellSize} onContextMenu={rightClick} onClick={clickCell} ref={drop} id={`lrf_cell_${row}_${col}`}>
       <CellContainerChild>
         <CellBackground type={lock[row][col] ? "locked" : "grid"} size={cellSize} />
       </CellContainerChild>
