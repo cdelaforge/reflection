@@ -385,6 +385,14 @@
     color: #222222 !important;
 }
 
+.tutorial #gameaction_status_wrap {
+    display: none !important;
+}
+
+.tutorial #pagemaintitle_wrap {
+    display: block !important;
+}
+
 @media (pointer: coarse) {
 
     /* mobile device */

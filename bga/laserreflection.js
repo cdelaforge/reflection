@@ -165,6 +165,11 @@ define([
                     gameUI.step = "puzzleCreation";
                     gameUI.shouldRefreshProgression = true;
 
+                    gameUI.isTutorial = !!(window.g_tutorialwritten && window.g_tutorialwritten.autor);
+                    if (gameUI.isTutorial) {
+                        document.body.parentNode.classList.add('tutorial');
+                    }
+
                     // Setting up player boards
                     if (this.isSpectator) {
                         gameUI.spyBoard(document.getElementById("playerSelect").value);
