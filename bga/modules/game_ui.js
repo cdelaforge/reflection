@@ -417,7 +417,7 @@ const gameUI = {
     if (this.shouldSendProgression && (this.liveLoop === 0 || this.progression === 100 || this.teamData.length)) {
       this.shouldSendProgression = false;
 
-      if (this.running && (!g_archive_mode || this.isTutorial) && (this.mode === "puzzleCreation" || this.mode === "play")) {
+      if (this.running && !g_archive_mode && (this.mode === "puzzleCreation" || this.mode === "play")) {
         const data = {
           grid: JSON.stringify(this.grid),
           progression: this.progression || 0,
@@ -555,7 +555,7 @@ const gameUI = {
 
     dojo.style("root", "visibility", "visible");
 
-    if (!this.running || (g_archive_mode && !this.isTutorial)) {
+    if (!this.running || g_archive_mode) {
       window.game.setRunning(false);
     }
   },
