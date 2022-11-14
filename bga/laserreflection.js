@@ -165,7 +165,7 @@ define([
                     gameUI.step = "puzzleCreation";
                     gameUI.shouldRefreshProgression = true;
 
-                    gameUI.isTutorial = !!(window.g_tutorialwritten && window.g_tutorialwritten.autor);
+                    gameUI.isTutorial = !!(window.g_tutorialwritten && window.g_tutorialwritten.author);
                     if (gameUI.isTutorial) {
                         document.body.parentNode.classList.add('tutorial');
                     }
