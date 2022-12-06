@@ -509,8 +509,6 @@ define([
                         } else {
                             gameUI.giveUpPropose = true;
                         }
-                    } else if (gameUI.playersCount === 1) {
-                        gameUI.giveUp = true;
                     } else {
                         this.confirmationDialog(_('Are you sure to give up? You will have a score penalty'), () => {
                             gameUI.giveUp = true;

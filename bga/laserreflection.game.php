@@ -1592,6 +1592,10 @@ class LaserReflection extends Table {
         return !$this->isModeSolo() && $this->getGameStateValue('multi_mode') == 10;
     }
 
+    function isModeMultiPuzzleByPlayers() {
+        return !$this->isModeSolo() && $this->getGameStateValue('multi_mode') != 10;
+    }
+
     function isModeRandom() {
         return $this->isModeSolo() || $this->getGameStateValue('multi_mode') == 10;
     }
@@ -2022,7 +2026,7 @@ class LaserReflection extends Table {
         $jsonPuzzle = null;
         $try = 0;
 
-        while ($searching && $try < 20) {
+        while ($searching && $try < 10) {
             $grid = $this->getRandomGrid($items);
             $grid_size = count($grid);
             $puzzle = $this->getGridPuzzle($grid);
@@ -2555,45 +2559,51 @@ class LaserReflection extends Table {
     */
 
     function zombieTurn($state, $active_player) {
-    	$statename = $state['name'];
+        try {
+            $statename = $state['name'];
 
-        if ($this->isModeMultiRandom()) {
-            // create puzzles for all zombie players that don't have any :
-            $sql = "SELECT player_id id FROM player WHERE player_zombie=1 AND player_puzzle is null";
-            $players = self::getObjectListFromDB($sql);
-            $cpt = count($players);
+            if ($this->isModeMultiPuzzleByPlayers()) {
+                // create puzzles for all zombie players that don't have any :
+                $sql = "SELECT player_id id FROM player WHERE player_zombie=1 AND player_puzzle is null";
+                $players = self::getObjectListFromDB($sql);
+                $cpt = count($players);
 
-            if ($cpt > 0) {
-                $items = json_decode($this->getGameDbValue('elements'));
+                if ($cpt > 0) {
+                    $items = json_decode($this->getGameDbValue('elements'));
 
-                foreach ($players as $player_id => $player) {
-                    $playerId = $player['id'];
+                    foreach ($players as $player_id => $player) {
+                        $playerId = $player['id'];
 
-                    $puzzle = $this->getRandomGridAndPuzzle($items);
-                    $jsonPuzzleGrid = $puzzle['grid'];
-                    $jsonPuzzle = $puzzle['puzzle'];
+                        $puzzle = $this->getRandomGridAndPuzzle($items);
+                        $jsonPuzzleGrid = $puzzle['grid'];
+                        $jsonPuzzle = $puzzle['puzzle'];
 
-                    $sql = "UPDATE player SET player_puzzle_grid='$jsonPuzzleGrid', player_puzzle='$jsonPuzzle' WHERE player_id=$playerId";
-                    self::DbQuery($sql);
+                        $sql = "UPDATE player SET player_puzzle_grid='$jsonPuzzleGrid', player_puzzle='$jsonPuzzle' WHERE player_id=$playerId";
+                        self::DbQuery($sql);
 
-                    self::notifyAllPlayers("puzzleChange", "", [
-                        'player_id' => $playerId,
-                        'player_puzzle' => $jsonPuzzle,
-                        'default' => true
-                    ]);
+                        self::notifyAllPlayers("puzzleChange", "", [
+                            'player_id' => $playerId,
+                            'player_puzzle' => $jsonPuzzle,
+                            'default' => true
+                        ]);
+                    }
                 }
             }
+
+            $sql = "UPDATE player SET player_start=0, player_round_duration=".GIVEUP_DURATION." WHERE player_zombie=1 AND player_round_duration=0";
+            self::DbQuery($sql);
+
+            if ($state['type'] == "multipleactiveplayer") {
+                $this->gamestate->setPlayerNonMultiactive($active_player, 'next');
+            } else {
+                $this->gamestate->nextState("next");
+            }
+        }
+        catch (Exception $e) {
+            self::notifyAllPlayers("log", $e->getMessage(), []);
         }
 
-        $sql = "UPDATE player SET player_start=0, player_round_duration=".GIVEUP_DURATION." WHERE player_zombie=1 AND player_round_duration=0";
-        self::DbQuery($sql);
-
-        if ($state['type'] === "multipleactiveplayer") {
-            $this->gamestate->setPlayerNonMultiactive($active_player, 'next');
-            return;
-        }
-
-        throw new feException( "Zombie mode not supported at this game state: ".$statename );
+        //throw new feException( "Zombie mode not supported at this game state: ".$statename );
     }
 
 ///////////////////////////////////////////////////////////////////////////////////:

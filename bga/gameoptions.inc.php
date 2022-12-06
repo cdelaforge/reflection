@@ -261,6 +261,46 @@ $game_options = [
             30 => [ 'name' => totranslate('30 items'), 'tmdisplay' => totranslate('30 items'), 'nobeginner' => true ]
         ],
         'startcondition' => [
+            3 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 201,
+                    'value' => 0,
+                    'message' => totranslate('You must use the training mode to play with less than 8 elements')
+                ]
+            ],
+            4 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 201,
+                    'value' => 0,
+                    'message' => totranslate('You must use the training mode to play with less than 8 elements')
+                ]
+            ],
+            5 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 201,
+                    'value' => 0,
+                    'message' => totranslate('You must use the training mode to play with less than 8 elements')
+                ]
+            ],
+            6 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 201,
+                    'value' => 0,
+                    'message' => totranslate('You must use the training mode to play with less than 8 elements')
+                ]
+            ],
+            7 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 201,
+                    'value' => 0,
+                    'message' => totranslate('You must use the training mode to play with less than 8 elements')
+                ]
+            ],
             15 => [
                 [
                     'type' => 'otheroptionisnot',
