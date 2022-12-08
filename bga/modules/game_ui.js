@@ -432,13 +432,13 @@ const gameUI = {
       this.buildProgressionBars();
       this.displayBars();
       this.shouldRefreshProgression = false;
-    } else if (!this.ended && this.realtime) {
+    } else if (!this.ended) {
       const time = Math.round(new Date().getTime() / 1000);
 
       Object.keys(this.players).map((playerId) => {
         const playerData = this.players[playerId];
 
-        if (playerData.startTime || playerData.duration) {
+        if ((playerData.startTime || playerData.duration) && (gameUI.realtime || gameUI.playerId == playerId)) {
           let durationStr = playerData.duration;
           if (!durationStr && !g_archive_mode) {
             durationStr = gameUI.getDurationStr(gameUI.getDuration(playerData.startTime, time));

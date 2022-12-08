@@ -1142,15 +1142,15 @@ class LaserReflection extends Table {
                     if ($puzzlePlayerNum > $cpt) {
                         $puzzlePlayerNum = $puzzlePlayerNum % $cpt;
                     }
-
-                    self::notifyPlayer($currentPlayerId, "log", $player['num']."/".$round."/".$puzzlePlayerNum, []);
-
                     $key = 'pd_'.$puzzlePlayerNum.'_'.$player["num"];
                 }
 
                 try {
                     if (array_key_exists($key, $list)) {
                         $durationStr = $this->getDurationStr(intval($list[$key]['duration']));
+                        if ($durationStr == '-') {
+                            $durationStr = '😕';
+                        }
                     } else {
                         $durationStr = '-';
                     }
@@ -2206,6 +2206,11 @@ class LaserReflection extends Table {
                 continue;
             }
 
+            $tDuration = $this->getDurationStr($teamsDuration[$i]);
+            if ($tDuration == '-') {
+                $tDuration = '😕';
+            }
+
             $firstRow[] = [
                 'str' => '${team_name} ${team_icon}',
                 'args' => [
@@ -2217,7 +2222,7 @@ class LaserReflection extends Table {
             ];
             $secondRow[] = [
                 'str' => '${team_duration}',
-                'args' => ['team_duration' =>  $this->getDurationStr($teamsDuration[$i])]
+                'args' => ['team_duration' => $tDuration]
             ];
             $thirdRow[] = [
                 'str' => '${team_score}',
@@ -2260,6 +2265,11 @@ class LaserReflection extends Table {
         $thirdRow[] = ['str' => clienttranslate("Round score"), 'args' => []];
 
         foreach ($players as $player_id => $player) {
+            $pDuration = $this->getDurationStr($player['duration']);
+            if ($pDuration == '-') {
+                $pDuration = '😕';
+            }
+
             $firstRow[] = [
                 'str' => '${player_name}',
                 'args' => ['player_name' => $player['name']],
@@ -2267,7 +2277,7 @@ class LaserReflection extends Table {
             ];
             $secondRow[] = [
                 'str' => '${player_duration}',
-                'args' => ['player_duration' =>  $this->getDurationStr($player['duration'])]
+                'args' => ['player_duration' => $pDuration]
             ];
             $thirdRow[] = [
                 'str' => '${player_score}',
