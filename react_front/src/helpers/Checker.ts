@@ -14,15 +14,25 @@ export class Checker {
   public checkGrid(grid: number[][], toSolve: string[][]) {
     this._won = true;
 
-    return toSolve.map((cells, position) => {
+    const checkResult = toSolve.map((cells, position) => {
       return cells.map((cellVal, index) => {
         const traveller = new Traveller(grid, position, index, false);
         while (traveller.walk());
         const exitValue = traveller.getExitValue();
-        this._won = this._won && exitValue === cellVal;
+        this._won = this._won && exitValue.text === cellVal;
         return exitValue;
       });
     });
+
+    return checkResult.map(side => side.map(val => {
+      if (val.text.endsWith('s')) {
+        if (val.text === toSolve[val.exitSide][val.exitIndex])
+          return val.text;
+        return val.text.replace('s', 'w');
+      }
+
+      return val.text;
+    }));
   }
 
   public getLaserElements(grid: number[][], position: number, index: number) {
@@ -231,15 +241,17 @@ class Traveller {
   }
 
   public getExitValue() {
-    if (this.exitSide === -1) {
-      return `${this.distance}a`;
+    const result = { exitSide: this.exitSide, exitIndex: this.exitIndex, text: `${this.distance}a` };
+
+    if (this.exitSide >= 0) {
+      if (this.exitSide === this.entrySide && this.exitIndex === this.entryIndex) {
+        result.text = `${this.distance}r`;
+      } else {
+        result.text = `${this.distance}s`;
+      }
     }
 
-    if (this.exitSide === this.entrySide && this.exitIndex === this.entryIndex) {
-      return `${this.distance}r`;
-    }
-
-    return `${this.distance}s`;
+    return result;
   }
 
   searchPortal() {

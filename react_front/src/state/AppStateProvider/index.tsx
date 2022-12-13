@@ -136,18 +136,18 @@ const initPuzzle = (squaresCount: number, mode?: string, elements?: number[], po
 
 const initialData: IStateContext = {
   mode: 'play',
-  squaresCount: 4,
+  squaresCount: 8,
   elementsCount: 15,
   smart: true,
   elements: [],
-  stock: [1, 1, 2, 2, 2, 2, 3, 4, 4, 5, 6, 7, 7, 8, 9],
+  stock: [1, 1, 2, 2, 2, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7],
   grid: initGrid(8),
   lock: initLock(8),
   toSolve: [
-    ["3a", "7r", "2a", "9s"],
-    ["1r", "11s", "3s", "8s"],
-    ["6a", "9r", "7a", "3r"],
-    ["15r", "3a", "1a", "8s"],
+    ["3a", "7r", "2a", "9s", "5s", "11s", "23r", "3s"],
+    ["1r", "11s", "3s", "8s", "8s", "5a", "3r", "1r"],
+    ["6a", "9r", "7a", "3r", "3r", "18a", "5s", "1r"],
+    ["15r", "3a", "1a", "8s", "8s", "9s", "7r", "15r"],
   ],
   result: [[]],
   setStockIndex: () => { },
@@ -158,7 +158,7 @@ const initialData: IStateContext = {
   displayLaser: () => { },
   running: true,
   won: false,
-  transformations: 20,
+  transformations: 0,
   ...getGridDimensions(10),
 };
 
