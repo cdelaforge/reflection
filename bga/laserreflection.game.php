@@ -410,6 +410,27 @@ class LaserReflection extends Table {
         return $result;
     }
 
+    function argPlayPuzzleInitPrivate() {
+        if ($this->isModeRandom()) {
+            return ['player_name' => "Robby 🤖"];
+        }
+
+        if ($this->isModeResting()) {
+            $restingPlayerId = $this->getRestingPlayerId();
+            return ['player_name' => self::getPlayerNameById($restingPlayerId)];
+        }
+
+        $round = $this->getRound();
+        $playerId = $this->getCurrentPlayerId();
+        $playerNo = $this->getPlayerNoById($playerId);
+        $otherPlayerNo = ($playerNo + $round - 1) % $this->getPlayersNumber() + 1;
+
+        $sql = "SELECT player_name FROM player WHERE player_no=$otherPlayerNo";
+        $otherPlayerName = self::getUniqueValueFromDB($sql);
+
+        return ['player_name' => $otherPlayerName];
+    }
+
     function argDesignPuzzle() {
         $jsonTransfos = $this->getGameDbValue('transfos');
         $transformations = json_decode($jsonTransfos);
