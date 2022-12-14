@@ -231,6 +231,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
             toSolve = checker.checkGrid(p.solution, toSolve);
           }
         }
+        toSolve = toSolve.map(l => l.map(v => v.replace('w', 's')));
         setToSolve(toSolve);
 
         if (p.elements) {

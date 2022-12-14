@@ -25,7 +25,7 @@ export class Checker {
     });
 
     return checkResult.map(side => side.map(val => {
-      if (val.text.endsWith('s')) {
+      if (val.text.endsWith('s') && toSolve[val.exitSide][val.exitIndex] !== "") {
         if (val.text === toSolve[val.exitSide][val.exitIndex])
           return val.text;
         return val.text.replace('s', 'w');
