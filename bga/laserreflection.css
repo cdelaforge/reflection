@@ -109,6 +109,16 @@
     justify-content: space-between;
 }
 
+.lrf_end_header {
+    display: flex;
+    flex-flow: row;
+    line-height: 24px;
+    white-space: nowrap;
+    font-size: 90%;
+    justify-content: space-between;
+    width: 100%;
+}
+
 .lrf_end_line>div:first-child {
     text-align: right;
     min-width: 40%;
@@ -119,7 +129,8 @@
     text-align: center;
 }
 
-.lrf_end_line>div>select {
+.lrf_end_line>div>select,
+.lrf_end_header>div>select {
     height: 24px;
 }
 

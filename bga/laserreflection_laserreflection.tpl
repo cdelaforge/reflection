@@ -2,7 +2,7 @@
 
 <div id="lrf_main">
     <div id="lrf_end" class="whiteblock" style="display:none">
-        <div id="lrf_end_players" class="lrf_end_line lrf_title">
+        <div id="lrf_end_players" class="lrf_end_header lrf_title">
             <div>{PUZZLES}</div>
             <div>
                 <select onchange="gameUI.displayPlayerPuzzle(this.value)" id="playerSelect">
@@ -12,7 +12,7 @@
                 </select>
             </div>
         </div>
-        <div id="lrf_end_rounds" class="lrf_end_line lrf_title">
+        <div id="lrf_end_rounds" class="lrf_end_header lrf_title">
             <div>{ROUND_PUZZLES}</div>
             <div>
                 <select onchange="gameUI.displayRoundPuzzle(this.value)" id="roundSelect"></select>

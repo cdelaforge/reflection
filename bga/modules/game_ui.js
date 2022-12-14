@@ -836,6 +836,11 @@ const gameUI = {
   },
 
   _displaySeed: function () {
+    if (!window.game) {
+      // waiting for the React application
+      setTimeout(function () { gameUI._displaySeed(); }, 100);
+      return;
+    }
     document.getElementById("lrf_end_seed_input").value = this.grid ? window.game.getSeed(this.grid) : "";
     this.buildCopyButton("lrf_end_seed_copy", "lrf_end_seed_input");
   },
