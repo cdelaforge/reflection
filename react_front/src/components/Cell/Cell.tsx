@@ -41,14 +41,15 @@ function Cell({ row, col, transform }: CellProps) {
   }
 
   const getSolutionVal = () => {
-    if (mode === "solution" && solution && solution[row] && solution[row][col]) {
+    if (solution && solution[row] && solution[row][col] && ["solution", "solutionOnly"].some(m => mode === m)) {
       return solution[row][col];
     }
+
     return 0;
   }
 
   const clickCell = () => {
-    if (!lock[row][col] && getPlayerVal() !== 7 && mode !== "empty" && mode !== "solution") {
+    if (!lock[row][col] && getPlayerVal() !== 7 && mode !== "empty" && mode !== "solution" && mode !== "solutionOnly") {
       setGridElement(row, col);
     }
   };
@@ -57,7 +58,7 @@ function Cell({ row, col, transform }: CellProps) {
     event.stopPropagation();
     event.preventDefault();
 
-    if (getPlayerVal() !== 7 && mode !== "solution") {
+    if (getPlayerVal() !== 7 && mode !== "solution" && mode !== "solutionOnly") {
       lockCell(row, col, !lock[row][col]);
     }
   };
@@ -71,27 +72,30 @@ function Cell({ row, col, transform }: CellProps) {
     ));
 
   const getPlayerCellIcon = (playerVal: number, solutionVal: number) => {
-    if (playerVal) {
-      const disp = (mode === "solution" && playerVal !== solutionVal) ? "wrong" : "normal";
-      return (
-        <CellContainerChild>
-          <CellIcon val={playerVal} row={row} col={col} display={disp} />
-        </CellContainerChild>
-      );
+    if (!playerVal) {
+      return <></>;
     }
 
-    return <></>;
+    if (mode === "solutionOnly" && playerVal !== solutionVal) {
+      return <></>;
+    }
+
+    const disp = (mode === "solution" && playerVal !== solutionVal) ? "wrong" : "normal";
+    return (
+      <CellContainerChild>
+        <CellIcon val={playerVal} row={row} col={col} display={disp} />
+      </CellContainerChild>
+    );
   }
 
   const getSolutionCellIcon = (playerVal: number, solutionVal: number) => {
-    if (mode === "solution" && solutionVal && playerVal !== solutionVal) {
+    if (solutionVal && ((mode === "solution" && playerVal !== solutionVal) || (mode === "solutionOnly"))) {
       return (
         <CellContainerChild>
           <CellIcon val={solutionVal} row={row} col={col} display="solution" />
         </CellContainerChild>
       );
     }
-
     return <></>;
   }
 

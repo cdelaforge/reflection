@@ -7,7 +7,7 @@ import { compareData } from "../../models/Misc";
 function Stock() {
   const { mode, squaresCount, gridSize, cellSize, elementsCount, displayMode, stock, transformations, stockIndex, setStockIndex } = useAppState();
 
-  if (mode === "view" || mode === "solution") {
+  if (mode === "view" || mode === "solution" || mode === "solutionOnly") {
     return <></>;
   }
 

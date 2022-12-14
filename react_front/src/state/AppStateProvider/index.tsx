@@ -16,7 +16,7 @@ export interface Teammate {
   grid?: number[][],
 }
 
-export type DisplayMode = 'puzzleCreation' | 'play' | 'empty' | 'solution' | 'view' | 'standalone';
+export type DisplayMode = 'puzzleCreation' | 'play' | 'empty' | 'solution' | 'solutionOnly' | 'view' | 'standalone';
 
 export interface IStateContext {
   mode: DisplayMode;
@@ -253,7 +253,9 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
           setElements(Array.from(new Set<number>(elements)));
           setElementsCount(elements.length);
           setStock(intersection);
-          setStockIndex(undefined);
+          if (p.mode !== "play") {
+            setStockIndex(undefined);
+          }
         }
 
         return grid;
@@ -360,7 +362,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   useEffect(() => {
     if (displayLaserPosition === undefined || displayLaserIndex === undefined) {
       setLaserElements([]);
-    } else if (mode === "solution" && solution) {
+    } else if ((mode === "solution" || mode === "solutionOnly") && solution) {
       setLaserElements(checker.getLaserElements(solution, displayLaserPosition, displayLaserIndex));
     } else {
       setLaserElements(checker.getLaserElements(grid, displayLaserPosition, displayLaserIndex));

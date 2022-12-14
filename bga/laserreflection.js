@@ -428,6 +428,7 @@ define([
                         case "puzzleSolution":
                             this.removeActionButtons();
                             this.addActionButton('solutionDisplayEnd', _('OK'), 'onSolutionDisplayEnd');
+                            this.addActionButton('solutionOnly', "<div class='lrf_button_check'><span>" + _('Solution only') + "</span><span id='lrf_solution_check'>" + gameUI.getCheckBox(false) + "</span></div>", 'onSolutionOnly');
                             if (this.is_solo && gameUI.soloMode === 0) {
                                 this.addActionButton('stop', _('Stop'), 'onStop');
                             }
@@ -523,6 +524,11 @@ define([
                     gameUI.clearSavedGrid();
                     this.callAction("hideSolution", null, true);
                 }
+            },
+            onSolutionOnly: function () {
+                gameUI.mode = (gameUI.mode === 'solution') ? 'solutionOnly' : 'solution';
+                gameUI.setup();
+                document.getElementById("lrf_solution_check").innerHTML = gameUI.getCheckBox(gameUI.mode === 'solutionOnly');
             },
             onStop: function () {
                 if (!g_archive_mode) {

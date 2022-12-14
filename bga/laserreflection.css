@@ -400,3 +400,14 @@
         opacity: 1;
     }
 }
+
+div.lrf_button_check {
+    display: flex;
+    flex-flow: row;
+    gap: 0.2em;
+}
+
+div.lrf_button_check>span:last-child {
+    height: 16px;
+    margin-top: -4px;
+}
