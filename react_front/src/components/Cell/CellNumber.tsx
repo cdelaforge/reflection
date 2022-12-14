@@ -25,6 +25,13 @@ const backColors = new Map<ReflectionType, string>([
   [ReflectionType.a, "grey"],
 ]);
 
+const backClassNames = new Map<ReflectionType, string>([
+  [ReflectionType.r, "lrf_cell_yellow"],
+  [ReflectionType.s, "lrf_cell_green"],
+  [ReflectionType.w, "lrf_cell_green"],
+  [ReflectionType.a, "lrf_cell_grey"],
+]);
+
 interface CellNumberProps {
   valStr: string;
   isCorrect: boolean;
@@ -35,8 +42,9 @@ function CellNumber({ valStr, isCorrect }: CellNumberProps) {
   const type = getType(valStr);
   const val = parseInt(valStr, 10) || 0;
   const backColor = backColors.get(type) || colors.green;
+  const backClassName = backClassNames.get(type) || "lrf_cell_green";
 
-  return <CellNumberBack size={cellSize - 2} backColor={backColor} isCorrect={isCorrect}>
+  return <CellNumberBack size={cellSize - 2} className={backClassName} backColor={backColor} isCorrect={isCorrect}>
     <NumberIcon size={cellSize - 2} val={val} />
   </CellNumberBack>
 }

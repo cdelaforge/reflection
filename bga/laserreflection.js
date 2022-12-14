@@ -68,6 +68,12 @@ define([
                     } else {
                         document.body.parentNode.classList.remove('space');
                     }
+                } else if (prefId === "150") {
+                    if (prefValue === "10") {
+                        document.body.parentNode.classList.add('lrf_stripes');
+                    } else {
+                        document.body.parentNode.classList.remove('lrf_stripes');
+                    }
                 }
             },
 

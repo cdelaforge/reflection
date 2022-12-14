@@ -583,4 +583,13 @@ $game_preferences = [
         ],
         'default' => 10
     ),
+    150 => array(
+        'name' => totranslate('Colorblind support'),
+        'needReload' => false,
+        'values' => [
+            0 => [ 'name' => 'None' ],
+            10 => [ 'name' => 'Stripes', 'cssPref' => 'lrf_stripes' ]
+        ],
+        'default' => 0
+    ),
 ];

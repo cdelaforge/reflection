@@ -422,3 +422,15 @@ div.lrf_button_check>span:last-child {
     height: 16px;
     margin-top: -4px;
 }
+
+.lrf_stripes .lrf_cell_green {
+    background: linear-gradient(45deg, #92cea8 20%, #fff 20%, #fff 30%, #92cea8 30%, #92cea8 70%, #fff 70%, #fff 80%, #92cea8 80%) !important;
+    background-size: 10px 10px !important;
+    background-position: 0px 0px !important;
+}
+
+.lrf_stripes .lrf_cell_yellow {
+    background: linear-gradient(-45deg, #FFF7AB 12.5%, #fff 12.5%, #fff 37.5%, #FFF7AB 37.5%, #FFF7AB 62.5%, #fff 62.5%, #fff 87.5%, #FFF7AB 87.5%) !important;
+    background-size: 10px 10px !important;
+    background-position: 25px 25px !important;
+}
