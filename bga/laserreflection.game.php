@@ -936,7 +936,7 @@ class LaserReflection extends Table {
                     'points' => -$playerScore
                 ]);
             } else {
-                if ($this->isAsync()) {
+                if (!$this->isRealTime()) {
                     $durationStr = $this->getDurationStr($duration);
                     $this->sendPlayerResolveNotification($playerId, $durationStr);
                 }
@@ -973,7 +973,10 @@ class LaserReflection extends Table {
                 $this->setPreviouslyRestingPlayerId($restingPlayerId);
             }
 
-            if ($this->isAsync()) {
+            if ($this->isRealTime()) {
+                $this->gamestate->setAllPlayersMultiactive();
+                $this->gamestate->initializePrivateStateForAllActivePlayers();
+            } else {
                 // turn-based mode, skip the display of round score
                 foreach ($players as $player) {
                     $this->notifyProgression($player["id"], 0);
@@ -983,9 +986,6 @@ class LaserReflection extends Table {
                 self::DbQuery($sql);
 
                 $this->gamestate->nextState("next");
-            } else {
-                $this->gamestate->setAllPlayersMultiactive();
-                $this->gamestate->initializePrivateStateForAllActivePlayers();
             }
         }
     }
@@ -1310,7 +1310,7 @@ class LaserReflection extends Table {
 
         $currentPlayerId = $this->getCurrentPlayerId();
 
-        if (!$this->isAsync()) {
+        if ($this->isRealTime()) {
             $this->giveExtraTime($currentPlayerId);
         }
 
@@ -1411,10 +1411,10 @@ class LaserReflection extends Table {
                 }
             }
         } else {
-            if ($this->isAsync()) {
-                self::notifyAllPlayers("stop", '', [ 'player_id' => $currentPlayerId, 'duration' => $durationStr ]);
-            } else {
+            if ($this->isRealTime()) {
                 $this->sendPlayerResolveNotification($currentPlayerId, $durationStr);
+            } else {
+                self::notifyAllPlayers("stop", '', [ 'player_id' => $currentPlayerId, 'duration' => $durationStr ]);
             }
             $this->gamestate->setPlayerNonMultiactive($currentPlayerId, 'next');
         }
@@ -1880,16 +1880,20 @@ class LaserReflection extends Table {
         }
     }
 
+    function isRealTime() {
+        return $this->isTrainingMode() || !$this->isAsync();
+    }
+
     function isRealtimeTeamMode() {
-        return !$this->isAsync() && $this->getTeamsCount() > 0;
+        return $this->isRealTime() && $this->getTeamsCount() > 0;
     }
 
     function isCooperativeMode() {
-        return !$this->isAsync() && $this->getTeamsCount() == 1;
+        return $this->isRealTime() && $this->getTeamsCount() == 1;
     }
 
     function notifyProgression($playerId, $val) {
-        if ($val == 0 || $val == 100 || !$this->isAsync()) {
+        if ($val == 0 || $val == 100 || $this->isRealTime()) {
             // send progression only in realtime mode or on start and complete state
             self::notifyAllPlayers("progression", "", [
                 'player_id' => $playerId,

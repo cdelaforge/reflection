@@ -98,8 +98,6 @@ define([
                         gameUI.savePlayerData(data.players[playerId], playerId);
                     });
 
-                    gameUI.realtime = gameUI.playersCount === 1 || ['0', '1', '2', '9'].some(s => s == data["tablespeed"]);
-
                     data.params.map((p) => {
                         switch (p.key) {
                             case "partial":
@@ -158,6 +156,8 @@ define([
                                 break;
                         }
                     });
+
+                    gameUI.realtime = gameUI.trainingMode || ['0', '1', '2', '9'].some(s => s == data["tablespeed"]);
 
                     gameUI.durations = data.durations;
                     if (data.boards) {
