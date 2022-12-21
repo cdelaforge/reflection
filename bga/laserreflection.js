@@ -289,27 +289,7 @@ define([
                                 gameUI.setGrid(undefined);
                             } else {
                                 const grid = JSON.parse(privateData.grid);
-
-                                const isGridCorrect = function (grid) {
-                                    if (!gameUI.portals) {
-                                        return true;
-                                    }
-                                    if (grid[gameUI.portals[0]][gameUI.portals[1]] !== 7) {
-                                        return false;
-                                    }
-                                    if (grid[gameUI.portals[2]][gameUI.portals[3]] !== 7) {
-                                        return false;
-                                    }
-                                    return true;
-                                };
-
-                                if (isGridCorrect(grid)) {
-                                    gameUI.setGrid(grid);
-                                } else {
-                                    gameUI.setGrid(undefined);
-                                    gameUI.saveGrid();
-                                    gameUI.history = [];
-                                }
+                                gameUI.setGrid(grid);
                             }
 
                             gameUI.puzzle = JSON.parse(privateData.puzzle);

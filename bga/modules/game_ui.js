@@ -521,10 +521,30 @@ const gameUI = {
     return portals;
   },
 
+  isGridCorrect: function () {
+    if (!this.portals || !this.grid) {
+      return true;
+    }
+    if (this.grid[this.portals[0]][this.portals[1]] !== 7) {
+      return false;
+    }
+    if (this.grid[this.portals[2]][this.portals[3]] !== 7) {
+      return false;
+    }
+    return true;
+  },
+
   setup: function (options) {
     if (!this.initialized) {
       setTimeout(function () { gameUI.setup(); }, 100);
       return;
+    }
+
+    if ((this.mode === "play" || this.mode === "empty") && !this.isGridCorrect()) {
+      console.error("Invalid grid", this.grid);
+      this.setGrid(undefined);
+      this.saveGrid();
+      this.history = [];
     }
 
     if (this.grid) {

@@ -110,7 +110,7 @@ $game_options = [
             [
                 'type' => 'otheroption',
                 'id' => 103,
-                'value' => 10,
+                'value' => 10, /* randomly generated puzzles */
             ],
         ],
         'startcondition' => [
@@ -172,12 +172,12 @@ $game_options = [
             [
                 'type' => 'otheroption',
                 'id' => 103,
-                'value' => 10,
+                'value' => 10, /* randomly generated puzzles */
             ],
             [
                 'type' => 'otheroptionisnot',
                 'id' => 106,
-                'value' => 1,
+                'value' => 1, /* cooperative mode */
             ],
         ],
     ],
@@ -203,7 +203,7 @@ $game_options = [
             [
                 'type' => 'otheroption',
                 'id' => 103,
-                'value' => 0,
+                'value' => 0, /* puzzles created by users */
             ],
         ]
     ],
@@ -219,7 +219,12 @@ $game_options = [
             [
                 'type' => 'otheroption',
                 'id' => 106,
-                'value' => 1,
+                'value' => 1, /* cooperative mode */
+            ],
+            [
+                'type' => 'otheroption',
+                'id' => 103,
+                'value' => 10, /* randomly generated puzzles */
             ],
         ],
     ],
