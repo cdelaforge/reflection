@@ -48,12 +48,10 @@ $game_options = [
         'values' => [
             0 => [
                 'name' => totranslate('Puzzles created by players'),
-                'description' => totranslate('Lower the number of players to "1" to select a solo game mode.'),
                 'tmdisplay' => totranslate('Puzzles created by players')
             ],
             10 => [
                 'name' => totranslate('Randomly generated puzzles'),
-                'description' => totranslate('Lower the number of players to "1" to select a solo game mode.'),
                 'tmdisplay' => totranslate('Randomly generated puzzles')
             ],
         ],
@@ -63,12 +61,35 @@ $game_options = [
                 'type' => 'minplayers',
                 'value' => [2, 3, 4, 5, 6]
             ],
+        ],
+        'startcondition' => [
+            0 => [
+                [
+                    'type' => 'minplayers',
+                    'value' => 2,
+                    'message' => totranslate('Lower the number of players to "1" to select a solo game mode.'),
+                    'gamestartonly' => true,
+                ]
+            ],
+            10 => [
+                [
+                    'type' => 'minplayers',
+                    'value' => 2,
+                    'message' => totranslate('Lower the number of players to "1" to select a solo game mode.'),
+                    'gamestartonly' => true,
+                ]
+            ],
         ]
     ],
     106 => [
         'name' => totranslate('Team mode'),
         'values' => [
             0 => [ 'name' => totranslate('No team') ],
+            1 => [
+                'name' => totranslate('Cooperative mode'),
+                'tmdisplay' => totranslate('Cooperative mode'),
+                'description' => totranslate('Players work together to solve randomly generated puzzles.')
+            ],
             2 => [
                 'name' => totranslate('2 teams'),
                 'tmdisplay' => totranslate('2 teams'),
@@ -84,12 +105,39 @@ $game_options = [
         'displaycondition' => [
             [
                 'type' => 'minplayers',
-                'value' => [3, 4, 5, 6]
+                'value' => [2, 3, 4, 5, 6]
             ],
             [
                 'type' => 'otheroption',
                 'id' => 103,
                 'value' => 10,
+            ],
+        ],
+        'startcondition' => [
+            1 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 201,
+                    'value' => 0,
+                    'message' => totranslate('Cooperation is only possible in "Training" mode.'),
+                    'gamestartonly' => true,
+                ]
+            ],
+            2 => [
+                [
+                    'type' => 'minplayers',
+                    'value' => 3,
+                    'message' => totranslate('Team mode needs at least 3 players'),
+                    'gamestartonly' => true,
+                ]
+            ],
+            3 => [
+                [
+                    'type' => 'minplayers',
+                    'value' => 3,
+                    'message' => totranslate('Team mode needs at least 3 players'),
+                    'gamestartonly' => true,
+                ]
             ],
         ]
     ],
@@ -126,6 +174,11 @@ $game_options = [
                 'id' => 103,
                 'value' => 10,
             ],
+            [
+                'type' => 'otheroptionisnot',
+                'id' => 106,
+                'value' => 1,
+            ],
         ],
     ],
     109 => [
@@ -153,6 +206,22 @@ $game_options = [
                 'value' => 0,
             ],
         ]
+    ],
+    110 => [
+        'name' => totranslate('Cooperative challenge'),
+        'values' => [
+            3 => [ 'name' => totranslate('Challenge 1 - Easy'), 'description' => totranslate('Solve 3 puzzles to win') ],
+            6 => [ 'name' => totranslate('Challenge 2 - Medium'), 'description' => totranslate('Solve 6 puzzles to win (10 items min. and 15 minutes max. per round)') ],
+            10 => [ 'name' => totranslate('Challenge 3 - Hard'), 'description' => totranslate('Solve 10 puzzles to win (15 items min. and 10 minutes max. per round)') ],
+        ],
+        'default' => 0,
+        'displaycondition' => [
+            [
+                'type' => 'otheroption',
+                'id' => 106,
+                'value' => 1,
+            ],
+        ],
     ],
     119 => [
         'name' => totranslate('Maximum time to solve a puzzle'),
@@ -266,7 +335,8 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 201,
                     'value' => 0,
-                    'message' => totranslate('You must use the training mode to play with less than 8 elements')
+                    'message' => totranslate('You must use the training mode to play with less than 8 elements'),
+                    'gamestartonly' => true,
                 ]
             ],
             4 => [
@@ -274,7 +344,8 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 201,
                     'value' => 0,
-                    'message' => totranslate('You must use the training mode to play with less than 8 elements')
+                    'message' => totranslate('You must use the training mode to play with less than 8 elements'),
+                    'gamestartonly' => true,
                 ]
             ],
             5 => [
@@ -282,7 +353,8 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 201,
                     'value' => 0,
-                    'message' => totranslate('You must use the training mode to play with less than 8 elements')
+                    'message' => totranslate('You must use the training mode to play with less than 8 elements'),
+                    'gamestartonly' => true,
                 ]
             ],
             6 => [
@@ -290,7 +362,8 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 201,
                     'value' => 0,
-                    'message' => totranslate('You must use the training mode to play with less than 8 elements')
+                    'message' => totranslate('You must use the training mode to play with less than 8 elements'),
+                    'gamestartonly' => true,
                 ]
             ],
             7 => [
@@ -298,7 +371,8 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 201,
                     'value' => 0,
-                    'message' => totranslate('You must use the training mode to play with less than 8 elements')
+                    'message' => totranslate('You must use the training mode to play with less than 8 elements'),
+                    'gamestartonly' => true,
                 ]
             ],
             15 => [
@@ -306,7 +380,8 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 4,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ]
             ],
             16 => [
@@ -314,7 +389,8 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 4,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ]
             ],
             17 => [
@@ -322,7 +398,8 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 4,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ]
             ],
             18 => [
@@ -330,7 +407,8 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 4,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ]
             ],
             19 => [
@@ -338,7 +416,8 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 4,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ]
             ],
             20 => [
@@ -346,7 +425,8 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 4,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ]
             ],
             21 => [
@@ -354,13 +434,15 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 4,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ],
                 [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 5,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ]
             ],
             22 => [
@@ -368,13 +450,15 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 4,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ],
                 [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 5,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ]
             ],
             23 => [
@@ -382,7 +466,8 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 4,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ]
             ],
             24 => [
@@ -390,13 +475,15 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 4,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ],
                 [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 5,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ]
             ],
             25 => [
@@ -404,7 +491,8 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 4,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ]
             ],
             26 => [
@@ -412,13 +500,15 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 4,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ],
                 [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 5,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ]
             ],
             27 => [
@@ -426,13 +516,15 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 4,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ],
                 [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 5,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ]
             ],
             28 => [
@@ -440,13 +532,15 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 4,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ],
                 [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 5,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ]
             ],
             29 => [
@@ -454,13 +548,15 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 4,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ],
                 [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 5,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ]
             ],
             30 => [
@@ -468,13 +564,15 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 4,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ],
                 [
                     'type' => 'otheroptionisnot',
                     'id' => 120,
                     'value' => 5,
-                    'message' => totranslate('There are too many items for the selected grid size')
+                    'message' => totranslate('There are too many items for the selected grid size'),
+                    'gamestartonly' => true,
                 ]
             ]
         ],

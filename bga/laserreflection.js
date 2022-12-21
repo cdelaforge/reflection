@@ -150,6 +150,9 @@ define([
                             case "solo_mode":
                                 gameUI.soloMode = parseInt(p.val, 10);
                                 break;
+                            case "cooperative_mode":
+                                gameUI.cooperativeMode = parseInt(p.val, 10);
+                                break;
                             case "hearts":
                                 gameUI.hearts = parseInt(p.val, 10);
                                 break;
@@ -790,7 +793,10 @@ define([
             notif_hearts: function (notif) {
                 console.log("notif_hearts", notif);
                 gameUI.hearts = notif.args.hearts;
-                gameUI.displayPlayerHearts(gameUI.hearts);
+
+                Object.keys(gameUI.players).map((id) => {
+                    gameUI.displayPlayerHearts(gameUI.hearts, id);
+                });
             }
         });
     });

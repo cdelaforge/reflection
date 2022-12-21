@@ -1096,17 +1096,18 @@ const gameUI = {
 
   displayPlayerTeam: function (playerId) {
     const divId = "player_name_" + playerId;
-    const iconId = "icon_" + playerId;
+    const iconId = "icon_team_" + playerId;
     const icon = ['', '🧙', '🧛', '👽'][this.players[playerId].team];
-
     dojo.destroy(iconId);
     dojo.place("<span id='" + iconId + "'>" + icon + "&nbsp;</span>", $(divId).firstElementChild, 0);
   },
 
-  displayPlayerHearts: function (hearts) {
-    const playerId = this.isSpectator ? this.playerSpied : this.playerId;
+  displayPlayerHearts: function (hearts, playerId) {
+    if (playerId === undefined) {
+      playerId = this.isSpectator ? this.playerSpied : this.playerId;
+    }
     const divId = "player_board_" + playerId;
-    const iconId = "icon_" + playerId;
+    const iconId = "icon_heart_" + playerId;
     const icons = (hearts >= 0) ? hearts + '&nbsp;💗' : '0&nbsp;💔';
     dojo.destroy(iconId);
     dojo.place("<span id='" + iconId + "'>&nbsp;&nbsp;&nbsp;" + icons + "&nbsp;</span>", $(divId).firstElementChild, 4);
@@ -1115,9 +1116,12 @@ const gameUI = {
   displayPlayerIcons: function () {
     if (this.soloMode && this.soloMode < 100) {
       this.displayPlayerHearts(this.hearts);
-    } else if (gameUI.teamsCount) {
+    } else if (this.teamsCount) {
       Object.keys(this.players).map((id) => {
         this.displayPlayerTeam(id);
+        if (this.cooperativeMode) {
+          this.displayPlayerHearts(this.hearts, id);
+        }
       });
     }
   },
