@@ -1582,17 +1582,21 @@ class LaserReflection extends Table {
 
         $soloMode = $this->getChallengeMode();
         if ($soloMode > 0 && $soloMode < 100) {
-            $hearts = $this->getGameStateValue('hearts') - 1;
-            $this->setGameStateValue('hearts', $hearts);
+            $player_num = self::getPlayerNoById($playerId);
 
-            self::notifyAllPlayers("hearts", '💔 ${message}', [
-                'message' => [
-                    'log' => clienttranslate('You lose a heart'),
-                    'args'=> []
-                ],
-                "player_id" => $playerId,
-                "hearts" => $hearts
-            ]);
+            if ($player_num == 1) { /* for cooperative mode, to only remove 1 heart and not 1 by player */
+                $hearts = $this->getGameStateValue('hearts') - 1;
+                $this->setGameStateValue('hearts', $hearts);
+
+                self::notifyAllPlayers("hearts", '💔 ${message}', [
+                    'message' => [
+                        'log' => clienttranslate('You lose a heart'),
+                        'args'=> []
+                    ],
+                    "player_id" => $playerId,
+                    "hearts" => $hearts
+                ]);
+            }
         }
     }
 

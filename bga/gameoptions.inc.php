@@ -55,7 +55,7 @@ $game_options = [
                 'tmdisplay' => totranslate('Randomly generated puzzles')
             ],
         ],
-        'default' => 0,
+        'default' => 10,
         'displaycondition' => [
             [
                 'type' => 'minplayers',
@@ -150,6 +150,10 @@ $game_options = [
         'default' => 1,
         'displaycondition' => [
             [
+                'type' => 'minplayers',
+                'value' => [2, 3, 4, 5, 6]
+            ],
+            [
                 'type' => 'otheroption',
                 'id' => 106,
                 'value' => [2, 3],
@@ -216,6 +220,10 @@ $game_options = [
         ],
         'default' => 0,
         'displaycondition' => [
+            [
+                'type' => 'minplayers',
+                'value' => [2, 3, 4, 5, 6]
+            ],
             [
                 'type' => 'otheroption',
                 'id' => 106,
