@@ -23,6 +23,7 @@ if (!defined('STATE_END_GAME')) { // ensure this block is only invoked once, sin
     define("STATE_TEAM_SELECTION_PRIVATE", 90);
     define("STATE_TEAM_SELECTED", 91);
     define("STATE_DESIGN_PUZZLE", 10);
+    define("STATE_BEFORE_END_GAME", 98);
     define("STATE_END_GAME", 99);
  }
 
@@ -216,7 +217,7 @@ $machinestates = array(
         "description" => "",
         "descriptionmyturn" => clienttranslate('Some of your teammates are not ready yet, the game will start soon...'),
         "type" => "private",
-        "transitions" => [ "continue" => STATE_PLAY_PUZZLE_PRIVATE ]
+        "transitions" => ["continue" => STATE_PLAY_PUZZLE_PRIVATE]
     ],
 
     STATE_PLAY_PUZZLE_PRIVATE => [
@@ -276,17 +277,26 @@ $machinestates = array(
         "initialprivate" => STATE_END_ROUND_PRIVATE,
         "action" => "stEndRound",
         "possibleactions" => [],
-        "transitions" => ["next" => STATE_PLAY_PUZZLE_INIT, "endGame" => STATE_END_GAME],
-        "updateGameProgression" => true
+        "transitions" => ["next" => STATE_PLAY_PUZZLE_INIT, "endGame" => STATE_BEFORE_END_GAME]
     ],
 
-    STATE_END_ROUND_PRIVATE =>  [
+    STATE_END_ROUND_PRIVATE => [
         "name" => "scoreDisplay",
         "description" => clienttranslate('Go to next round'),
         "descriptionmyturn" => clienttranslate('Go to next round'),
         "type" => "private",
         "possibleactions" => ["hideScore", "stopGame"],
-        "transitions" => [ 'continue' => STATE_END_ROUND_PRIVATE ]
+        "transitions" => ['continue' => STATE_END_ROUND_PRIVATE]
+    ],
+
+    STATE_BEFORE_END_GAME => [
+        "name" => "beforeGameEnd",
+        "description" => clienttranslate('End of game'),
+        "type" => "private",
+        "action" => "stEndGame",
+        "possibleactions" => [],
+        "transitions" => ["endGame" => STATE_END_GAME],
+        "updateGameProgression" => true
     ],
 
     // Final state.

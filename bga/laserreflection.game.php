@@ -55,6 +55,8 @@ class LaserReflection extends Table {
             "giveup_agree_5" => 74,
             "giveup_agree_6" => 75,
             "hearts" => 80,
+            "progression" => 85,
+            "progressionTotal" => 86,
             "solo_mode" => 100,
             "multi_mode" => 103,
             "teams" => 106,
@@ -182,6 +184,8 @@ class LaserReflection extends Table {
 
         $transformations = $this->getTransformations();
         $this->setGameDbValue('transfos', json_encode($transformations));
+
+        $this->initGameProgression();
 
         // Init game statistics
         self::initStat("table", "total_duration", 0);
@@ -564,6 +568,8 @@ class LaserReflection extends Table {
         $playerTeam = $this->getPlayerTeamNameAndIcon($playerId);
 
         if ($playerScore > 0) {
+            $this->incGameProgression();
+
             self::notifyAllPlayers("log", '${icon} ${message}', [
                 'icon' => $playerTeam['icon'],
                 'message' => [
@@ -692,6 +698,8 @@ class LaserReflection extends Table {
             // end of game !
             $this->goToEnd();
         } else {
+            $this->incGameProgression();
+
             // create a new puzzle
             $this->updatePuzzle();
             $this->setRound($round);
@@ -808,6 +816,8 @@ class LaserReflection extends Table {
             // end of game !
             $this->goToEnd();
         } else {
+            $this->incGameProgression();
+
             // create a new puzzle
             $this->updatePuzzle();
             $this->setRound($round);
@@ -852,6 +862,8 @@ class LaserReflection extends Table {
         }
 
         if ($playerScore > 0) {
+            $this->incGameProgression();
+
             self::notifyAllPlayers("log", clienttranslate('${player_name} scores ${points} points'), [
                 'player_name' => self::getCurrentPlayerName(),
                 'points' => $playerScore
@@ -959,6 +971,8 @@ class LaserReflection extends Table {
             // end of game !
             $this->goToEnd();
         } else {
+            $this->incGameProgression();
+
             if ($this->isModeRandom()) {
                 // create a new puzzle
                 $this->updatePuzzle();
@@ -988,6 +1002,12 @@ class LaserReflection extends Table {
                 $this->gamestate->nextState("next");
             }
         }
+    }
+
+    function stEndGame() {
+        $this->calcStats();
+        $this->sendAllPuzzles();
+        $this->gamestate->nextState("endGame");
     }
 
     /* Player actions */
@@ -1666,31 +1686,46 @@ class LaserReflection extends Table {
         (see states.inc.php)
     */
     function getGameProgression() {
-        $state = $this->gamestate->state();
-        $stateName = $state['name'];
-        $round = $this->getRound();
-
-        if ($stateName == "endRound") {
-            $rounds = $this->getRounds();
-
-            if ($round >= $rounds) {
-                return 100;
-            }
-        }
-
         if ($this->isGameEnded()) {
             return 100;
         }
 
-        $cpt = self::getPlayersNumber();
-
-        if ($this->isModeResting()) {
-            return round(100 * $round / ($cpt + 1));
+        $progressionTotal = self::getGameStateValue('progressionTotal');
+        if ($progressionTotal == 0) {
+            return 0;
         }
 
-        return round(100 * $round / $cpt);
+        $progression = self::getGameStateValue('progression');
+        return round((100 * $progression) / $progressionTotal);
     }
 
+    function initGameProgression() {
+        self::setGameStateInitialValue('progression', 0);
+
+        if ($this->isSoloMode() || $this->isCooperativeMode()) {
+            $mode = $this->getChallengeMode();
+            if ($mode > 0 && $mode < 100) {
+                self::setGameStateInitialValue('progressionTotal', $mode);
+            } else {
+                self::setGameStateInitialValue('progressionTotal', 0);
+            }
+        } else if ($this->isModeMultiRandom()) {
+            $rounds = $this->getRounds();
+            self::setGameStateInitialValue('progressionTotal', $rounds);
+        } else {
+            $countPlayers = $this->getGameStateValue('count_players');
+            if ($this->isModeResting()) {
+                self::setGameStateInitialValue('progressionTotal', $countPlayers);
+            } else {
+                self::setGameStateInitialValue('progressionTotal', $countPlayers - 1);
+            }
+        }
+    }
+
+    function incGameProgression() {
+        $progression = self::getGameStateValue('progression');
+        self::setGameStateValue('progression', $progression + 1);
+    }
 
 //////////////////////////////////////////////////////////////////////////////
 //////////// Utility functions
@@ -2516,8 +2551,6 @@ class LaserReflection extends Table {
 
     function goToEnd() {
         $this->setGameStateValue('ended', 1);
-        $this->calcStats();
-        $this->sendAllPuzzles();
         $this->gamestate->nextState("endGame");
     }
 
@@ -2673,6 +2706,11 @@ class LaserReflection extends Table {
     }
 
     function getTransformations() {
+        if ($this->isTrainingMode()) {
+            // in training mode everybody could have the same grid
+            return [0, 0, 0, 0, 0, 0, 0, 0];
+        }
+
         $transfos = [0, 1, 2, 3, 10, 11, 12, 20];
         $list = [];
         $result = [];
