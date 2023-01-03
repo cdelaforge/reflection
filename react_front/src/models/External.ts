@@ -5,11 +5,11 @@ export interface GameSetup {
   gridSize: number,
   elements?: number[],
   grid?: number[][],
+  lockedCells?: boolean[][],
   solution?: number[][],
   puzzle?: string[][],
   portals?: number[],
   transformations?: number,
-  keepLock?: boolean;
 }
 
 export interface WindowWithGameMethods {
@@ -17,9 +17,11 @@ export interface WindowWithGameMethods {
     setSmart: (s: boolean) => void;
     setRunning: (r: boolean) => void;
     setup: (p: GameSetup) => number[][];
+    resetLockedCells: () => void;
     setAreaSize: (width: number, height: number) => void;
     setTeam: (teams: Teammate[]) => void;
     onGridChange?: (grid: number[][]) => void;
+    onLockChange?: (grid: boolean[][]) => void;
     onPuzzleChange?: (puzzle: string[][]) => void;
     onPuzzleResolve?: (grid: number[][]) => void;
     onProgression?: (progression: number) => void;

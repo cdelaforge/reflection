@@ -62,6 +62,11 @@ define([
                 console.log("Preference changed", prefId, prefValue);
                 if (prefId === "100") {
                     window.game.setSmart(prefValue === "1");
+                } else if (prefId === "105") {
+                    gameUI.showOnlyIcons = prefValue === "1";
+                    if (this.lastStateName) {
+                        this.onUpdateActionButtons(this.lastStateName);
+                    }
                 } else if (prefId === "110") {
                     if (prefValue === "10") {
                         document.body.parentNode.classList.add('space');
@@ -185,6 +190,7 @@ define([
                     } else {
                         const me = data.players[this.player_id];
                         gameUI.setGrid(me && me.grid ? JSON.parse(me.grid) : gameUI.getSavedGrid());
+                        gameUI.lockedCells = gameUI.getSavedLockedCells();
                     }
 
                     gameUI.init(this);
@@ -194,6 +200,11 @@ define([
                         gameUI.buildCollectiveGiveupArea();
                         gameUI.displayCollectiveGiveup();
                     }
+
+                    try {
+                        gameUI.showOnlyIcons = this.prefs[105].value == 1;
+                    }
+                    catch (error) { }
 
                     // Setup game notifications to handle (see "setupNotifications" method below)
                     this.setupNotifications();
@@ -345,8 +356,9 @@ define([
             // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
             //                        action status bar (ie: the HTML links in the status bar).
             //
-            onUpdateActionButtons: function (stateName, args) {
+            onUpdateActionButtons: function (stateName) {
                 const isPlayerActive = this.isCurrentPlayerActive();
+                this.lastStateName = stateName;
                 console.log('onUpdateActionButtons: ' + stateName, isPlayerActive);
 
                 if (gameUI.running !== isPlayerActive) {
@@ -361,7 +373,11 @@ define([
                 if (isPlayerActive) {
                     switch (stateName) {
                         case "design":
-                            this.addActionButton('reset', _('Reset') + " ↺", 'onResetDesign');
+                            if (gameUI.showOnlyIcons) {
+                                this.addActionButton('reset', "&nbsp;↺&nbsp;", 'onResetDesign');
+                            } else {
+                                this.addActionButton('reset', _('Reset') + " ↺", 'onResetDesign');
+                            }
                             this.addActionButton('stop', _('Stop'), 'onStop');
                             break;
                         case "createFromSeed":
@@ -397,14 +413,28 @@ define([
                                 document.getElementById('pagemaintitletext').innerHTML = _("All items must be used");
                             }
                             this.removeActionButtons();
-                            this.addActionButton('undo', _('Undo') + " ⎌", 'onUndo');
-                            this.addActionButton('reset', _('Reset') + " ↺", 'onReset');
+                            if (gameUI.showOnlyIcons) {
+                                this.addActionButton('undo', "&nbsp;⎌&nbsp;", 'onUndo');
+                                this.addActionButton('reset', "&nbsp;↺&nbsp;", 'onReset');
+                                this.addActionButton('unlock', "&nbsp;" + gameUI.getUnlockIcon() + "&nbsp;", 'onUnlock');
+                            } else {
+                                this.addActionButton('undo', _('Undo') + " ⎌", 'onUndo');
+                                this.addActionButton('reset', _('Reset') + " ↺", 'onReset');
+                                this.addActionButton('unlock', _('Unlock all') + " " + gameUI.getUnlockIcon(), 'onUnlock');
+                            }
                             this.addActionButton('giveUp', _('Give up'), 'onGiveUp');
                             break;
                         case "puzzleCopy":
                             this.removeActionButtons();
-                            this.addActionButton('undo', _('Undo') + " ⎌", 'onUndo');
-                            this.addActionButton('reset', _('Reset') + " ↺", 'onReset');
+                            if (gameUI.showOnlyIcons) {
+                                this.addActionButton('undo', "&nbsp;⎌&nbsp;", 'onUndo');
+                                this.addActionButton('reset', "&nbsp;↺&nbsp;", 'onReset');
+                                this.addActionButton('unlock', "&nbsp;" + gameUI.getUnlockIcon() + "&nbsp;", 'onUnlock');
+                            } else {
+                                this.addActionButton('undo', _('Undo') + " ⎌", 'onUndo');
+                                this.addActionButton('reset', _('Reset') + " ↺", 'onReset');
+                                this.addActionButton('unlock', _('Unlock all') + " " + gameUI.getUnlockIcon(), 'onUnlock');
+                            }
                             this.addActionButton('giveUp', _('Give up'), 'onGiveUp');
                             break;
                         case "scoreDisplay":
@@ -477,6 +507,11 @@ define([
                     gameUI.reset();
                 }
             },
+            onUnlock: function () {
+                if (!g_archive_mode) {
+                    gameUI.resetLockedCells();
+                }
+            },
             onUndo: function () {
                 if (!g_archive_mode) {
                     gameUI.undo();
@@ -525,7 +560,7 @@ define([
                 }
             },
 
-            callAction: function (action, args, lock, verb) {
+            callAction: function (action, args, lock, verb, errorFunction) {
                 if (!args) {
                     args = [];
                 }
@@ -534,7 +569,7 @@ define([
                 }
 
                 if (this.checkAction(action)) {
-                    this.ajaxcall("/" + this.game_name + "/" + this.game_name + "/" + action + ".html", args, this, (result) => { }, undefined, verb);
+                    this.ajaxcall("/" + this.game_name + "/" + this.game_name + "/" + action + ".html", args, this, () => { }, errorFunction || undefined, verb);
                 }
             },
 

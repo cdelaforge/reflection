@@ -685,6 +685,15 @@ $game_preferences = [
         ],
         'default' => 1
     ),
+    105 => array(
+        'name' => totranslate('Show only icons in buttons'),
+        'needReload' => false,
+        'values' => [
+            1 => [ 'name' => totranslate( 'Yes' ) ],
+            2 => [ 'name' => totranslate( 'No' ) ]
+        ],
+        'default' => 2
+    ),
     110 => array(
         'name' => totranslate('Background'),
         'needReload' => false,

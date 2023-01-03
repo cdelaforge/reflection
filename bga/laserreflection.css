@@ -192,6 +192,8 @@
 
 .lrf_progress-bar__main {
     display: flex;
+    flex-flow: column;
+    gap: 0.6em;
     justify-content: flex-end;
     align-items: center;
     width: 100%;
@@ -235,6 +237,9 @@
     padding-left: 1em;
     font-size: 80%;
     line-height: 14px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: right;
 }
 
 /* Resting bar */

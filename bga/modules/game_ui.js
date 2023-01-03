@@ -19,6 +19,11 @@ const gameUI = {
       return;
     }
 
+    window.game.onLockChange = function (lockedCells) {
+      const isLocked = lockedCells.some(row => row.some(cell => !!cell));
+      gameUI.lockedCells = isLocked ? lockedCells : undefined;
+      gameUI.saveLockedCells();
+    };
     window.game.onGridChange = function (grid) {
       const gridChanged = JSON.stringify(gameUI.grid) !== JSON.stringify(grid);
       if (gridChanged) {
@@ -36,15 +41,15 @@ const gameUI = {
           gameUI.shouldSendProgression = true;
         }
       }
-    }
+    };
     window.game.onProgression = function (progression) {
       gameUI.progression = progression;
-    }
+    };
     window.game.onPuzzleChange = function (puzzle) {
       if (gameUI.mode === "puzzleCreation") {
         gameUI.puzzle = puzzle;
       }
-    }
+    };
     window.game.onPuzzleResolve = function (grid) {
       if (gameUI.mode === "play") {
         gameUI.setGrid(grid);
@@ -53,7 +58,7 @@ const gameUI = {
           gameUI.resolved = true;
         }
       }
-    }
+    };
 
     this.stateEmoticons = {
       'teamSelecting': '🤨',
@@ -90,6 +95,8 @@ const gameUI = {
       }
     }
 
+    this.timeLimitStr = this.getDurationStr(this.timeLimit * 60);
+
     securedLive();
     setInterval(securedLive, 500);
     window.game.setSmart(dojoGame.prefs[100].value == 1);
@@ -105,6 +112,7 @@ const gameUI = {
 
   initLocalStorage: function (tableId, playerId) {
     this.storageKey = "lr_" + tableId + "_" + playerId;
+    this.lockedStorageKey = "lr_l_" + tableId + "_" + playerId;
     this.teamStorageKey = "lr_t_" + tableId + "_" + playerId;
 
     const len = localStorage.length;
@@ -127,8 +135,25 @@ const gameUI = {
     toDelete.forEach(key => localStorage.removeItem(key));
   },
 
+  resetLockedCells: function () {
+    try {
+      window.game.resetLockedCells();
+    }
+    catch (error) {
+      console.error("Exception occured in resetLockedCells", error);
+    }
+  },
+
   reset: function () {
-    this.setGrid(undefined);
+    if (this.lockedCells && this.grid) {
+      const grid = this.grid.map((row, rowIndex) => row.map((cell, colIndex) => {
+        return this.lockedCells[rowIndex][colIndex] ? cell : 0;
+      }));
+      this.setGrid(grid);
+    } else {
+      this.setGrid(undefined);
+    }
+
     this.setup();
     this.saveGrid();
     this.history = [];
@@ -139,10 +164,30 @@ const gameUI = {
     if (this.history.length) {
       const grid = this.history.pop();
       this.setGrid(grid);
-      this.setup({ keepLock: true });
+      this.setup();
       this.saveGrid();
       this.shouldSendProgression = true;
     }
+  },
+
+  saveLockedCells: function () {
+    if (this.lockedCells) {
+      const item = { lockedCells: this.lockedCells, expires: new Date().getTime() + STORAGE_TTL };
+      localStorage.setItem(this.lockedStorageKey, JSON.stringify(item));
+    } else {
+      localStorage.removeItem(this.lockedStorageKey);
+    }
+  },
+
+  getSavedLockedCells: function () {
+    try {
+      const jsonItem = localStorage.getItem(this.lockedStorageKey);
+      if (jsonItem) {
+        const item = JSON.parse(jsonItem);
+        return item.lockedCells;
+      }
+    } catch (error) { }
+    return undefined;
   },
 
   saveGrid: function () {
@@ -396,12 +441,23 @@ const gameUI = {
       this.callAction("giveUpRefuse", null, true);
     } else if (this.timeout || this.giveUp) {
       const action = this.timeout ? "timeout" : "giveUp";
+      this.shouldSendProgression = false;
       this.giveUp = false;
       this.timeout = false;
-      this.shouldSendProgression = false;
       this.mode = 'solution';
 
-      this.callAction(action, { grid: JSON.stringify(this.grid) }, true, "post");
+      this.callAction(action, { grid: JSON.stringify(this.grid) }, true, "post", (error) => {
+        if (error) {
+          // we are not connected to internet, retry in 5 seconds
+          setTimeout(() => {
+            if (action === "timeout") {
+              this.timeout = true;
+            } else {
+              this.giveUp = true;
+            }
+          }, 5000);
+        }
+      });
     } else if ((this.liveLoop === 0 || this.liveLoop === 2) && this.mode === "play") {
       this.manageTimeLimit();
     }
@@ -424,7 +480,13 @@ const gameUI = {
           give_time: this.shouldAddTime(),
         };
 
-        this.callAction("gridChange", data, data.give_time, "post");
+        if (data.give_time) {
+          // To avoid size changes during the post :
+          const titleBar = document.getElementById("page-title")
+          titleBar.style.minHeight = window.getComputedStyle(titleBar, null).getPropertyValue("height");
+        }
+
+        this.callAction("gridChange", data, data.give_time, "post", () => { titleBar.style.minHeight = "50px"; });
       }
     }
 
@@ -488,7 +550,7 @@ const gameUI = {
         if (remainingTime <= 0) {
           this.timeout = true;
         } else if (remainingTime <= 30) {
-          button.innerHTML = _('Give up') + " (" + remainingTime + " " + _('seconds') + ")";
+          button.innerHTML = _('Give up') + " (" + remainingTime + ")";
         }
       }
     }
@@ -536,7 +598,7 @@ const gameUI = {
 
   setup: function (options) {
     if (!this.initialized) {
-      setTimeout(function () { gameUI.setup(); }, 100);
+      setTimeout(function () { gameUI.setup(options); }, 100);
       return;
     }
 
@@ -551,6 +613,11 @@ const gameUI = {
       this.gridSize = this.grid.length;
     }
 
+    if (this.mode !== "play" && this.lockedCells) {
+      this.lockedCells = undefined;
+      this.saveLockedCells();
+    }
+
     const data = {
       mode: this.mode,
       elements: this.elements,
@@ -558,7 +625,8 @@ const gameUI = {
       grid: this.grid,
       puzzle: this.puzzle,
       portals: this._checkPortals(this.portals),
-      transformations: this.transfo || 0
+      transformations: this.transfo || 0,
+      lockedCells: this.lockedCells
     }
 
     if (options) {
@@ -580,8 +648,8 @@ const gameUI = {
     }
   },
 
-  callAction: function (action, args, lock, verb) {
-    this.dojoGame.callAction(action, args, lock, verb);
+  callAction: function (action, args, lock, verb, errorFunction) {
+    this.dojoGame.callAction(action, args, lock, verb, errorFunction);
   },
 
   displayGrid: function () {
@@ -638,8 +706,7 @@ const gameUI = {
         progression,
         dec: 100 - progression,
         text_disp: progression > 15 ? "" : "none",
-        bar_width: durationStr ? "78%" : "90%",
-        counter: durationStr || ""
+        counter: durationStr ? durationStr + "&nbsp;/&nbsp;" + this.timeLimitStr : ""
       }), 'overall_player_board_' + playerId);
     }
     catch (error) {
@@ -680,8 +747,8 @@ const gameUI = {
     const subId = "lrf_container_" + playerId;
 
     try {
-      document.getElementById(cptId).innerHTML = duration;
-      document.getElementById(subId).style.width = duration ? "78%" : "90%";
+      document.getElementById(cptId).innerHTML = duration + "&nbsp;/&nbsp;" + this.timeLimitStr;
+      //document.getElementById(subId).style.width = duration ? "78%" : "90%";
     } catch (error) {
       console.error("Error in _displayDuration", error);
     }
@@ -1148,8 +1215,12 @@ const gameUI = {
 
   getCheckBox: function (checked) {
     if (checked) {
-      return '<svg width="24px" height="24px" viewBox="0 0 24 24"><g stroke="none" fill="#ffe5dc" fill-rule="nonzero"><path d="M18.25,3 C19.7687831,3 21,4.23121694 21,5.75 L21,18.25 C21,19.7687831 19.7687831,21 18.25,21 L5.75,21 C4.23121694,21 3,19.7687831 3,18.25 L3,5.75 C3,4.23121694 4.23121694,3 5.75,3 L18.25,3 Z M18.25,4.5 L5.75,4.5 C5.05964406,4.5 4.5,5.05964406 4.5,5.75 L4.5,18.25 C4.5,18.9403559 5.05964406,19.5 5.75,19.5 L18.25,19.5 C18.9403559,19.5 19.5,18.9403559 19.5,18.25 L19.5,5.75 C19.5,5.05964406 18.9403559,4.5 18.25,4.5 Z M10,14.4393398 L16.4696699,7.96966991 C16.7625631,7.6767767 17.2374369,7.6767767 17.5303301,7.96966991 C17.7965966,8.23593648 17.8208027,8.65260016 17.6029482,8.94621165 L17.5303301,9.03033009 L10.5303301,16.0303301 C10.2640635,16.2965966 9.84739984,16.3208027 9.55378835,16.1029482 L9.46966991,16.0303301 L6.46966991,13.0303301 C6.1767767,12.7374369 6.1767767,12.2625631 6.46966991,11.9696699 C6.73593648,11.7034034 7.15260016,11.6791973 7.44621165,11.8970518 L7.53033009,11.9696699 L10,14.4393398 L16.4696699,7.96966991 L10,14.4393398 Z"></path></g></svg>';
+      return '<svg width="24px" height="24px" viewBox="0 0 24 24"><g stroke="none" fill="#ffffff" fill-rule="nonzero"><path d="M18.25,3 C19.7687831,3 21,4.23121694 21,5.75 L21,18.25 C21,19.7687831 19.7687831,21 18.25,21 L5.75,21 C4.23121694,21 3,19.7687831 3,18.25 L3,5.75 C3,4.23121694 4.23121694,3 5.75,3 L18.25,3 Z M18.25,4.5 L5.75,4.5 C5.05964406,4.5 4.5,5.05964406 4.5,5.75 L4.5,18.25 C4.5,18.9403559 5.05964406,19.5 5.75,19.5 L18.25,19.5 C18.9403559,19.5 19.5,18.9403559 19.5,18.25 L19.5,5.75 C19.5,5.05964406 18.9403559,4.5 18.25,4.5 Z M10,14.4393398 L16.4696699,7.96966991 C16.7625631,7.6767767 17.2374369,7.6767767 17.5303301,7.96966991 C17.7965966,8.23593648 17.8208027,8.65260016 17.6029482,8.94621165 L17.5303301,9.03033009 L10.5303301,16.0303301 C10.2640635,16.2965966 9.84739984,16.3208027 9.55378835,16.1029482 L9.46966991,16.0303301 L6.46966991,13.0303301 C6.1767767,12.7374369 6.1767767,12.2625631 6.46966991,11.9696699 C6.73593648,11.7034034 7.15260016,11.6791973 7.44621165,11.8970518 L7.53033009,11.9696699 L10,14.4393398 L16.4696699,7.96966991 L10,14.4393398 Z"></path></g></svg>';
     }
-    return '<svg width="24px" height="24px" viewBox="0 0 24 24"><g stroke="none" fill="#ffe5dc" fill-rule="nonzero"><path d="M5.75,3 L18.25,3 C19.7687831,3 21,4.23121694 21,5.75 L21,18.25 C21,19.7687831 19.7687831,21 18.25,21 L5.75,21 C4.23121694,21 3,19.7687831 3,18.25 L3,5.75 C3,4.23121694 4.23121694,3 5.75,3 Z M5.75,4.5 C5.05964406,4.5 4.5,5.05964406 4.5,5.75 L4.5,18.25 C4.5,18.9403559 5.05964406,19.5 5.75,19.5 L18.25,19.5 C18.9403559,19.5 19.5,18.9403559 19.5,18.25 L19.5,5.75 C19.5,5.05964406 18.9403559,4.5 18.25,4.5 L5.75,4.5 Z"></path></g></svg>';
+    return '<svg width="24px" height="24px" viewBox="0 0 24 24"><g stroke="none" fill="#ffffff" fill-rule="nonzero"><path d="M5.75,3 L18.25,3 C19.7687831,3 21,4.23121694 21,5.75 L21,18.25 C21,19.7687831 19.7687831,21 18.25,21 L5.75,21 C4.23121694,21 3,19.7687831 3,18.25 L3,5.75 C3,4.23121694 4.23121694,3 5.75,3 Z M5.75,4.5 C5.05964406,4.5 4.5,5.05964406 4.5,5.75 L4.5,18.25 C4.5,18.9403559 5.05964406,19.5 5.75,19.5 L18.25,19.5 C18.9403559,19.5 19.5,18.9403559 19.5,18.25 L19.5,5.75 C19.5,5.05964406 18.9403559,4.5 18.25,4.5 L5.75,4.5 Z"></path></g></svg>';
+  },
+
+  getUnlockIcon: function () {
+    return '<svg width="12px" height="12px" viewBox="0 0 92.179 92.18"><g stroke="none" fill="#ffffff" fill-rule="nonzero"><path d="M73.437,36.54v-9.192C73.437,12.268,61.169,0,46.09,0S18.744,12.268,18.744,27.348h11.355 c0-8.818,7.173-15.992,15.991-15.992c8.817,0,15.991,7.174,15.991,15.992v9.192H9.884v55.64h72.411V36.54H73.437z M50.609,71.115 V83.33h-9.037V71.115c-2.102-1.441-3.482-3.858-3.482-6.6c0-4.418,3.582-8,8-8s8,3.582,8,8 C54.09,67.257,52.71,69.674,50.609,71.115z"/></g></svg>';
   }
 };

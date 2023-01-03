@@ -2706,12 +2706,15 @@ class LaserReflection extends Table {
     }
 
     function getTransformations() {
+        $transfos = [0, 1, 2, 3, 10, 11, 12, 20];
+
         if ($this->isTrainingMode()) {
             // in training mode everybody could have the same grid
-            return [0, 0, 0, 0, 0, 0, 0, 0];
+            $index = random_int(0, 7);
+            return array_fill(0, 8, $transfos[$index]);
         }
 
-        $transfos = [0, 1, 2, 3, 10, 11, 12, 20];
+
         $list = [];
         $result = [];
 

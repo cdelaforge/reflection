@@ -98,7 +98,7 @@ var jstpl_giveup = '\
 var jstpl_progressbar = '\
     <div id="${iid}" class="lrf_info">\
         <div id="${pid}" class="lrf_progress-bar__main">\
-            <div id="${sid}" class="lrf_progress-bar__container" style="box-shadow: 0 0 5px #${color};width:${bar_width}">\
+            <div id="${sid}" class="lrf_progress-bar__container" style="box-shadow: 0 0 5px #${color}">\
                 <div class="lrf_progress-bar" style="left:-${dec}%;background-color:#${color};">\
                     <span class="lrf_progress-bar__text" style="padding-left:${dec}%; display:${text_disp}">${progression}%</span>\
                 </div>\

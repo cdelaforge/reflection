@@ -207,6 +207,9 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
       setRunning,
       setSmart,
       setPartialSolutionAllowed,
+      resetLockedCells: () => {
+        setLock(initLock(squaresCount));
+      },
       setup: (p: GameSetup) => {
         setWon(false);
         setPlayerAction(false);
@@ -216,9 +219,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
 
         const grid = p.grid || initGrid(p.gridSize, p.portals);
         setGrid(grid);
-        if (!p.keepLock) {
-          setLock(initLock(p.gridSize));
-        };
+        setLock(p.lockedCells || initLock(p.gridSize));
 
         if (p.solution) {
           setSolution(p.solution);
@@ -300,6 +301,14 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
       setPlayerAction(false);
     }
   }, [mode, grid, playerAction]);
+
+  useEffect(() => {
+    const w: WindowWithGameMethods = window as any;
+    if (mode === "play" && w.game.onLockChange) {
+      const lockClone = [...lock.map((row) => [...row])];
+      w.game.onLockChange(lockClone);
+    }
+  }, [mode, lock]);
 
   useEffect(() => {
     const w: WindowWithGameMethods = window as any;
