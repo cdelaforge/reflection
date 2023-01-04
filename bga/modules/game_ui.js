@@ -147,7 +147,7 @@ const gameUI = {
   reset: function () {
     if (this.lockedCells && this.grid) {
       const grid = this.grid.map((row, rowIndex) => row.map((cell, colIndex) => {
-        return this.lockedCells[rowIndex][colIndex] ? cell : 0;
+        return cell === 7 || this.lockedCells[rowIndex][colIndex] ? cell : 0;
       }));
       this.setGrid(grid);
     } else {
