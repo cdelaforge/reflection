@@ -193,12 +193,12 @@
 .lrf_progress-bar__main {
     display: flex;
     flex-flow: column;
-    gap: 0.6em;
+    gap: 0.4em;
     justify-content: flex-end;
     align-items: center;
     width: 100%;
     padding-top: 0.5em;
-    padding-bottom: 0.5em;
+
 }
 
 .lrf_progress-bar__container {
@@ -233,13 +233,29 @@
     font-size: 12px;
 }
 
-.lrf_counter {
+/* Eye + counter */
+
+.lrf_status {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.lrf_eye {
     padding-left: 1em;
+    display: flex;
+    /* for eye vertical alignment : */
+    line-height: 23px;
+    cursor: pointer;
+    color: #000000;
+}
+
+.lrf_counter {
     font-size: 80%;
     line-height: 14px;
-    width: 100%;
     box-sizing: border-box;
     text-align: right;
+    line-height: 24px;
 }
 
 /* Resting bar */
@@ -414,6 +430,11 @@
     /* mobile device */
     .space #root {
         opacity: 1;
+    }
+
+    /* to avoid resize of the grid when a player starts or stops */
+    .player-board {
+        min-height: 110px;
     }
 }
 

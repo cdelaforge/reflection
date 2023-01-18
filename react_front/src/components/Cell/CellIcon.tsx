@@ -13,7 +13,7 @@ interface CellIconProps {
   row?: number;
   col?: number;
   stockIndex?: number;
-  display?: 'normal' | 'wrong' | 'solution' | 'team';
+  display?: 'normal' | 'wrong' | 'solution' | 'team' | 'resting';
   color?: string;
   transformed?: boolean;
 }
@@ -26,7 +26,7 @@ function CellIcon({ val, row, col, stockIndex, display, color, transformed }: Ce
     color = colors.wrong;
   } else if (display === 'solution') {
     color = colors.solution;
-  } else if (display !== 'team') {
+  } else if (display !== 'team' && display !== 'resting') {
     color = colors.black;
   }
 
@@ -37,7 +37,7 @@ function CellIcon({ val, row, col, stockIndex, display, color, transformed }: Ce
       isDragging: !!monitor.isDragging(),
     }),
     canDrag: () => {
-      return !isMobile && mode !== "empty" && mode !== "solution" && display !== "team" && (!row || !col || !lock[row][col]) && running && !won && val > 0 && val !== 7;
+      return !isMobile && mode !== "empty" && mode !== "solution" && display !== "team" && display !== "resting" && (!row || !col || !lock[row][col]) && running && !won && val > 0 && val !== 7;
     },
   }), [val, stockIndex, mode, running, won, lock]);
 
@@ -45,12 +45,10 @@ function CellIcon({ val, row, col, stockIndex, display, color, transformed }: Ce
     preview(getEmptyImage(), { captureDraggingState: true })
   }, [preview]);
 
-  const getDisplayedVal = () => {
-    return transformed ? transfoHelper.getDisplayedIcon(val) : val;
-  }
+  const displayedVal = transformed ? transfoHelper.getDisplayedIcon(val) : val;
 
   const getIconCode = () => {
-    switch (getDisplayedVal()) {
+    switch (displayedVal) {
       default:
         return <></>;
       case 1:
@@ -79,11 +77,13 @@ function CellIcon({ val, row, col, stockIndex, display, color, transformed }: Ce
   };
 
   const getOpacity = () => {
-    if (isDragging || display === "wrong") {
-      return "40%";
-    }
-    if (display === "team") {
-      return "20%";
+    if (displayedVal !== 7) {
+      if (isDragging || display === "wrong") {
+        return "40%";
+      }
+      if (display === "team") {
+        return "20%";
+      }
     }
     return "100%";
   }

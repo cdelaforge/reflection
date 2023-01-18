@@ -283,11 +283,26 @@ define([
                                     gameUI.puzzleUsers[id] = parseInt(publicData[id].id, 10);
                                 }
                             });
+                            if (gameUI.samePuzzle) {
+                                let spyPlayerId;
+                                Object.keys(gameUI.players).map(playerId => {
+                                    if (gameUI.puzzleUsers[playerId] == playerId) {
+                                        dojo.style("spy_" + playerId, "display", "none");
+                                    } else {
+                                        dojo.style("spy_" + playerId, "display", "");
+                                        if (!spyPlayerId) {
+                                            spyPlayerId = playerId;
+                                        }
+                                    }
+                                });
+                                gameUI.spyBoard(spyPlayerId);
+                            }
                             gameUI.refreshPuzzle();
 
                             gameUI.mode = 'play';
                         } else {
                             gameUI.buildTeamData();
+                            gameUI.shouldDisplayTeamEyes = true;
 
                             const savedGrid = gameUI.getSavedGrid();
                             const isPlaying = args.private_state && args.private_state.id === "51";
@@ -306,7 +321,11 @@ define([
                             gameUI.puzzle = JSON.parse(privateData.puzzle);
                             gameUI.puzzleUser = gameUI.players[privateData.id]; // player that did the puzzle
 
-                            gameUI.mode = isPlaying || privateData.grid ? 'play' : 'empty';
+                            if (gameUI.realtime && gameUI.samePuzzle && privateData.id == this.player_id) {
+                                gameUI.mode = "resting";
+                            } else {
+                                gameUI.mode = isPlaying || privateData.grid ? 'play' : 'empty';
+                            }
                         }
 
                         gameUI.setup();
@@ -321,6 +340,10 @@ define([
                         gameUI.setup();
                         gameUI.displayGrid();
                         break;
+                    case "puzzleResolvedWaitTeam":
+                        gameUI.players[this.player_id].state = "success";
+                        gameUI.shouldRefreshProgression = true;
+                        break;
                     case "puzzleSolution":
                         const data = args.args;
 
@@ -332,6 +355,7 @@ define([
                         break;
                     case "gameEnd":
                         gameUI.ended = true;
+                        gameUI.shouldRefreshProgression = true;
 
                         if (gameUI.soloMode === 100) {
                             gameUI.hideDesignArea();
@@ -447,7 +471,7 @@ define([
                         case "puzzleSolution":
                             this.removeActionButtons();
                             this.addActionButton('solutionDisplayEnd', _('OK'), 'onSolutionDisplayEnd');
-                            this.addActionButton('solutionOnly', "<div class='lrf_button_check'><span>" + _('Solution only') + "</span><span id='lrf_solution_check'>" + gameUI.getCheckBox(false) + "</span></div>", 'onSolutionOnly');
+                            this.addActionButton('solutionOnly', "<div class='lrf_button_check'><span>" + _('Solution only') + "</span><span id='lrf_solution_check'>" + gameUI.getCheckBox(false, '#ffffff') + "</span></div>", 'onSolutionOnly');
                             if (this.is_solo && gameUI.soloMode === 0) {
                                 this.addActionButton('stop', _('Stop'), 'onStop');
                             }
@@ -552,7 +576,7 @@ define([
             onSolutionOnly: function () {
                 gameUI.mode = (gameUI.mode === 'solution') ? 'solutionOnly' : 'solution';
                 gameUI.setup();
-                document.getElementById("lrf_solution_check").innerHTML = gameUI.getCheckBox(gameUI.mode === 'solutionOnly');
+                document.getElementById("lrf_solution_check").innerHTML = gameUI.getCheckBox(gameUI.mode === 'solutionOnly', '#ffffff');
             },
             onStop: function () {
                 if (!g_archive_mode) {
@@ -589,11 +613,12 @@ define([
                 dojo.subscribe('roundStart', this, "notif_roundStart");
                 dojo.subscribe('teamSelection', this, "notif_teamSelection");
                 dojo.subscribe('gridChange', this, "notif_gridChange");
-                dojo.subscribe('collectiveGiveup', this, "notif_collectiveGiveup");
                 dojo.subscribe('hearts', this, "notif_hearts");
 
                 if (this.isSpectator) {
                     dojo.subscribe('puzzleChange', this, "notif_puzzleChange");
+                } else {
+                    dojo.subscribe('collectiveGiveup', this, "notif_collectiveGiveup");
                 }
             },
 
@@ -659,14 +684,25 @@ define([
                     gameUI.players[playerId].grid = JSON.parse(notif.args.player_grid);
                     gameUI.refreshPuzzle(playerId);
                 } else if (g_archive_mode) {
-                    gameUI.setGrid(JSON.parse(notif.args.player_grid));
-                    gameUI.setup();
+                    if (playerId == this.player_id) {
+                        gameUI.setGrid(JSON.parse(notif.args.player_grid));
+                        gameUI.setup();
+                    }
                 } else if (gameUI.teamsCount > 0) {
                     const data = gameUI.teamData.find((t) => t.id === playerId);
                     if (data) {
                         data.grid = JSON.parse(notif.args.player_grid);
                         gameUI.refreshTeamData = true;
                     }
+                } else if (gameUI.realtime && gameUI.samePuzzle && gameUI.puzzleUser && gameUI.puzzleUser.id == this.player_id) {
+                    // we are the resting player, display the elements of other players
+                    let data = gameUI.teamData.find((t) => t.id === playerId);
+                    if (!data) {
+                        data = { id: playerId, color: '#' + gameUI.players[playerId].color };
+                        gameUI.teamData.push(data);
+                    }
+                    data.grid = JSON.parse(notif.args.player_grid);
+                    gameUI.refreshTeamData = true;
                 }
             },
 
@@ -785,7 +821,6 @@ define([
                         playerData.state = "failed";
                         playerData.duration = "0:00";
                         playerData.progression = 0;
-                        gameUI.shouldRefreshProgression = true;
                     } else if (notif.args.duration[0] === '0') {
                         playerData.duration = notif.args.duration.substring(1);
                         playerData.state = "success";
@@ -794,6 +829,9 @@ define([
                         playerData.state = "success";
                     }
                 });
+
+                gameUI.refreshTeamData = true;
+                gameUI.shouldRefreshProgression = true;
             },
 
             notif_roundStart: function (notif) {

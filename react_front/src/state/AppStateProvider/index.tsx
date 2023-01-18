@@ -16,7 +16,7 @@ export interface Teammate {
   grid?: number[][],
 }
 
-export type DisplayMode = 'puzzleCreation' | 'play' | 'empty' | 'solution' | 'solutionOnly' | 'view' | 'standalone';
+export type DisplayMode = 'puzzleCreation' | 'play' | 'empty' | 'solution' | 'solutionOnly' | 'view' | 'standalone' | 'resting';
 
 export interface IStateContext {
   mode: DisplayMode;
@@ -484,7 +484,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   };
 
   const displayLaser = (position: number, index: number) => {
-    if (displayLaserPosition === position && displayLaserIndex === index) {
+    if (mode === 'resting' || (displayLaserPosition === position && displayLaserIndex === index)) {
       setDisplayLaserPosition(undefined);
       setDisplayLaserIndex(undefined);
     } else {

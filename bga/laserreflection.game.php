@@ -363,7 +363,7 @@ class LaserReflection extends Table {
 
         $round = $this->getRound();
 
-        $sql = "SELECT player_id id, player_name name, player_grid grid, player_puzzle puzzle, player_state state FROM player ORDER BY player_no";
+        $sql = "SELECT player_id id, player_name name, player_grid grid, player_puzzle_grid puzzle_grid, player_puzzle puzzle, player_state state FROM player ORDER BY player_no";
         $players = self::getObjectListFromDB($sql);
         $cpt = count($players);
 
@@ -401,7 +401,7 @@ class LaserReflection extends Table {
             for ($i=0; $i<$cpt; $i++) {
                 $other_player_index = ($i + $round) % $cpt;
                 $result['_private'][$players[$i]['id']] = [
-                    'grid' => $players[$i]["grid"],
+                    'grid' => ($restingPlayerId == $players[$i]['id']) ? $players[$i]["puzzle_grid"] : $players[$i]["grid"],
                     'id' => $restingPlayerId,
                     'name' => $restingPlayerName,
                     'puzzle' => $jsonPuzzle,
@@ -1463,7 +1463,7 @@ class LaserReflection extends Table {
         }
 
         if ($everybodyAgree) {
-            self::notifyAllPlayers("log", '${icon} ${message}', [
+            self::notifyAllPlayers("stop", '${icon} ${message}', [
                 'icon' => $playerTeam['icon'],
                 'message' => [
                     'log' => clienttranslate('The ${team_name} team found the puzzle too hard and give up'),
@@ -1472,6 +1472,7 @@ class LaserReflection extends Table {
                         'i18n' => ['team_name']
                     ]
                 ],
+                'player_team' => $playerTeam['team'],
             ]);
 
             if ($this->isCooperativeMode()) {
@@ -1957,6 +1958,15 @@ class LaserReflection extends Table {
                 'player_team' => $player_team,
             ]);
             return;
+        }
+
+        if ($this->isModeResting() && $this->isRealTime()) {
+            // we send the event to the resting player
+            self::notifyPlayer($this->getRestingPlayerId(), "gridChange", "", [
+                'player_id' => $playerId,
+                'player_grid' => $jsonGrid,
+                'player_team' => $player_team,
+            ]);
         }
 
         if (!$this->isRealtimeTeamMode()) {

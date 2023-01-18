@@ -80,10 +80,12 @@ function Cell({ row, col, transform }: CellProps) {
       return <></>;
     }
 
-    const disp = (mode === "solution" && playerVal !== solutionVal) ? "wrong" : "normal";
+    const disp = (mode === "resting") ? "team" : ((mode === "solution" && playerVal !== solutionVal) ? "wrong" : "normal");
+    const color = (mode === "resting") ? colors.black : undefined;
+
     return (
       <CellContainerChild>
-        <CellIcon val={playerVal} row={row} col={col} display={disp} />
+        <CellIcon val={playerVal} row={row} col={col} display={disp} color={color} />
       </CellContainerChild>
     );
   }
@@ -100,16 +102,20 @@ function Cell({ row, col, transform }: CellProps) {
   }
 
   const getTeamCellIcons = () => {
-    if (!team || mode !== "play") {
+    if (!team || (mode !== "play" && mode !== "resting")) {
       return <></>;
     }
 
-    const teammates = team.filter(t => t.grid && t.grid[row][col] && t.grid[row][col] !== 7 && t.grid[row][col] !== grid[row][col]);
+    const teammates = (mode === "resting")
+      ? team.filter(t => t.grid && t.grid[row][col] && t.grid[row][col] !== 7)
+      : team.filter(t => t.grid && t.grid[row][col] && t.grid[row][col] !== 7 && t.grid[row][col] !== grid[row][col]);
+
     if (!teammates.length) {
       return <></>;
     }
 
     const values = [] as TeamValue[];
+    const cellIconDisplay = mode === 'resting' ? 'resting' : 'team';
 
     teammates.forEach(t => {
       const val = t.grid![row][col];
@@ -126,7 +132,7 @@ function Cell({ row, col, transform }: CellProps) {
       const key = `${row}_${col}_${index}`;
       return (
         <CellContainerChild key={key}>
-          <CellIcon val={v.val} row={row} col={col} display="team" color={v.color} />
+          <CellIcon val={v.val} row={row} col={col} display={cellIconDisplay} color={v.color} />
         </CellContainerChild>
       );
     });

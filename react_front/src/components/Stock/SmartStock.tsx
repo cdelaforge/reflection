@@ -52,7 +52,7 @@ function SmartStock() {
     };
   });
 
-  if (mode === "view" || mode === "solution" || mode === "solutionOnly") {
+  if (mode === "view" || mode === "solution" || mode === "solutionOnly" || mode === "resting") {
     return <></>;
   }
 

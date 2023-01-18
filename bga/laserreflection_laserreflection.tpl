@@ -48,7 +48,7 @@
         <div>
             <select onchange="gameUI.spyBoard(this.value)" id="playerSelect">
                 <!-- BEGIN player_board -->
-                <option value="{PLAYER_ID}">{PLAYER_NAME}</option>
+                <option id="spy_{PLAYER_ID}" value="{PLAYER_ID}">{PLAYER_NAME}</option>
                 <!-- END player_board -->
             </select>
         </div>
@@ -103,7 +103,10 @@ var jstpl_progressbar = '\
                     <span class="lrf_progress-bar__text" style="padding-left:${dec}%; display:${text_disp}">${progression}%</span>\
                 </div>\
             </div>\
-            <div id="${cid}" class="lrf_counter">${counter}</div>\
+            <div class="lrf_status">\
+                <div id="${did}" class="lrf_eye" onclick="gameUI.teamDisplay(${uid})"></div>\
+                <div id="${cid}" class="lrf_counter">${counter}</div>\
+            </div>\
         </div>\
         <div id="${tid}" class="lrf_resting" style="display:none">\
             <label id="${eid}"></label>\
