@@ -1563,7 +1563,7 @@ class LaserReflection extends Table {
             $playerTeam = $this->getPlayerTeamNameAndIcon($playerId);
 
             if ($timeout) {
-                self::notifyAllPlayers("stop", '${icon} ${message}', [
+                $data = [
                     'icon' => $playerTeam['icon'],
                     'message' => [
                         'log' => clienttranslate('The time limit for solving the puzzle ran out and ${player_name} was forced to give up.'),
@@ -1572,7 +1572,13 @@ class LaserReflection extends Table {
                         ]
                     ],
                     'player_id' => $playerId
-                ]);
+                ];
+
+                if ($this->isRealTime()) {
+                    $data['player_team'] = $playerTeam['team'];
+                }
+
+                self::notifyAllPlayers("stop", '${icon} ${message}', $data);
             } else {
                 self::notifyAllPlayers("stop", '${icon} ${message}', [
                     'icon' => $playerTeam['icon'],
