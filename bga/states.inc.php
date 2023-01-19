@@ -195,7 +195,7 @@ $machinestates = array(
         "initialprivate" => STATE_PLAY_PUZZLE_WAIT_PRIVATE,
         "action" => "stPlayPuzzleInit",
         "args" => "argPlayPuzzleInit",
-        "transitions" => ["next" => STATE_END_ROUND, "endGame" => STATE_END_GAME],
+        "transitions" => ["next" => STATE_END_ROUND, "endGame" => STATE_BEFORE_END_GAME],
         "updateGameProgression" => true
     ],
 
