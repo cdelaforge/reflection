@@ -164,14 +164,6 @@ define([
 
                     gameUI.realtime = gameUI.trainingMode || ['0', '1', '2', '9'].some(s => s == data["tablespeed"]);
 
-                    gameUI.durations = data.durations;
-                    if (data.boards) {
-                        gameUI.boards = data.boards.map(g => { return { pgk: g.pgk, grid: JSON.parse(g.grid) } });
-                    }
-                    if (data.puzzles) {
-                        gameUI.puzzles = data.puzzles.map(p => JSON.parse(p));
-                        gameUI.buildRoundsPuzzleSelect();
-                    }
                     if (data.round_puzzle) {
                         gameUI.puzzle = JSON.parse(data.round_puzzle);
                     }
@@ -356,6 +348,19 @@ define([
                     case "gameEnd":
                         gameUI.ended = true;
                         gameUI.shouldRefreshProgression = true;
+
+                        if (gameUI.modeRandom) {
+                            gameUI.puzzles = args.args.puzzles.map(p => JSON.parse(p));
+                            gameUI.durations = args.args.durations;
+                            gameUI.boards = args.args.boards.map(g => { return { pgk: g.pgk, grid: JSON.parse(g.grid) } });
+                            gameUI.buildRoundsPuzzleSelect();
+                        } else {
+                            for (let player_id in args.args.puzzles) {
+                                gameUI.players[player_id].grid = JSON.parse(args.args.puzzles[player_id]);
+                            }
+                            gameUI.durations = args.args.durations;
+                            gameUI.boards = args.args.boards.map(g => { return { pgk: g.pgk, grid: JSON.parse(g.grid) } });
+                        }
 
                         if (gameUI.soloMode === 100) {
                             gameUI.hideDesignArea();
@@ -606,8 +611,6 @@ define([
                 dojo.subscribe('puzzleCreated', this, "notif_puzzleCreated");
                 dojo.subscribe('progression', this, "notif_progression");
                 dojo.subscribe('roundScores', this, "notif_roundScores");
-                dojo.subscribe('playersPuzzle', this, "notif_playersPuzzle");
-                dojo.subscribe('roundsPuzzle', this, "notif_roundsPuzzle");
                 dojo.subscribe('start', this, "notif_start");
                 dojo.subscribe('stop', this, "notif_stop");
                 dojo.subscribe('roundStart', this, "notif_roundStart");
@@ -770,24 +773,6 @@ define([
                         this.scoreCtrl[player_id].incValue(notif.args.roundScores[player_id]);
                     }
                 }
-            },
-
-            notif_playersPuzzle: function (notif) {
-                console.log("notif_playersPuzzle", notif);
-
-                for (let player_id in notif.args.puzzles) {
-                    gameUI.players[player_id].grid = JSON.parse(notif.args.puzzles[player_id]);
-                }
-                gameUI.durations = notif.args.durations;
-                gameUI.boards = notif.args.boards.map(g => { return { pgk: g.pgk, grid: JSON.parse(g.grid) } });
-            },
-
-            notif_roundsPuzzle: function (notif) {
-                console.log("notif_roundsPuzzle", notif);
-                gameUI.puzzles = notif.args.puzzles.map(p => JSON.parse(p));
-                gameUI.durations = notif.args.durations;
-                gameUI.boards = notif.args.boards.map(g => { return { pgk: g.pgk, grid: JSON.parse(g.grid) } });
-                gameUI.buildRoundsPuzzleSelect();
             },
 
             notif_start: function (notif) {

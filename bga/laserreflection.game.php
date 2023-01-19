@@ -275,20 +275,7 @@ class LaserReflection extends Table {
             $result['params'][] = ['key' => 'resting_player', 'val' => $restingPlayerId];
         }
 
-        if ($gameEnded) {
-            $gameResults = $this->getGameResults();
-            $result['durations'] = $gameResults['durations'];
-            $result['boards'] = $gameResults['boards'];
-
-            if ($this->isModeRandom()) {
-                $grids = $gameResults['grids'];
-                $puzzles = [];
-                foreach ($grids as $grid_id => $elt) {
-                    $puzzles[] = $elt['grid'];
-                }
-                $result['puzzles'] = $puzzles;
-            }
-        } else if ($this->isModeRandom()) {
+        if ($this->isModeRandom()) {
             $result['round_puzzle'] = $this->getGameDbValue('puzzle');
         }
 
@@ -430,9 +417,7 @@ class LaserReflection extends Table {
         return $result;
     }
 
-    function argPlayPuzzleInitPrivate() {
-        $playerId = $this->getCurrentPlayerId();
-
+    function argPlayPuzzleInitPrivate($playerId) {
         if ($this->isModeRandom()) {
             return [
                 'otherplayer' => "Robby 🤖",
@@ -472,9 +457,7 @@ class LaserReflection extends Table {
         ];
     }
 
-    function argSolutionDisplay() {
-        $playerId = $this->getCurrentPlayerId();
-
+    function argSolutionDisplay($playerId) {
         if ($this->isModeRandom()) {
             $jsonGrid = $this->getGameDbValue('grid');
         } else {
@@ -483,6 +466,37 @@ class LaserReflection extends Table {
         }
 
         $result = ['grid' => $jsonGrid];
+        return $result;
+    }
+
+    function argGameEndCustom() {
+        $result = $this->argGameEnd();
+
+        $gameResults = $this->getGameResults();
+        $durations = $gameResults['durations'];
+        $boards = $gameResults['boards'];
+        $puzzles = [];
+
+        if ($this->isModeRandom()) {
+            $grids = $gameResults['grids'];
+
+            foreach ($grids as $grid_id => $elt) {
+                $puzzles[] = $elt['grid'];
+            }
+        } else {
+            $sql = "SELECT player_id id, player_puzzle_grid grid FROM player";
+            $players = self::getObjectListFromDB($sql);
+
+            foreach ($players as $player_id => $player) {
+                $playerId = $player['id'];
+                $puzzles[$playerId] = $player['grid'];
+            }
+        }
+
+        $result['puzzles'] = $puzzles;
+        $result['durations'] = $durations;
+        $result['boards'] = $boards;
+
         return $result;
     }
 
@@ -1005,9 +1019,12 @@ class LaserReflection extends Table {
     }
 
     function stEndGame() {
-        $this->calcStats();
-        $this->sendAllPuzzles();
         $this->gamestate->nextState("endGame");
+    }
+
+    function stGameEndCustom() {
+        $this->calcStats();
+        $this->stGameEnd();
     }
 
     /* Player actions */
@@ -2568,33 +2585,6 @@ class LaserReflection extends Table {
     function goToEnd() {
         $this->setGameStateValue('ended', 1);
         $this->gamestate->nextState("endGame");
-    }
-
-    function sendAllPuzzles() {
-        $gameResults = $this->getGameResults();
-        $durations = $gameResults['durations'];
-        $boards = $gameResults['boards'];
-        $puzzles = [];
-
-        if ($this->isModeRandom()) {
-            $grids = $gameResults['grids'];
-
-            foreach ($grids as $grid_id => $elt) {
-                $puzzles[] = $elt['grid'];
-            }
-
-            self::notifyAllPlayers("roundsPuzzle", '', [ 'puzzles' => $puzzles, 'durations' => $durations, 'boards' => $boards ]);
-        } else {
-            $sql = "SELECT player_id id, player_puzzle_grid grid FROM player";
-            $players = self::getObjectListFromDB($sql);
-
-            foreach ($players as $player_id => $player) {
-                $playerId = $player['id'];
-                $puzzles[$playerId] = $player['grid'];
-            }
-
-            self::notifyAllPlayers("playersPuzzle", '', [ 'puzzles' => $puzzles, 'durations' => $durations, 'boards' => $boards ]);
-        }
     }
 
     function getPuzzleOwner($playerId) {
