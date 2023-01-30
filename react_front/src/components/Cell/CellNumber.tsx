@@ -38,14 +38,15 @@ interface CellNumberProps {
 }
 
 function CellNumber({ valStr, isCorrect }: CellNumberProps) {
-  const { cellSize } = useAppState();
+  const { cellSize, simplifiedDisplay } = useAppState();
   const type = getType(valStr);
   const val = parseInt(valStr, 10) || 0;
   const backColor = backColors.get(type) || colors.green;
   const backClassName = backClassNames.get(type) || "lrf_cell_green";
+  const dispVal = simplifiedDisplay && type === ReflectionType.r ? (val + 1) >> 1 : val;
 
   return <CellNumberBack size={cellSize - 2} className={backClassName} backColor={backColor} isCorrect={isCorrect}>
-    <NumberIcon size={cellSize - 2} val={val} />
+    <NumberIcon size={cellSize - 2} val={dispVal} />
   </CellNumberBack>
 }
 

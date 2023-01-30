@@ -676,7 +676,7 @@ $game_options = [
 ];
 
 $game_preferences = [
-    100 => array(
+    100 => [
         'name' => totranslate('Stack items in the stock'),
         'needReload' => false,
         'values' => [
@@ -684,8 +684,17 @@ $game_preferences = [
             2 => [ 'name' => totranslate( 'No' ) ]
         ],
         'default' => 1
-    ),
-    105 => array(
+    ],
+    103 => [
+        'name' => totranslate('When laser returns to its starting point'),
+        'needReload' => false,
+        'values' => [
+            1 => [ 'name' => totranslate( 'display number of cells traveled (default)' ) ],
+            2 => [ 'name' => totranslate( 'display number of cells traveled before laser goes back' ) ]
+        ],
+        'default' => 1
+    ],
+    105 => [
         'name' => totranslate('Show only icons in buttons'),
         'needReload' => false,
         'values' => [
@@ -693,8 +702,8 @@ $game_preferences = [
             2 => [ 'name' => totranslate( 'No' ) ]
         ],
         'default' => 2
-    ),
-    110 => array(
+    ],
+    110 => [
         'name' => totranslate('Background'),
         'needReload' => false,
         'values' => [
@@ -702,8 +711,8 @@ $game_preferences = [
             10 => [ 'name' => 'Space', 'cssPref' => 'space' ]
         ],
         'default' => 10
-    ),
-    150 => array(
+    ],
+    150 => [
         'name' => totranslate('Colorblind support'),
         'needReload' => false,
         'values' => [
@@ -711,5 +720,5 @@ $game_preferences = [
             10 => [ 'name' => 'Stripes', 'cssPref' => 'lrf_stripes' ]
         ],
         'default' => 0
-    ),
+    ],
 ];

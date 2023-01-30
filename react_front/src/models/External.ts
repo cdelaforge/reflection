@@ -15,6 +15,7 @@ export interface GameSetup {
 export interface WindowWithGameMethods {
   game: {
     setSmart: (s: boolean) => void;
+    setSimplifiedDisplay: (s: boolean) => void;
     setRunning: (r: boolean) => void;
     setup: (p: GameSetup) => number[][];
     resetLockedCells: () => void;

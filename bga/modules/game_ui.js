@@ -102,6 +102,7 @@ const gameUI = {
     securedLive();
     setInterval(securedLive, 500);
     window.game.setSmart(dojoGame.prefs[100].value == 1);
+    window.game.setSimplifiedDisplay(dojoGame.prefs[103].value == 2);
     window.game.setPartialSolutionAllowed(this.partialSolutionAllowed);
 
     this.liveLoop = 0;
@@ -466,8 +467,16 @@ const gameUI = {
       this.giveUp = false;
       this.timeout = false;
       this.shouldSendProgression = false;
-      this.callAction("puzzleResolve", { grid: JSON.stringify(this.grid) }, true, "post");
-      this.clearSavedGrid();
+      this.callAction("puzzleResolve", { grid: JSON.stringify(this.grid) }, true, "post", (error) => {
+        if (error) {
+          // we are not connected to internet, retry in 5 seconds
+          setTimeout(() => {
+            this.resolved = true;
+          }, 5000);
+        } else {
+          this.clearSavedGrid();
+        }
+      });
     }
 
     if (this.giveUpPropose) {

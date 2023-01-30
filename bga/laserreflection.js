@@ -62,6 +62,8 @@ define([
                 console.log("Preference changed", prefId, prefValue);
                 if (prefId === "100") {
                     window.game.setSmart(prefValue === "1");
+                } else if (prefId === "103") {
+                    window.game.setSimplifiedDisplay(prefValue === "2");
                 } else if (prefId === "105") {
                     gameUI.showOnlyIcons = prefValue === "1";
                     if (this.lastStateName) {
