@@ -976,7 +976,7 @@ const gameUI = {
       this.elements = items;
       this.elementsCount = items.length;
       this.gridSize = grid.length;
-      this.portals = portals;
+      this.portals = this._checkPortals(portals);
       this.callAction("seedValidate", { grid: JSON.stringify(grid) }, true, "post");
     } else {
       this.dojoGame.showMessage(_("This is not a valid seed code"), "error");
