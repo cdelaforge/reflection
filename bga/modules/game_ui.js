@@ -467,14 +467,14 @@ const gameUI = {
       this.giveUp = false;
       this.timeout = false;
       this.shouldSendProgression = false;
+      this.clearSavedGrid();
       this.callAction("puzzleResolve", { grid: JSON.stringify(this.grid) }, true, "post", (error) => {
         if (error) {
           // we are not connected to internet, retry in 5 seconds
+          this.saveGrid();
           setTimeout(() => {
             this.resolved = true;
           }, 5000);
-        } else {
-          this.clearSavedGrid();
         }
       });
     }
