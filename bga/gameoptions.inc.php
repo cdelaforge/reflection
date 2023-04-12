@@ -42,6 +42,62 @@ $game_options = [
                 'value' => 1,
             ],
         ],
+        'startcondition' => [
+            0 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 201,
+                    'value' => 0,
+                    'message' => totranslate('Solo mode requires the game speed to be set to "No time limit"'),
+                    'gamestartonly' => true,
+                ]
+            ],
+            3 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 201,
+                    'value' => 0,
+                    'message' => totranslate('Solo mode requires the game speed to be set to "No time limit"'),
+                    'gamestartonly' => true,
+                ]
+            ],
+            6 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 201,
+                    'value' => 0,
+                    'message' => totranslate('Solo mode requires the game speed to be set to "No time limit"'),
+                    'gamestartonly' => true,
+                ]
+            ],
+            10 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 201,
+                    'value' => 0,
+                    'message' => totranslate('Solo mode requires the game speed to be set to "No time limit"'),
+                    'gamestartonly' => true,
+                ]
+            ],
+            100 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 201,
+                    'value' => 0,
+                    'message' => totranslate('Solo mode requires the game speed to be set to "No time limit"'),
+                    'gamestartonly' => true,
+                ]
+            ],
+            101 => [
+                [
+                    'type' => 'otheroptionisnot',
+                    'id' => 201,
+                    'value' => 0,
+                    'message' => totranslate('Solo mode requires the game speed to be set to "No time limit"'),
+                    'gamestartonly' => true,
+                ]
+            ],
+        ]
     ],
     103 => [
         'name' => totranslate('Multiplayer mode'),
@@ -67,7 +123,7 @@ $game_options = [
                 [
                     'type' => 'minplayers',
                     'value' => 2,
-                    'message' => totranslate('Lower the number of players to "1" to select a solo game mode.'),
+                    'message' => totranslate('Solo mode requires the game speed to be set to "No time limit"'),
                     'gamestartonly' => true,
                 ]
             ],
@@ -75,7 +131,7 @@ $game_options = [
                 [
                     'type' => 'minplayers',
                     'value' => 2,
-                    'message' => totranslate('Lower the number of players to "1" to select a solo game mode.'),
+                    'message' => totranslate('Solo mode requires the game speed to be set to "No time limit"'),
                     'gamestartonly' => true,
                 ]
             ],
@@ -119,7 +175,7 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 201,
                     'value' => 0,
-                    'message' => totranslate('Cooperation is only possible in "Training" mode.'),
+                    'message' => totranslate('Cooperation mode requires the game speed to be set to "No time limit"'),
                     'gamestartonly' => true,
                 ]
             ],
@@ -348,7 +404,7 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 201,
                     'value' => 0,
-                    'message' => totranslate('You must use the training mode to play with less than 8 elements'),
+                    'message' => totranslate('The game speed should be set to "No time limit" to play with less than 8 elements'),
                     'gamestartonly' => true,
                 ]
             ],
@@ -357,7 +413,7 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 201,
                     'value' => 0,
-                    'message' => totranslate('You must use the training mode to play with less than 8 elements'),
+                    'message' => totranslate('The game speed should be set to "No time limit" to play with less than 8 elements'),
                     'gamestartonly' => true,
                 ]
             ],
@@ -366,7 +422,7 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 201,
                     'value' => 0,
-                    'message' => totranslate('You must use the training mode to play with less than 8 elements'),
+                    'message' => totranslate('The game speed should be set to "No time limit" to play with less than 8 elements'),
                     'gamestartonly' => true,
                 ]
             ],
@@ -375,7 +431,7 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 201,
                     'value' => 0,
-                    'message' => totranslate('You must use the training mode to play with less than 8 elements'),
+                    'message' => totranslate('The game speed should be set to "No time limit" to play with less than 8 elements'),
                     'gamestartonly' => true,
                 ]
             ],
@@ -384,7 +440,7 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 201,
                     'value' => 0,
-                    'message' => totranslate('You must use the training mode to play with less than 8 elements'),
+                    'message' => totranslate('The game speed should be set to "No time limit" to play with less than 8 elements'),
                     'gamestartonly' => true,
                 ]
             ],
