@@ -203,6 +203,10 @@ define([
                     // Setup game notifications to handle (see "setupNotifications" method below)
                     this.setupNotifications();
 
+                    if (!this.isSpectator) {
+                        gameUI.doAdd();
+                    }
+
                     console.log("Ending game setup");
                 }
                 catch (error) {
@@ -212,7 +216,6 @@ define([
                     }, 7000);
                 }
             },
-
 
             ///////////////////////////////////////////////////
             //// Game & client states

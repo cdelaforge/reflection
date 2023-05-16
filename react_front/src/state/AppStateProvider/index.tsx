@@ -229,15 +229,17 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
           setSolution(p.solution);
         }
 
-        let toSolve = p.puzzle;
-        if (!toSolve) {
-          toSolve = initPuzzle(p.gridSize, p.mode, p.elements, p.portals);
-          if (p.solution) {
-            toSolve = checker.checkGrid(p.solution, toSolve);
+        if (p.puzzle) {
+          let toSolve = p.puzzle;
+          if (!toSolve) {
+            toSolve = initPuzzle(p.gridSize, p.mode, p.elements, p.portals);
+            if (p.solution) {
+              toSolve = checker.checkGrid(p.solution, toSolve);
+            }
           }
+          toSolve = toSolve.map(l => l.map(v => v.replace('w', 's')));
+          setToSolve(toSolve);
         }
-        toSolve = toSolve.map(l => l.map(v => v.replace('w', 's')));
-        setToSolve(toSolve);
 
         if (p.elements) {
           const elements = p.elements.sort();
