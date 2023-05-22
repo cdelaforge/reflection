@@ -229,7 +229,9 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
           setSolution(p.solution);
         }
 
-        if (p.puzzle) {
+        if (p.mode === 'puzzleCreation') {
+          setToSolve(initPuzzle(p.gridSize));
+        } else if (p.puzzle) {
           let toSolve = p.puzzle;
           if (!toSolve) {
             toSolve = initPuzzle(p.gridSize, p.mode, p.elements, p.portals);
