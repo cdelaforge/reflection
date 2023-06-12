@@ -35,6 +35,7 @@ export interface IStateContext {
   stock: number[];
   stockIndex?: number;
   smart: boolean;
+  hoverDisplay: boolean,
   simplifiedDisplay: boolean;
   setStockIndex: (index?: number) => void;
 
@@ -140,6 +141,7 @@ const initialData: IStateContext = {
   squaresCount: 8,
   elementsCount: 15,
   smart: true,
+  hoverDisplay: true,
   simplifiedDisplay: false,
   elements: [],
   stock: [1, 1, 2, 2, 2, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7],
@@ -199,6 +201,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
   const [team, setTeam] = useState<Teammate[]>();
   const [transformations, setTransformations] = useState(initialData.transformations);
   const [smart, setSmart] = useState(initialData.smart);
+  const [hoverDisplay, setHoverDisplay] = useState(initialData.smart);
   const [simplifiedDisplay, setSimplifiedDisplay] = useState(initialData.simplifiedDisplay);
   const [partialSolutionAllowed, setPartialSolutionAllowed] = useState(true);
 
@@ -209,6 +212,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     w.game = {
       setRunning,
       setSmart,
+      setHoverDisplay,
       setSimplifiedDisplay,
       setPartialSolutionAllowed,
       resetLockedCells: () => {
@@ -526,6 +530,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
     team,
     transformations,
     smart,
+    hoverDisplay,
     simplifiedDisplay,
     ...gridDimensions
   };

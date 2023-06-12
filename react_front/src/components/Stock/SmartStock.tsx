@@ -15,6 +15,31 @@ const direction: Record<string, number> = {
 function SmartStock() {
   const { mode, squaresCount, gridSize, cellSize, displayMode, stock, transformations, stockIndex, setStockIndex, elements } = useAppState();
 
+  const incStock = (inc: number) => {
+    const item = data.find((d) => d.index === stockIndex);
+    let itemTypeIndex = itemTypes.findIndex((it) => it.val === item?.val);
+
+    while (true) {
+      itemTypeIndex += inc;
+
+      if (itemTypeIndex >= itemTypes.length && inc > 0) {
+        itemTypeIndex = 0;
+      } else if (itemTypeIndex < 0 && inc < 0) {
+        itemTypeIndex = itemTypes.length - 1;
+      }
+
+      const itemType = itemTypes[itemTypeIndex];
+      if (!itemType) {
+        break;
+      }
+      const d = data.find((d) => d.val === itemType?.val);
+      if (d) {
+        setStockIndex(d?.index);
+        break;
+      }
+    }
+  }
+
   const onKeydown = (evt: KeyboardEvent) => {
     const isTargetInput = evt.target && ["input", "textarea"].some(t => t === (evt.target as any).type);
 
@@ -22,21 +47,7 @@ function SmartStock() {
       const inc = direction[evt.key];
 
       if (inc !== undefined) {
-        const item = data.find((d) => d.index === stockIndex);
-        let itemTypeIndex = itemTypes.findIndex((it) => it.val === item?.val);
-
-        while (itemTypeIndex >= 0) {
-          itemTypeIndex += inc;
-          const itemType = itemTypes[itemTypeIndex];
-          if (!itemType) {
-            break;
-          }
-          const d = data.find((d) => d.val === itemType?.val);
-          if (d) {
-            setStockIndex(d?.index);
-            break;
-          }
-        }
+        incStock(inc);
 
         evt.preventDefault();
         evt.stopPropagation();
@@ -44,11 +55,25 @@ function SmartStock() {
     }
   };
 
+  const onMousewheel = (evt: WheelEvent) => {
+    if (stockIndex !== undefined) {
+      console.log(evt.deltaY);
+      const inc = evt.deltaY > 0 ? 1 : -1;
+
+      incStock(inc);
+
+      evt.preventDefault();
+      evt.stopPropagation();
+    }
+  };
+
   useEffect(() => {
     document.addEventListener("keydown", onKeydown);
+    document.getElementById('root')?.addEventListener("wheel", onMousewheel);
 
     return () => {
       document.removeEventListener("keydown", onKeydown);
+      document.getElementById('root')?.removeEventListener("wheel", onMousewheel);
     };
   });
 

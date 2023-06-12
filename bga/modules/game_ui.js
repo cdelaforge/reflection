@@ -102,6 +102,7 @@ const gameUI = {
     securedLive();
     setInterval(securedLive, 500);
     window.game.setSmart(dojoGame.prefs[100].value == 1);
+    window.game.setHoverDisplay(dojoGame.prefs[101].value == 1);
     window.game.setSimplifiedDisplay(dojoGame.prefs[103].value == 2);
     window.game.setPartialSolutionAllowed(this.partialSolutionAllowed);
 

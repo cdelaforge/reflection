@@ -1,3 +1,5 @@
+import styled from "@emotion/styled";
+
 import { LaserIcon } from "../../icons/LaserIcon";
 import { useAppState } from "../../state/AppStateProvider";
 import { CellBackground, CellContainer, CellContainerChild } from "./Cell.Styles";
@@ -6,6 +8,15 @@ import { useDrop } from 'react-dnd';
 import { colors } from "../../helpers/Style";
 import { TransformContainer } from "../Misc.Styles";
 import PadLockIcon from "../../icons/PadLockIcon";
+
+const CellContainerChildOver = styled(CellContainerChild)`
+  & div {
+    display: none;
+  },
+  &:hover div {
+    display : blocked;
+  }
+`;
 
 interface CellProps {
   row: number;
@@ -19,7 +30,7 @@ interface TeamValue {
 }
 
 function Cell({ row, col, transform }: CellProps) {
-  const { cellSize, grid, solution, team, setGridElement, moveGridElement, laserElements, mode, lock, lockCell } = useAppState();
+  const { cellSize, grid, solution, team, setGridElement, moveGridElement, laserElements, mode, lock, lockCell, stock, stockIndex, hoverDisplay } = useAppState();
 
   const [, drop] = useDrop(
     () => ({
@@ -88,7 +99,7 @@ function Cell({ row, col, transform }: CellProps) {
         <CellIcon val={playerVal} row={row} col={col} display={disp} color={color} />
       </CellContainerChild>
     );
-  }
+  };
 
   const getSolutionCellIcon = (playerVal: number, solutionVal: number) => {
     if (solutionVal && ((mode === "solution" && playerVal !== solutionVal) || (mode === "solutionOnly"))) {
@@ -99,7 +110,19 @@ function Cell({ row, col, transform }: CellProps) {
       );
     }
     return <></>;
-  }
+  };
+
+  const getMouseOverCellIcon = () => {
+    if (!hoverDisplay || (mode !== 'play' && mode !== 'puzzleCreation') || lock[row][col] || stockIndex === undefined || playerVal) {
+      return <></>;
+    }
+
+    return (
+      <CellContainerChildOver>
+        <CellIcon val={stock[stockIndex]} row={row} col={col} display='team' color={'black'} />
+      </CellContainerChildOver>
+    );
+  };
 
   const getTeamCellIcons = () => {
     if (!team || (mode !== "play" && mode !== "resting")) {
@@ -136,7 +159,7 @@ function Cell({ row, col, transform }: CellProps) {
         </CellContainerChild>
       );
     });
-  }
+  };
 
   const getPadLock = () => {
     if (lock[row][col]) {
@@ -164,6 +187,7 @@ function Cell({ row, col, transform }: CellProps) {
       {getTeamCellIcons()}
       {getPlayerCellIcon(playerVal, solutionVal)}
       {getSolutionCellIcon(playerVal, solutionVal)}
+      {getMouseOverCellIcon()}
     </CellContainer>
   );
 }

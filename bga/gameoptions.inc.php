@@ -741,6 +741,15 @@ $game_preferences = [
         ],
         'default' => 1
     ],
+    101 => [
+        'name' => totranslate('Display on cell hover'),
+        'needReload' => false,
+        'values' => [
+            1 => [ 'name' => totranslate( 'Item selected from stock' ) ],
+            2 => [ 'name' => totranslate( 'Nothing' ) ]
+        ],
+        'default' => 1
+    ],
     103 => [
         'name' => totranslate('When laser returns to its starting point'),
         'needReload' => false,
