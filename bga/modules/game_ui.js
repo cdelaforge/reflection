@@ -636,7 +636,7 @@ const gameUI = {
   },
 
   isGridCorrect: function () {
-    if (!this.portals || !this.grid) {
+    if (!this._checkPortals(this.portals) || !this.grid) {
       return true;
     }
     if (this.grid[this.portals[0]][this.portals[1]] !== 7) {
