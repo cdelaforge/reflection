@@ -17,9 +17,14 @@ function SmartStock() {
 
   const incStock = (inc: number) => {
     const item = data.find((d) => d.index === stockIndex);
-    let itemTypeIndex = itemTypes.findIndex((it) => it.val === item?.val);
+    const startIndex = itemTypes.findIndex((it) => it.val === item?.val);
+    let itemTypeIndex = startIndex;
 
-    while (true) {
+    if (startIndex < 0) {
+      return;
+    }
+
+    do {
       itemTypeIndex += inc;
 
       if (itemTypeIndex >= itemTypes.length && inc > 0) {
@@ -38,6 +43,7 @@ function SmartStock() {
         break;
       }
     }
+    while (itemTypeIndex !== startIndex);
   }
 
   const onKeydown = (evt: KeyboardEvent) => {
