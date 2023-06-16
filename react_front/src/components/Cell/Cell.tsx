@@ -177,10 +177,19 @@ function Cell({ row, col, transform }: CellProps) {
   const playerVal = getPlayerVal();
   const solutionVal = getSolutionVal();
 
+  const isLocked = () => {
+    try {
+      return lock[row][col] ? 'locked' : 'grid';
+    }
+    catch (error) {
+      return 'grid';
+    }
+  };
+
   return (
     <CellContainer size={cellSize} onContextMenu={rightClick} onClick={clickCell} ref={drop} id={`lrf_cell_${row}_${col}`}>
       <CellContainerChild>
-        <CellBackground type={lock[row][col] ? "locked" : "grid"} size={cellSize} />
+        <CellBackground type={isLocked()} size={cellSize} />
       </CellContainerChild>
       {getPadLock()}
       {cellLaserElements}

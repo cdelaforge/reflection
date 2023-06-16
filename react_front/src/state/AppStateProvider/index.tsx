@@ -215,9 +215,7 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
       setHoverDisplay,
       setSimplifiedDisplay,
       setPartialSolutionAllowed,
-      resetLockedCells: () => {
-        setLock(initLock(squaresCount));
-      },
+      resetLockedCells: () => setLock(initLock(8)),
       setup: (p: GameSetup) => {
         setWon(false);
         setPlayerAction(false);
@@ -294,6 +292,11 @@ export function AppStateProvider(props: React.PropsWithChildren<{}>) {
       }
     }
   }, []);
+
+  useEffect(() => {
+    const w: WindowWithGameMethods = window as any;
+    w.game.resetLockedCells = () => setLock(initLock(squaresCount));
+  }, [squaresCount]);
 
   useEffect(() => {
     const handleResize = () => {
