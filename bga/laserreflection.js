@@ -157,6 +157,9 @@ define([
                             case "solo_mode":
                                 gameUI.soloMode = parseInt(p.val, 10);
                                 break;
+                            case "realtime_mode":
+                                gameUI.realtime = p.val;
+                                break;
                             case "cooperative_mode":
                                 gameUI.cooperativeMode = parseInt(p.val, 10);
                                 break;
@@ -165,8 +168,6 @@ define([
                                 break;
                         }
                     });
-
-                    gameUI.realtime = gameUI.trainingMode || ['0', '1', '2', '9'].some(s => s == data["tablespeed"]);
 
                     if (data.round_puzzle) {
                         gameUI.puzzle = JSON.parse(data.round_puzzle);

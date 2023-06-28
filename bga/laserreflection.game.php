@@ -234,6 +234,7 @@ class LaserReflection extends Table {
         $result['params'][] = ['key' => 'ended', 'val' => $this->isGameEnded()];
         $result['params'][] = ['key' => 'time_limit', 'val' => $this->getTimeLimit()];
         $result['params'][] = ['key' => 'training_mode', 'val' => $this->isTrainingMode()];
+        $result['params'][] = ['key' => 'realtime_mode', 'val' => $this->isRealTime()];
         $result['params'][] = ['key' => 'teams', 'val' => $this->getTeamsCount()];
         $result['params'][] = ['key' => 'round', 'val' => $this->getRound()];
 
@@ -1944,7 +1945,7 @@ class LaserReflection extends Table {
     }
 
     function isRealTime() {
-        return $this->isTrainingMode() || !$this->isAsync();
+        return /*$this->isTrainingMode() ||*/ !$this->isAsync();
     }
 
     function isRealtimeTeamMode() {
