@@ -460,3 +460,27 @@ div.lrf_button_check>span:last-child {
     background-size: 10px 10px !important;
     background-position: 25px 25px !important;
 }
+
+html.darkmode #lrf_end,
+html.darkmode #lrf_spectator {
+    background: #272a2f;
+}
+
+html.darkmode #lrf_end div,
+html.darkmode #lrf_spectator div {
+    color: white;
+}
+
+html.darkmode select,
+html.darkmode input {
+    color-scheme: dark;
+}
+
+html.darkmode #lrf_end_seed_copy,
+html.darkmode #lrf_design_copy {
+    filter: invert(1);
+}
+
+html.darkmode #lrf_design {
+    background-image: none;
+}
