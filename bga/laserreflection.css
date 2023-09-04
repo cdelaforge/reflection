@@ -484,3 +484,39 @@ html.darkmode #lrf_design_copy {
 html.darkmode #lrf_design {
     background-image: none;
 }
+
+html.darkmode .lrf_team {
+    color: black;
+}
+
+html.darkmode .lrf_team_selected {
+    color: white;
+}
+
+html.darkmode #lrf_team_1.lrf_team_selected {
+    background-color: #011832;
+}
+
+html.darkmode #lrf_team_2.lrf_team_selected {
+    background-color: #310402;
+}
+
+html.darkmode #lrf_team_3.lrf_team_selected {
+    background-color: #102317;
+}
+
+html.darkmode .lrf_heart>div:first-child {
+    background-color: #693060 !important;
+}
+
+html.darkmode .lrf_team_1>div:first-child {
+    background-color: #011832 !important;
+}
+
+html.darkmode .lrf_team_2>div:first-child {
+    background-color: #310402 !important;
+}
+
+html.darkmode .lrf_team_3>div:first-child {
+    background-color: #102317 !important;
+}
