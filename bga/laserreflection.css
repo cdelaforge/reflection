@@ -520,3 +520,8 @@ html.darkmode .lrf_team_2>div:first-child {
 html.darkmode .lrf_team_3>div:first-child {
     background-color: #102317 !important;
 }
+
+html.darkmode.space .whiteblock {
+    background: var(--dark-10);
+    opacity: 1;
+}
