@@ -473,7 +473,7 @@ class LaserReflection extends Table {
     function argGameEndCustom() {
         $result = $this->argGameEnd();
 
-        $gameResults = $this->getGameResults();
+        $gameResults = $this->getLrfGameResults();
         $durations = $gameResults['durations'];
         $boards = $gameResults['boards'];
         $puzzles = [];
@@ -2561,7 +2561,7 @@ class LaserReflection extends Table {
         }
     }
 
-    function getGameResults() {
+    function getLrfGameResults() {
         $result = [];
 
         if ($this->isSoloMode() && $this->getChallengeMode() == 0) {
