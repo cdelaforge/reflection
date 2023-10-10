@@ -419,6 +419,7 @@ define([
                             break;
                         case "createFromSeed":
                             this.addActionButton('seedValidate', _('Done'), 'onSeedValidate');
+                            this.addActionButton('stop', _('Stop'), 'onStop');
                             break;
                         case "teamSelection":
                             this.removeActionButtons();

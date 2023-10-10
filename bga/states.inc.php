@@ -138,8 +138,8 @@ $machinestates = array(
         "description" => clienttranslate('You should provide the seed code of a puzzle'),
         "descriptionmyturn" => clienttranslate('You should provide the seed code of a puzzle'),
         "type" => "activeplayer",
-        "possibleactions" => ["seedValidate"],
-        "transitions" => [ "next" => STATE_PLAY_PUZZLE_INIT ]
+        "possibleactions" => ["seedValidate", "stopGame"],
+        "transitions" => [ "next" => STATE_PLAY_PUZZLE_INIT, "endGame" => STATE_END_GAME ]
     ],
 
     STATE_DESIGN_PUZZLE => [
@@ -277,7 +277,7 @@ $machinestates = array(
         "initialprivate" => STATE_END_ROUND_PRIVATE,
         "action" => "stEndRound",
         "possibleactions" => [],
-        "transitions" => ["next" => STATE_PLAY_PUZZLE_INIT, "endGame" => STATE_BEFORE_END_GAME]
+        "transitions" => ["next" => STATE_PLAY_PUZZLE_INIT, "endGame" => STATE_BEFORE_END_GAME, "seed" => STATE_SEED_PUZZLE]
     ],
 
     STATE_END_ROUND_PRIVATE => [

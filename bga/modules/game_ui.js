@@ -1011,6 +1011,7 @@ const gameUI = {
     const roundStr = String(round).padStart(4, '0');
     const key = 'pd_' + roundStr + '_';
 
+    this.puzzle = undefined;
     this.grid = this.puzzles[round - this.resultRoundStart];
     this._displaySeed();
 

@@ -866,11 +866,13 @@ class LaserReflection extends Table {
         $playerScore = $player["duration"] >= GIVEUP_DURATION ? 0 : 1;
         $playerTotalScore = $player['score'] + $playerScore;
 
-        $gameEnded = ($soloMode > 0 && $soloMode == $playerTotalScore) || $soloMode == 101;
+        $gameEnded = $soloMode > 0 && $soloMode < 100 && $soloMode == $playerTotalScore;
 
         if (!$gameEnded) {
             // create a new puzzle
-            $this->updatePuzzle();
+            if ($soloMode != 101) {
+                $this->updatePuzzle();
+            }
 
             $round = $this->getRound() + 1;
             $this->setRound($round);
@@ -884,7 +886,7 @@ class LaserReflection extends Table {
                 'points' => $playerScore
             ]);
 
-            if ($soloMode == $playerTotalScore * 2) {
+            if ($soloMode < 100 && $soloMode == $playerTotalScore * 2) {
                 $hearts = $this->getGameStateValue('hearts') + 1;
                 $this->setGameStateValue('hearts', $hearts);
 
@@ -908,6 +910,8 @@ class LaserReflection extends Table {
             if ($gameEnded) {
                 // victory !
                 $this->goToEnd();
+            } else if ($soloMode == 101) {
+                $this->gamestate->nextState("seed");
             } else {
                 $this->gamestate->setAllPlayersMultiactive();
                 $this->gamestate->initializePrivateStateForAllActivePlayers();
@@ -919,6 +923,8 @@ class LaserReflection extends Table {
             if ($gameEnded) {
                 // failed !
                 $this->goToEnd();
+            } else if ($soloMode == 101) {
+                $this->gamestate->nextState("seed");
             } else {
                 $this->gamestate->nextState("next");
             }
@@ -1198,7 +1204,9 @@ class LaserReflection extends Table {
         $this->setGameDbValue('elements', json_encode($items));
         $this->setGameDbValue('grid', $jsonGrid);
         $this->setGameDbValue('puzzle', $jsonPuzzle);
-        $this->setGameDbValue('rg_0000', $jsonGrid);
+
+        $round = str_pad($this->getRound(), 4, '0', STR_PAD_LEFT);
+        $this->setGameDbValue('rg_'.$round, $jsonGrid);
 
         self::notifyAllPlayers("puzzleChange", "", [ 'round_puzzle' => $jsonPuzzle ]);
 
@@ -2563,8 +2571,9 @@ class LaserReflection extends Table {
 
     function getLrfGameResults() {
         $result = [];
+        $mode = $this->getChallengeMode();
 
-        if ($this->isSoloMode() && $this->getChallengeMode() == 0) {
+        if ($this->isSoloMode() && ($mode == 0 || $mode == 101)) {
             $durationsQuery = "SELECT * FROM (SELECT game_param pdk, game_value duration FROM gamestatus WHERE game_param LIKE 'pd_%' ORDER BY game_param DESC LIMIT 10) t ORDER BY pdk";
             $boardsQuery = "SELECT * FROM (SELECT game_param pgk, game_value grid FROM gamestatus WHERE game_param LIKE 'pg_%' ORDER BY game_param DESC LIMIT 10) t ORDER BY pgk";
             $gridsQuery = "SELECT grid FROM (SELECT game_param p, game_value grid FROM gamestatus WHERE game_param LIKE 'rg_%' ORDER BY game_param DESC LIMIT 10) t ORDER BY p";
