@@ -525,3 +525,7 @@ html.darkmode.space .whiteblock {
     background: var(--dark-10);
     opacity: 1;
 }
+
+html.darkmode #giveup-decision {
+    color: var(--light-80);
+}

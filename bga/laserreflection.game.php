@@ -1953,7 +1953,9 @@ class LaserReflection extends Table {
     }
 
     function isRealTime() {
-        return /*$this->isTrainingMode() ||*/ !$this->isAsync();
+        //return /*$this->isTrainingMode() ||*/ !$this->isAsync();
+        // can't find how to avoid having coop game started in turnbased mode => consider this is realtime
+        return $this->isCooperativeMode() || !$this->isAsync();
     }
 
     function isRealtimeTeamMode() {
@@ -1961,7 +1963,9 @@ class LaserReflection extends Table {
     }
 
     function isCooperativeMode() {
-        return $this->isRealTime() && $this->getTeamsCount() == 1;
+        //return $this->isRealTime() && $this->getTeamsCount() == 1;
+        // can't find how to avoid having coop game started in turnbased mode
+        return $this->getGameStateValue('teams') == 1 && $this->getTeamsCount() == 1 && !$this->isSoloMode();
     }
 
     function notifyProgression($playerId, $val) {
