@@ -1056,7 +1056,11 @@ class LaserReflection extends Table {
         self::checkAction("teamValidate");
 
         $playerId = $this->getCurrentPlayerId();
-        $this->gamestate->nextPrivateState($playerId, 'next');
+        if ($this->isRealTime()) {
+            $this->gamestate->nextPrivateState($playerId, 'next');
+        } else {
+            $this->gamestate->setPlayerNonMultiactive($playerId, 'wait');
+        }
 
         $playerTeam = $this->getPlayerTeamNameAndIcon($playerId);
 
@@ -1082,7 +1086,7 @@ class LaserReflection extends Table {
             $playerTeam = $this->getPlayerTeam($player['num']);
             $playerState = $player['state'];
 
-            if ($playerTeam == 0 || $playerState == STATE_TEAM_SELECTION_PRIVATE) {
+            if ($playerTeam == 0 || ($this->isRealTime() && $playerState == STATE_TEAM_SELECTION_PRIVATE)) {
                 $teamsCount[0]++;
             } else {
                 $teamsCount[$playerTeam]++;
@@ -1096,17 +1100,39 @@ class LaserReflection extends Table {
                     clienttranslate('All players have selected the same team, we must restart.'),
                     [ 'action' => 'devalidated' ]
                 );
-                $this->gamestate->nextPrivateStateForAllActivePlayers("previous");
+
+                if ($this->isRealTime()) {
+                    $this->gamestate->nextPrivateStateForAllActivePlayers("previous");
+                } else {
+                    for ($player_no=1; $player_no<=$playersCount; $player_no++) {
+                        $this->setPlayerTeam($player_no, 0);
+                    }
+
+                    $this->gamestate->nextState("previous");
+                }
             } else if (!$this->areTeamsBalanced($playersCount, $teamsCount)) {
                 self::notifyAllPlayers(
                     "teamSelection",
                     clienttranslate('The teams are not balanced, we must restart.'),
                     [ 'action' => 'devalidated' ]
                 );
-                $this->gamestate->nextPrivateStateForAllActivePlayers("previous");
+
+                if ($this->isRealTime()) {
+                    $this->gamestate->nextPrivateStateForAllActivePlayers("previous");
+                } else {
+                    for ($player_no=1; $player_no<=$playersCount; $player_no++) {
+                        $this->setPlayerTeam($player_no, 0);
+                    }
+
+                    $this->gamestate->nextState("previous");
+                }
             } else {
                 self::notifyAllPlayers("log", clienttranslate('All players have selected a team, we can start.'), []);
-                $this->gamestate->setAllPlayersNonMultiactive("next");
+                if ($this->isRealTime()) {
+                    $this->gamestate->setAllPlayersNonMultiactive("next");
+                } else {
+                    $this->gamestate->nextState("next");
+                }
             }
         } else {
             self::notifyAllPlayers("teamSelection", "", [

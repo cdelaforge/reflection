@@ -16,7 +16,7 @@ export const CellContainerChild = styled('div')`
   height: 100%;
 `;
 
-const getCellBackground = (type: "side" | "grid" | "corner" | "stock" | "locked", selected?: boolean) => {
+const getCellBackground = (type: "side" | "grid" | "corner" | "stock" | "locked", selected?: boolean, isCorrect?: boolean) => {
   switch (type) {
     case "grid":
     case "stock":
@@ -26,16 +26,16 @@ const getCellBackground = (type: "side" | "grid" | "corner" | "stock" | "locked"
     case "locked":
       return colors.light_purple;
     default:
-      return selected ? colors.blue : colors.red;
+      return selected ? colors.blue : (isCorrect ? "transparent" : colors.red);
   }
 };
 
-export const CellBackground = styled('div') <{ type: "side" | "grid" | "corner" | "stock" | "locked", size: number, selected?: boolean }>`
+export const CellBackground = styled('div') <{ type: "side" | "grid" | "corner" | "stock" | "locked", size: number, selected?: boolean, isCorrect?: boolean }>`
   width:  ${(props) => `${props.size}px`};
   height:  ${(props) => `${props.size}px`};
   box-sizing: border-box;
   border: ${(props) => props.selected ? "1px solid white" : (props.type === "corner" ? "1px solid transparent" : "1px solid black")};
-  background: ${(props) => getCellBackground(props.type, props.selected)};
+  background: ${(props) => getCellBackground(props.type, props.selected, props.isCorrect)};
   cursor: pointer;
   position: relative;
 `;

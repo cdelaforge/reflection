@@ -102,9 +102,11 @@ define([
                     gameUI.players = {};
                     gameUI.playersCount = 0;
 
+                    const activePlayers = this.getActivePlayers();
+
                     Object.keys(data.players).map((playerId) => {
                         gameUI.playersCount++;
-                        gameUI.savePlayerData(data.players[playerId], playerId);
+                        gameUI.savePlayerData(data.players[playerId], playerId, activePlayers.includes(playerId));
                     });
 
                     data.params.map((p) => {
@@ -683,6 +685,11 @@ define([
                                 gameUI.players[playerId].state = "teamSelecting";
                             });
                         }
+
+                        Object.keys(gameUI.players).map(playerId => {
+                            gameUI.players[playerId].team = 0;
+                        });
+                        gameUI.selectTeam(0);
                         break;
                 }
                 gameUI.shouldRefreshProgression = true;

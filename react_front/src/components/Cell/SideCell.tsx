@@ -46,6 +46,7 @@ function SideCell({ position, index, transform }: SideCellProps) {
       type="side"
       size={cellSize}
       selected={selected}
+      isCorrect={isCellCorrect}
       onClick={() => displayLaser(posIndex, index)}
       id={`lrf_sidecell_${position}_${index}`}
     >

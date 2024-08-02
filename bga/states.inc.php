@@ -22,6 +22,7 @@ if (!defined('STATE_END_GAME')) { // ensure this block is only invoked once, sin
     define("STATE_TEAM_SELECTION", 9);
     define("STATE_TEAM_SELECTION_PRIVATE", 90);
     define("STATE_TEAM_SELECTED", 91);
+    define("STATE_TEAM_SELECTED_TB", 92);
     define("STATE_DESIGN_PUZZLE", 10);
     define("STATE_BEFORE_END_GAME", 98);
     define("STATE_END_GAME", 99);
@@ -112,7 +113,7 @@ $machinestates = array(
         "type" => "multipleactiveplayer",
         "initialprivate" => STATE_TEAM_SELECTION_PRIVATE,
         "action" => "stTeamSelectionInit",
-        "transitions" => ["next" => STATE_PLAY_PUZZLE_INIT ]
+        "transitions" => ["next" => STATE_PLAY_PUZZLE_INIT, "wait" => STATE_TEAM_SELECTED_TB, "previous" => STATE_TEAM_SELECTION ]
     ],
 
     STATE_TEAM_SELECTION_PRIVATE => [
@@ -131,6 +132,17 @@ $machinestates = array(
         "type" => "private",
         "possibleactions" => ["teamCancel"],
         "transitions" => [ "continue" => STATE_TEAM_SELECTED, "previous" => STATE_TEAM_SELECTION_PRIVATE ]
+    ],
+
+    STATE_TEAM_SELECTED_TB => [
+        "name" => "teamSelectedTb",
+        "description" => clienttranslate('Some players are selecting their team'),
+        "descriptionmyturn" => clienttranslate('Some players are selecting their team'),
+        "type" => "multipleactiveplayer",
+        "transitions" => [
+            "previous" => STATE_TEAM_SELECTION,
+            "next" => STATE_PLAY_PUZZLE_INIT
+        ]
     ],
 
     STATE_SEED_PUZZLE => [
@@ -208,7 +220,7 @@ $machinestates = array(
         "transitions" => [
             "stay" => STATE_PLAY_PUZZLE_WAIT_PRIVATE,
             "continue" => STATE_PLAY_PUZZLE_PRIVATE,
-            "teamWait" => STATE_PLAY_PUZZLE_WAIT_TEAM
+            "teamWait" => STATE_PLAY_PUZZLE_WAIT_TEAM,
         ]
     ],
 

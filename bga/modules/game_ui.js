@@ -262,7 +262,7 @@ const gameUI = {
     this.refreshTeamData = true;
   },
 
-  savePlayerData: function (playerData, playerId) {
+  savePlayerData: function (playerData, playerId, playerActive) {
     const result = {
       id: playerId,
       color: playerData.color,
@@ -287,8 +287,12 @@ const gameUI = {
       result.duration = gameUI.getDurationStr(parseInt(playerData.duration, 10));
 
       if (playerData.state === "90") {
-        result.state = "teamSelecting";
-      } else if (playerData.state === "91") {
+        if (playerActive) {
+          result.state = "teamSelecting";
+        } else {
+          result.state = "teamSelected";
+        }
+      } else if (playerData.state === "91" || playerData.state === "92") {
         result.state = "teamSelected";
       } else if (playerData.state === "30") {
         result.state = "creating";
@@ -1242,9 +1246,11 @@ const gameUI = {
       }
     }
 
-    const myData = this.getMyData();
-    if (myData.team !== team) {
-      this.callAction("teamSelect", { no: myData.num, team }, true);
+    if (team > 0) {
+      const myData = this.getMyData();
+      if (myData.team !== team) {
+        this.callAction("teamSelect", { no: myData.num, team }, true);
+      }
     }
   },
 
