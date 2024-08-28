@@ -1341,9 +1341,9 @@ const gameUI = {
         div.style.color = 'rgb(0,0,0)';
         div.innerHTML = svgContent;
         document.getElementById('chatlogs').prepend(div);
-
-        localStorage.setItem('lrx_disp', new Date().getTime());
       }
+
+      localStorage.setItem('lrx_disp', new Date().getTime());
     }
   }
 };

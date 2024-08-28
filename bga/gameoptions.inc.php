@@ -48,7 +48,7 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 201,
                     'value' => 0,
-                    'message' => totranslate('Solo mode requires the game speed to be set to "No time limit"'),
+                    'message' => totranslate('To play solo, you need to set the game speed to “No time limit” (Friendly mode), and specify that there will be only one player at the table (which makes options specific to solo mode available).'),
                     'gamestartonly' => true,
                 ]
             ],
@@ -57,7 +57,7 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 201,
                     'value' => 0,
-                    'message' => totranslate('Solo mode requires the game speed to be set to "No time limit"'),
+                    'message' => totranslate('To play solo, you need to set the game speed to “No time limit” (Friendly mode), and specify that there will be only one player at the table (which makes options specific to solo mode available).'),
                     'gamestartonly' => true,
                 ]
             ],
@@ -66,7 +66,7 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 201,
                     'value' => 0,
-                    'message' => totranslate('Solo mode requires the game speed to be set to "No time limit"'),
+                    'message' => totranslate('To play solo, you need to set the game speed to “No time limit” (Friendly mode), and specify that there will be only one player at the table (which makes options specific to solo mode available).'),
                     'gamestartonly' => true,
                 ]
             ],
@@ -75,7 +75,7 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 201,
                     'value' => 0,
-                    'message' => totranslate('Solo mode requires the game speed to be set to "No time limit"'),
+                    'message' => totranslate('To play solo, you need to set the game speed to “No time limit” (Friendly mode), and specify that there will be only one player at the table (which makes options specific to solo mode available).'),
                     'gamestartonly' => true,
                 ]
             ],
@@ -84,7 +84,7 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 201,
                     'value' => 0,
-                    'message' => totranslate('Solo mode requires the game speed to be set to "No time limit"'),
+                    'message' => totranslate('To play solo, you need to set the game speed to “No time limit” (Friendly mode), and specify that there will be only one player at the table (which makes options specific to solo mode available).'),
                     'gamestartonly' => true,
                 ]
             ],
@@ -93,7 +93,7 @@ $game_options = [
                     'type' => 'otheroptionisnot',
                     'id' => 201,
                     'value' => 0,
-                    'message' => totranslate('Solo mode requires the game speed to be set to "No time limit"'),
+                    'message' => totranslate('To play solo, you need to set the game speed to “No time limit” (Friendly mode), and specify that there will be only one player at the table (which makes options specific to solo mode available).'),
                     'gamestartonly' => true,
                 ]
             ],
@@ -123,7 +123,7 @@ $game_options = [
                 [
                     'type' => 'minplayers',
                     'value' => 2,
-                    'message' => totranslate('Solo mode requires the game speed to be set to "No time limit"'),
+                    'message' => totranslate('To play solo, you need to set the game speed to “No time limit” (Friendly mode), and specify that there will be only one player at the table (which makes options specific to solo mode available).'),
                     'gamestartonly' => true,
                 ]
             ],
@@ -131,7 +131,7 @@ $game_options = [
                 [
                     'type' => 'minplayers',
                     'value' => 2,
-                    'message' => totranslate('Solo mode requires the game speed to be set to "No time limit"'),
+                    'message' => totranslate('To play solo, you need to set the game speed to “No time limit” (Friendly mode), and specify that there will be only one player at the table (which makes options specific to solo mode available).'),
                     'gamestartonly' => true,
                 ]
             ],
