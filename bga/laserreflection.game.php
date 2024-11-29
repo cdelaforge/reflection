@@ -1613,17 +1613,19 @@ class LaserReflection extends Table {
 
         $playerId = $this->getCurrentPlayerId();
 
-        $endDate = new DateTime();
-        $end = $endDate->getTimestamp();
-        $sql = "SELECT player_start start FROM player WHERE player_id=$playerId";
-        $player = self::getObjectFromDB($sql);
-        $duration = $end - $player["start"];
-        $timeLimit = $this->getTimeLimit() * 60;
+        if ($timeout) {
+            $endDate = new DateTime();
+            $end = $endDate->getTimestamp();
+            $sql = "SELECT player_start start FROM player WHERE player_id=$playerId";
+            $player = self::getObjectFromDB($sql);
+            $duration = $end - $player["start"];
+            $timeLimit = $this->getTimeLimit() * 60;
 
-        if ($duration < $timeLimit) {
-            // client timer is not good !
-            $this->gamestate->nextPrivateState($playerId, 'continue');
-            return;
+            if ($duration < $timeLimit) {
+                // client timer is not good !
+                $this->gamestate->nextPrivateState($playerId, 'continue');
+                return;
+            }
         }
 
         if ($grid != null) {
