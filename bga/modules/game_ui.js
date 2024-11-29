@@ -604,6 +604,7 @@ const gameUI = {
         const remainingTime = this.timeLimit * 60 - duration;
 
         if (remainingTime <= 0) {
+          console.info("Time limit reached", { remainingTime, timeLimit: this.timeLimit, serverTimeDec: this.serverTimeDec });
           this.timeout = true;
         } else if (remainingTime <= 30) {
           button.innerHTML = _('Give up') + " (" + remainingTime + ")";

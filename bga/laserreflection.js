@@ -338,6 +338,8 @@ define([
                         gameUI.clearSavedTeamData();
                         break;
                     case "puzzlePlay":
+                        gameUI.serverTimeDec = Math.round(new Date().getTime() / 1000) - args.args["server_time"];
+                        gameUI.timeLimit = parseInt(args.args["time_limit"], 10) || 60;
                         gameUI.mode = 'play';
                         gameUI.setup();
                         gameUI.displayGrid();

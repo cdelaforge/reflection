@@ -419,10 +419,16 @@ class LaserReflection extends Table {
     }
 
     function argPlayPuzzleInitPrivate($playerId) {
+        $timeLimit = $this->getTimeLimit();
+        $now = new DateTime();
+        $serverTime = $now->getTimestamp();
+
         if ($this->isModeRandom()) {
             return [
                 'otherplayer' => "Robby 🤖",
-                'otherplayer_id' => $playerId
+                'otherplayer_id' => $playerId,
+                'server_time' => $serverTime,
+                'time_limit' => $timeLimit
             ];
         }
 
@@ -430,7 +436,9 @@ class LaserReflection extends Table {
             $restingPlayerId = $this->getRestingPlayerId();
             return [
                 'otherplayer' => self::getPlayerNameById($restingPlayerId),
-                'otherplayer_id' => $restingPlayerId
+                'otherplayer_id' => $restingPlayerId,
+                'server_time' => $serverTime,
+                'time_limit' => $timeLimit
             ];
         }
 
@@ -443,7 +451,9 @@ class LaserReflection extends Table {
 
         return [
             'otherplayer' => $otherPlayer['player_name'],
-            'otherplayer_id' => $otherPlayer['player_id']
+            'otherplayer_id' => $otherPlayer['player_id'],
+            'server_time' => $serverTime,
+            'time_limit' => $timeLimit
         ];
     }
 
@@ -1429,6 +1439,10 @@ class LaserReflection extends Table {
     function action_resolve($grid) {
         self::checkAction("puzzleResolve");
 
+        /*
+        $puzzle = $this->getGridPuzzle($grid);
+        if ($jsonPuzzle == json_encode($puzzle)) {*/
+
         $endDate = new DateTime();
         $currentPlayerId = $this->getCurrentPlayerId();
         $end = $endDate->getTimestamp();
@@ -1598,6 +1612,19 @@ class LaserReflection extends Table {
         self::checkAction("giveUp");
 
         $playerId = $this->getCurrentPlayerId();
+
+        $endDate = new DateTime();
+        $end = $endDate->getTimestamp();
+        $sql = "SELECT player_start start FROM player WHERE player_id=$playerId";
+        $player = self::getObjectFromDB($sql);
+        $duration = $end - $player["start"];
+        $timeLimit = $this->getTimeLimit() * 60;
+
+        if ($duration < $timeLimit) {
+            // client timer is not good !
+            $this->gamestate->nextPrivateState($playerId, 'continue');
+            return;
+        }
 
         if ($grid != null) {
             $jsonGrid = json_encode($grid);

@@ -63,7 +63,6 @@ function SmartStock() {
 
   const onMousewheel = (evt: WheelEvent) => {
     if (stockIndex !== undefined) {
-      console.log(evt.deltaY);
       const inc = evt.deltaY > 0 ? 1 : -1;
 
       incStock(inc);
