@@ -151,7 +151,7 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('You should provide the seed code of a puzzle'),
         "type" => "activeplayer",
         "possibleactions" => ["seedValidate", "stopGame"],
-        "transitions" => [ "next" => STATE_PLAY_PUZZLE_INIT, "endGame" => STATE_END_GAME ]
+        "transitions" => [ "next" => STATE_PLAY_PUZZLE_INIT, "endGame" => STATE_BEFORE_END_GAME ]
     ],
 
     STATE_DESIGN_PUZZLE => [
@@ -161,7 +161,7 @@ $machinestates = array(
         "type" => "activeplayer",
         "args" => "argDesignPuzzle",
         "possibleactions" => ["resetDesign", "stopGame"],
-        "transitions" => [ "continue" => STATE_DESIGN_PUZZLE, "endGame" => STATE_END_GAME ]
+        "transitions" => [ "continue" => STATE_DESIGN_PUZZLE, "endGame" => STATE_BEFORE_END_GAME ]
     ],
 
     STATE_CREATE_PUZZLE_INIT => [
@@ -305,7 +305,8 @@ $machinestates = array(
         "name" => "beforeGameEnd",
         "description" => clienttranslate('End of game'),
         "type" => "private",
-        "action" => "stEndGame",
+        "action" => "stBeforeGameEnd",
+        "args" => "argBeforeGameEnd",
         "possibleactions" => [],
         "transitions" => ["endGame" => STATE_END_GAME],
         "updateGameProgression" => true
@@ -317,8 +318,7 @@ $machinestates = array(
         "name" => "gameEnd",
         "description" => clienttranslate("End of game"),
         "type" => "manager",
-        "action" => "stGameEndCustom",
-        "args" => "argGameEndCustom"
+        "action" => "stGameEnd",
+        "args" => "argGameEnd"
     )
-
 );

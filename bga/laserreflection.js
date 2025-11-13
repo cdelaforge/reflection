@@ -357,7 +357,7 @@ define([
                         gameUI.displayGrid();
                         gameUI.hideCollectiveGiveup();
                         break;
-                    case "gameEnd":
+                    case "beforeGameEnd":
                         gameUI.ended = true;
                         gameUI.shouldRefreshProgression = true;
 

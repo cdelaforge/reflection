@@ -480,8 +480,8 @@ class LaserReflection extends Table {
         return $result;
     }
 
-    function argGameEndCustom() {
-        $result = $this->argGameEnd();
+    function argBeforeGameEnd() {
+        $result = [];
 
         $gameResults = $this->getLrfGameResults();
         $durations = $gameResults['durations'];
@@ -1035,13 +1035,9 @@ class LaserReflection extends Table {
         }
     }
 
-    function stEndGame() {
-        $this->gamestate->nextState("endGame");
-    }
-
-    function stGameEndCustom() {
+    function stBeforeGameEnd() {
         $this->calcStats();
-        $this->stGameEnd();
+        $this->gamestate->nextState("endGame");
     }
 
     /* Player actions */
