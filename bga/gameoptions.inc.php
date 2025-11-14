@@ -274,7 +274,7 @@ $game_options = [
             6 => [ 'name' => totranslate('Challenge 2 - Medium'), 'description' => totranslate('Solve 6 puzzles to win (10 items min. and 15 minutes max. per round)') ],
             10 => [ 'name' => totranslate('Challenge 3 - Hard'), 'description' => totranslate('Solve 10 puzzles to win (15 items min. and 10 minutes max. per round)') ],
         ],
-        'default' => 0,
+        'default' => 3,
         'displaycondition' => [
             [
                 'type' => 'minplayers',

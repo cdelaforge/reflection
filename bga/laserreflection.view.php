@@ -35,7 +35,7 @@
         $players = $this->game->loadPlayersBasicInfos();
 
         /*********** Place your code below:  ************/
-        global $g_user;
+        $playerId = $this->getCurrentPlayerId();
 
         $this->tpl['SPECTATOR_TEXT'] = self::_("As a spectator, you can only see the players' boards if the game is in training mode.");
         $this->tpl['SPECTATOR_DESIGN_TEXT'] = self::_("As a spectator, you cannot see a player designing a puzzle.");
@@ -47,7 +47,7 @@
             $data = array(
                 "PLAYER_NAME" => $player['player_name'],
                 "PLAYER_ID" => $player['player_id'],
-                "PLAYER_SELECTED" => $player['player_id'] == $g_user->get_id() ? "selected" : ""
+                "PLAYER_SELECTED" => $player['player_id'] == $playerId ? "selected" : ""
             );
             $this->page->insert_block("player_puzzle", $data);
         }
