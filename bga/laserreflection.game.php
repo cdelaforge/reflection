@@ -284,6 +284,10 @@ class LaserReflection extends Table {
         $start = $startDate->getTimestamp();
         $result['server_time'] = $start;
 
+        if ($gameEnded) {
+            $result = $this->setGameEndResults($result);
+        }
+
         return $result;
     }
 
@@ -482,7 +486,10 @@ class LaserReflection extends Table {
 
     function argBeforeGameEnd() {
         $result = [];
+        return $this->setGameEndResults($result);
+    }
 
+    function setGameEndResults($result) {
         $gameResults = $this->getLrfGameResults();
         $durations = $gameResults['durations'];
         $boards = $gameResults['boards'];

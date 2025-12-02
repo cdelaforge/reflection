@@ -192,6 +192,18 @@ define([
                         gameUI.lockedCells = gameUI.getSavedLockedCells();
                     }
 
+                    if (gameUI.ended) {
+                        if (gameUI.modeRandom) {
+                            gameUI.puzzles = data.puzzles.map(p => JSON.parse(p));
+                        } else {
+                            for (let player_id in data.puzzles) {
+                                gameUI.players[player_id].grid = JSON.parse(data.puzzles[player_id]);
+                            }
+                        }
+                        gameUI.durations = data.durations;
+                        gameUI.boards = data.boards.map(g => { return { pgk: g.pgk, grid: JSON.parse(g.grid) } });
+                    }
+
                     gameUI.init(this);
                     gameUI.displayPlayerIcons();
 
@@ -363,21 +375,20 @@ define([
 
                         if (gameUI.modeRandom) {
                             gameUI.puzzles = args.args.puzzles.map(p => JSON.parse(p));
-                            gameUI.durations = args.args.durations;
-                            gameUI.boards = args.args.boards.map(g => { return { pgk: g.pgk, grid: JSON.parse(g.grid) } });
-                            gameUI.buildRoundsPuzzleSelect();
                         } else {
                             for (let player_id in args.args.puzzles) {
                                 gameUI.players[player_id].grid = JSON.parse(args.args.puzzles[player_id]);
                             }
-                            gameUI.durations = args.args.durations;
-                            gameUI.boards = args.args.boards.map(g => { return { pgk: g.pgk, grid: JSON.parse(g.grid) } });
                         }
-
+                        gameUI.durations = args.args.durations;
+                        gameUI.boards = args.args.boards.map(g => { return { pgk: g.pgk, grid: JSON.parse(g.grid) } });
+                        break;
+                    case "gameEnd":
                         if (gameUI.soloMode === 100) {
                             gameUI.hideDesignArea();
                         } else if (gameUI.modeRandom) {
                             gameUI.displayRoundPuzzle(document.getElementById("roundSelect").value);
+                            gameUI.buildRoundsPuzzleSelect();
                         } else if (this.isSpectator) {
                             gameUI.displayPlayerPuzzle(document.getElementById("playerSelect").value);
                         } else {
