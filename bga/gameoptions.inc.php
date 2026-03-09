@@ -42,7 +42,7 @@ $game_options = [
                 'value' => 1,
             ],
         ],
-        'startcondition' => [
+        /*'startcondition' => [
             0 => [
                 [
                     'type' => 'otheroptionisnot',
@@ -97,7 +97,7 @@ $game_options = [
                     'gamestartonly' => true,
                 ]
             ],
-        ]
+        ]*/
     ],
     103 => [
         'name' => totranslate('Multiplayer mode'),
@@ -118,7 +118,7 @@ $game_options = [
                 'value' => [2, 3, 4, 5, 6]
             ],
         ],
-        'startcondition' => [
+        /*'startcondition' => [
             0 => [
                 [
                     'type' => 'minplayers',
@@ -135,7 +135,7 @@ $game_options = [
                     'gamestartonly' => true,
                 ]
             ],
-        ]
+        ]*/
     ],
     106 => [
         'name' => totranslate('Team mode'),

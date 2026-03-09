@@ -1877,7 +1877,7 @@ class LaserReflection extends Table {
     }
 
     function isTrainingMode() {
-        return $this->getGameStateValue('training_mode') == 1;
+        return $this->getGameStateValue('training_mode') == 1 || $this->isSoloMode();
     }
 
     function isGameEnded() {
