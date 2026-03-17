@@ -1846,7 +1846,15 @@ class LaserReflection extends Table {
             case 10:
                 return max($cpt, 15);
             default:
-                return $cpt;
+                $grid_size = $this->getGameStateValue('grid_size');
+                $light_warp = $this->getGameStateValue('light_warp') == 1;
+                $max_items = $grid_size * $grid_size;
+
+                if ($light_warp) {
+                    $max_items = $max_items - 2; // we remove the 2 portals
+                }
+
+                return min($cpt, $max_items);
         }
     }
 
