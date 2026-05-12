@@ -447,7 +447,7 @@ class LaserReflection extends Table {
         }
 
         $round = $this->getRound();
-        $playerNo = $this->getPlayerNoById($playerId);
+        $playerNo = self::getPlayerNoById($playerId);
         $otherPlayerNo = ($playerNo + $round - 1) % $this->getPlayersNumber() + 1;
 
         $sql = "SELECT player_name, player_id FROM player WHERE player_no=$otherPlayerNo";
@@ -1442,13 +1442,36 @@ class LaserReflection extends Table {
     function action_resolve($grid) {
         self::checkAction("puzzleResolve");
 
-        /*
-        $puzzle = $this->getGridPuzzle($grid);
-        if ($jsonPuzzle == json_encode($puzzle)) {*/
-
         $endDate = new DateTime();
-        $currentPlayerId = $this->getCurrentPlayerId();
         $end = $endDate->getTimestamp();
+
+        $currentPlayerId = $this->getCurrentPlayerId();
+        $playerNo = self::getPlayerNoById($currentPlayerId);
+
+        // get player puzzle
+        $jsonPuzzle = null;
+        if ($this->isModeRandom()) {
+            $jsonPuzzle = $this->getGameDbValue('puzzle');
+        } else if ($this->isModeResting()) {
+            $restingPlayerId = $this->getRestingPlayerId();
+            $sql = "SELECT player_puzzle FROM player WHERE player_id=$restingPlayerId";
+            $player = self::getObjectFromDB($sql);
+            $jsonPuzzle = $player['player_puzzle'];
+        } else {
+            $round = $this->getRound();
+            $otherPlayerNo = ($playerNo + $round - 1) % $this->getPlayersNumber() + 1;
+            $sql = "SELECT player_puzzle FROM player WHERE player_no=$otherPlayerNo";
+            $player = self::getObjectFromDB($sql);
+            $jsonPuzzle = $player['player_puzzle'];
+        }
+
+        $puzzle = $this->getGridPuzzle($grid);
+        if (json_encode($puzzle) !== $jsonPuzzle) {
+            // invalid solution, cheater!
+            self::notifyPlayer($currentPlayerId, "message", "Cheater! Shame on you! 😡");
+            $this->action_giveup($grid, false);
+            return;
+        }
 
         $sql = "SELECT player_start start, player_total_duration total FROM player WHERE player_id=$currentPlayerId";
         $player = self::getObjectFromDB($sql);
@@ -1475,7 +1498,7 @@ class LaserReflection extends Table {
             $this->giveExtraTime($currentPlayerId);
             $this->gamestate->nextPrivateState($currentPlayerId, 'teamWait');
 
-            $currentPlayerTeam = $this->getPlayerTeam(self::getPlayerNoById($currentPlayerId));
+            $currentPlayerTeam = $this->getPlayerTeam($playerNo);
             $teamData = $this->getTeammatesAndCheckState($currentPlayerTeam, STATE_PLAY_PUZZLE_RESOLVED_TEAM);
             $teammates = $teamData['teammates'];
 

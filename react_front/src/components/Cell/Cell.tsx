@@ -59,15 +59,15 @@ function Cell({ row, col, transform }: CellProps) {
     return 0;
   }
 
-  const clickCell = () => {
-    if (!lock[row][col] && getPlayerVal() !== 7 && mode !== "empty" && mode !== "solution" && mode !== "solutionOnly") {
+  const clickCell = (evt: React.MouseEvent<HTMLDivElement>) => {
+    if (evt.isTrusted && !lock[row][col] && getPlayerVal() !== 7 && mode !== "empty" && mode !== "solution" && mode !== "solutionOnly") {
       setGridElement(row, col);
     }
   };
 
-  const rightClick = (event: any) => {
-    event.stopPropagation();
-    event.preventDefault();
+  const rightClick = (evt: React.MouseEvent<HTMLDivElement>) => {
+    evt.stopPropagation();
+    evt.preventDefault();
 
     if (getPlayerVal() !== 7 && mode !== "solution" && mode !== "solutionOnly") {
       lockCell(row, col, !lock[row][col]);
