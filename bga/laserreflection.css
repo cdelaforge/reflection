@@ -537,3 +537,7 @@ html.darkmode span[id^='icon_team'] {
 html.darkmode .lrf_eye svg {
     filter: invert(1);
 }
+
+html.darkmode .lrf_progress-bar__text {
+    color: #000;
+}

@@ -1467,9 +1467,9 @@ class LaserReflection extends Table {
 
         $puzzle = $this->getGridPuzzle($grid);
         if (json_encode($puzzle) !== $jsonPuzzle) {
-            // invalid solution, cheater!
-            self::notifyPlayer($currentPlayerId, "message", "Cheater! Shame on you! 😡");
-            $this->action_giveup($grid, false);
+            // invalid solution, cheater?
+            self::notifyPlayer($currentPlayerId, "message", "Wrong solution sent! 🤔");
+            $this->gamestate->nextPrivateState($currentPlayerId, 'continue');
             return;
         }
 
